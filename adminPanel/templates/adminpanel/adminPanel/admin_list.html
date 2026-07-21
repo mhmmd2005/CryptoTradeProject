@@ -1,0 +1,1562 @@
+{% extends 'shared/layout__.html' %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %} Admin | Access & Governance {% endblock %}
+
+{% block css %}
+    <script>
+        // این کد به اسکریپت‌های قالب می‌گوید که فایل‌های پایه کجاست
+        var sessionStorage = window.sessionStorage;
+        if (sessionStorage) {
+            sessionStorage.setItem("is_visited", "layout-direction-ltr");
+        }
+        // تنظیم مسیر اصلی استاتیک برای app.js
+        window.STATIC_URL = "/static/";
+    </script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+
+        .readonly-container {
+            width: 35px;
+            height: 32px;
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+        }
+
+        .readonly-expand-badge {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            cursor: default;
+            color: #299cdb;
+            background-color: rgba(41, 156, 219, 0.12);
+            border: 1px solid rgba(41, 156, 219, 0.2);
+            border-radius: 30px;
+            padding: 5px 10px;
+            width: 35px;
+            height: 32px;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, box-shadow 0.3s;
+            z-index: 10;
+        }
+
+        .readonly-container:hover .readonly-expand-badge {
+            width: 115px;
+            background-color: var(--vz-choices-bg, #fff);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            border-color: #299cdb;
+        }
+
+        .readonly-expand-badge i {
+            font-size: 15px;
+            min-width: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .readonly-text {
+            opacity: 0;
+            margin-left: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .readonly-container:hover .readonly-text {
+            opacity: 1;
+        }
+
+
+    </style>
+    <style>
+        /* ۱. تنظیمات کلی کانتینر چت */
+        #chat-messages-list {
+            background-color: #ffffff !important; /* پس‌زمینه کل لیست سفید */
+            height: 400px !important;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        /* ۲. استایل حباب پیام */
+        .chat-bubble {
+            position: relative;
+            max-width: 80%;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            display: inline-block;
+            word-break: break-word;
+        }
+
+        /* ۳. پیام‌های من (سمت راست - سفیدِ چرک) */
+        .flex-row-reverse .chat-bubble {
+            background-color: #f2f2f2 !important; /* سفید مایل به خاکستری */
+            color: #000000 !important;
+            border-radius: 15px 15px 0px 15px !important;
+            border: 1px solid #e0e0e0 !important;
+        }
+
+        /* ۴. پیام‌های دیگران (سمت چپ - ذغالی) */
+        /* نکته: کلاس bg-white و bg-primary را از HTML حذف کنید تا این بخش کار کند */
+        .d-flex:not(.flex-row-reverse) .chat-bubble {
+            background-color: #343a40 !important;
+            color: #ffffff !important;
+            border-radius: 15px 15px 15px 0px !important;
+            border: none !important;
+        }
+
+        /* ۵. تیک‌های آبی روی پس‌زمینه روشن */
+        .seen-tick {
+            color: #007bff !important;
+            font-weight: bold;
+        }
+
+        .delivered-tick {
+            color: #999999 !important;
+        }
+
+        /* ۶. استایل نام ادمین و زمان */
+        .admin-name {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .msg-time {
+            font-size: 9px;
+            opacity: 0.7;
+        }
+
+        /* رنگ‌بندی داینامیک نام و ساعت */
+        .flex-row-reverse .admin-name {
+            color: #6c757d !important;
+        }
+
+        /* خاکستری برای پیام من */
+        .d-flex:not(.flex-row-reverse) .admin-name {
+            color: #ffc107 !important;
+        }
+
+        /* طلایی برای دیگران */
+        .d-flex:not(.flex-row-reverse) .msg-time {
+            color: #dee2e6 !important;
+        }
+
+        /* اصلاح ظاهر آواتارها */
+        .avatar-title.bg-secondary-subtle {
+            background-color: #e2e5e8 !important; /* یک خاکستری مشخص که روی سفید دیده شود */
+            color: #495057 !important;
+        }
+
+        .avatar-title.bg-dark {
+            background-color: #212529 !important; /* ذغالی تیره برای آواتار دیگران */
+        }
+
+    </style>
+    <style>
+        #context-menu {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            background: var(--vz-choices-bg, #ffffff);
+            min-width: 160px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 5px 0;
+            border: 1px solid var(--vz-border-color, #ddd);
+            color: var(--vz-body-color, #333);
+        }
+
+        #context-menu button {
+            width: 100%;
+            text-align: right;
+            padding: 8px 15px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            flex-direction: row-reverse;
+            color: inherit; /* ارث‌بری رنگ متن از والد */
+        }
+
+        #context-menu button:hover {
+            background-color: var(--vz-light, #f8f9fa);
+        }
+
+        #context-menu button i {
+            margin-left: 10px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <!-- عنوان اصلی درون صفحه -->
+                            <h4 class="mb-sm-0 fw-bold">Access & Governance</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">Administration</a></li>
+                                    <li class="breadcrumb-item active">Access Control</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card" id="adminList">
+                            <div class="card-header border-0">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+
+                                    <h5 class="card-title mb-0 flex-grow-1 fw-semibold text-dark"
+                                        style="min-width: 200px;">System Administrators</h5>
+
+                                    <div class="d-flex align-items-center gap-2 flex-wrap flex-sm-shrink-0">
+                                        {% if request.admin_user.is_senior %}
+                                            <div class="flex-grow-1 flex-sm-grow-0">
+                                                <button type="button" class="btn btn-success add-btn shadow-none w-100"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#showModal">
+                                                    <i class="ri-add-line align-bottom me-1"></i> Add Admin
+                                                </button>
+                                            </div>
+                                            <div class="flex-grow-1 flex-sm-grow-0">
+                                                <button type="button" class="btn btn-soft-info shadow-none w-100"
+                                                        hx-get="{% url 'admin-requests-list' %}"
+                                                        hx-target="#adminRequestsModalContent"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#adminRequestsModal">
+                                                    <i class="ri-user-received-line align-bottom me-1"></i> Admin
+                                                    Requests
+                                                </button>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if request.admin_user.is_senior %}
+                                            <div class="flex-grow-1 flex-sm-grow-0">
+                                                <button class="btn btn-soft-secondary shadow-none custom-log-btn w-100"
+                                                        hx-get="{% url 'admin-logs-list' %}"
+                                                        hx-target="#modal-content"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#adminLogModal"
+                                                        onfocus="this.blur()">
+                                                    <i class="ri-history-line align-bottom me-1"></i> <span
+                                                        class="d-sm-none d-md-inline">Admin Logs</span>
+                                                </button>
+                                            </div>
+                                            <div class="flex-grow-1 flex-sm-grow-0">
+                                                <button type="button"
+                                                        class="btn btn-soft-success waves-effect waves-light w-100"
+                                                        id="btn-view-revenue">
+                                                    <i class="ri-money-dollar-box-line align-middle me-1"></i>
+                                                    <span class="d-none d-md-inline">View Platform Revenue</span>
+                                                    <span class="d-inline d-md-none">Revenue</span>
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body border border-dashed border-end-0 border-start-0">
+                                <form>
+                                    <div class="row g-3">
+                                        <div class="col-xxl-6 col-sm-6">
+                                            <div class="search-box">
+                                                <input type="text"
+                                                       name="q"
+                                                       id="admin-search-input"
+                                                       class="form-control search"
+                                                       placeholder="Search for name or email..."
+                                                       value="{{ search_query|default:'' }}"
+                                                       hx-get="{% url 'admin-list' %}"
+                                                       hx-trigger="keyup changed delay:500ms"
+                                                       hx-target="#admin-table-body"
+                                                       hx-select="#admin-table-body"
+                                                       hx-swap="outerHTML"
+                                                       hx-include="[name='filter']">
+                                                <i class="ri-search-line search-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-xxl-3 col-sm-6">
+                                            <div class="dropdown custom-filter-dropdown">
+                                                <button class="btn btn-white border-light w-100 d-flex justify-content-between align-items-center"
+                                                        type="button" id="filterDropdownBtn" data-bs-toggle="dropdown"
+                                                        data-bs-auto-close="outside">
+            <span id="selectedText" class="text-muted">
+                {% if current_filter == 'active' %}Active
+                {% elif current_filter == 'inactive' %}Inactive
+                {% elif f_date.d %}Date Filter Applied
+                {% else %}Filter by status or date...{% endif %}
+            </span>
+                                                    <i class="ri-arrow-down-s-line text-muted"></i>
+                                                </button>
+
+                                                <div class="dropdown-menu dropdown-menu-end w-100 shadow-lg p-0"
+                                                     id="filterMenu" style="min-width: 250px;">
+                                                    <div id="mainOptions">
+                                                        <a class="dropdown-item py-2" href="javascript:void(0);"
+                                                           hx-get="{% url 'admin-list' %}?filter=all"
+                                                           hx-target="#admin-table-body" hx-select="#admin-table-body"
+                                                           hx-swap="outerHTML"
+                                                           hx-include="#admin-search-input"
+                                                           onclick="updateDropdownText('All Admins')">
+                                                            <i class="ri-team-line me-2 text-muted"></i>All Admins
+                                                        </a>
+                                                        <a class="dropdown-item py-2" href="javascript:void(0);"
+                                                           hx-get="{% url 'admin-list' %}?filter=active"
+                                                           hx-target="#admin-table-body" hx-select="#admin-table-body"
+                                                           hx-swap="outerHTML"
+                                                           hx-include="#admin-search-input"
+                                                           onclick="updateDropdownText('Active')">
+                                                            <i class="ri-checkbox-circle-line me-2 text-success"></i>Active
+                                                        </a>
+                                                        <a class="dropdown-item py-2" href="javascript:void(0);"
+                                                           hx-get="{% url 'admin-list' %}?filter=inactive"
+                                                           hx-target="#admin-table-body" hx-select="#admin-table-body"
+                                                           hx-swap="outerHTML"
+                                                           hx-include="#admin-search-input"
+                                                           onclick="updateDropdownText('Inactive')">
+                                                            <i class="ri-close-circle-line me-2 text-danger"></i>Inactive
+                                                        </a>
+                                                        <div class="dropdown-divider"></div>
+                                                        <a class="dropdown-item py-2 text-primary fw-medium"
+                                                           href="javascript:void(0);" onclick="switchToDateView()">
+                                                            <i class="ri-calendar-2-line me-2"></i>Search by Date
+                                                            Range...
+                                                        </a>
+                                                    </div>
+
+                                                    <div id="dateSearchView" class="d-none p-3">
+                                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                                            <h6 class="m-0 fs-13 fw-semibold text-body">Search by Date
+                                                                Range</h6>
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-ghost-secondary btn-icon"
+                                                                    onclick="switchToMainView()">
+                                                                <i class="ri-arrow-go-back-line fs-14"></i>
+                                                            </button>
+                                                        </div>
+
+                                                        <p class="text-muted small mb-1">From:</p>
+                                                        <div class="row g-1 mb-2">
+                                                            <div class="col-4"><input type="number" name="fDay"
+                                                                                      id="fDay"
+                                                                                      class="form-control form-control-sm"
+                                                                                      placeholder="DD"
+                                                                                      value="{{ f_date.d|default:'' }}">
+                                                            </div>
+                                                            <div class="col-4"><input type="number" name="fMonth"
+                                                                                      id="fMonth"
+                                                                                      class="form-control form-control-sm"
+                                                                                      placeholder="MM"
+                                                                                      value="{{ f_date.m|default:'' }}">
+                                                            </div>
+                                                            <div class="col-4"><input type="number" name="fYear"
+                                                                                      id="fYear"
+                                                                                      class="form-control form-control-sm"
+                                                                                      placeholder="YYYY"
+                                                                                      value="{{ f_date.y|default:'' }}">
+                                                            </div>
+                                                        </div>
+
+                                                        <p class="text-muted small mb-1">To:</p>
+                                                        <div class="row g-1 mb-3">
+                                                            <div class="col-4"><input type="number" name="tDay"
+                                                                                      id="tDay"
+                                                                                      class="form-control form-control-sm"
+                                                                                      placeholder="DD"
+                                                                                      value="{{ t_date.d|default:'' }}">
+                                                            </div>
+                                                            <div class="col-4"><input type="number" name="tMonth"
+                                                                                      id="tMonth"
+                                                                                      class="form-control form-control-sm"
+                                                                                      placeholder="MM"
+                                                                                      value="{{ t_date.m|default:'' }}">
+                                                            </div>
+                                                            <div class="col-4"><input type="number" name="tYear"
+                                                                                      id="tYear"
+                                                                                      class="form-control form-control-sm"
+                                                                                      placeholder="YYYY"
+                                                                                      value="{{ t_date.y|default:'' }}">
+                                                            </div>
+                                                        </div>
+
+                                                        <button type="button" id="confirmDateBtn"
+                                                                class="btn btn-primary btn-sm w-100"
+                                                                hx-get="{% url 'admin-list' %}?filter={{ current_filter }}"
+                                                                hx-include="#fDay, #fMonth, #fYear, #tDay, #tMonth, #tYear, #admin-search-input"
+                                                                hx-target="#admin-table-body"
+                                                                hx-select="#admin-table-body" hx-swap="outerHTML">
+                                                            Show Result in Table
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="card-body pt-0">
+                                <div>
+                                    <ul class="nav nav-tabs nav-tabs-custom nav-primary mb-3 d-flex flex-wrap border-bottom-0"
+                                        role="tablist"
+                                        id="admin-tabs-list">
+
+                                        <li class="nav-item flex-grow-1 flex-sm-grow-0">
+                                            <a class="nav-link {% if current_filter == 'all' or not current_filter %}active{% endif %} py-3 text-center"
+                                               hx-get="{% url 'admin-list' %}?filter=all"
+                                               hx-include="#admin-search-input"
+                                               hx-target="#admin-table-body"
+                                               hx-select="#admin-table-body"
+                                               hx-swap="outerHTML"
+                                               hx-push-url="true"
+                                               onclick="updateActiveTab(this)"
+                                               style="cursor: pointer; height: 100%;">
+                                                <i class="ri-team-fill me-1 align-bottom"></i> All <span
+                                                    class="d-none d-md-inline">Admins</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item flex-grow-1 flex-sm-grow-0">
+                                            <a class="nav-link {% if current_filter == 'active' %}active{% endif %} py-3 text-center"
+                                               hx-get="{% url 'admin-list' %}?filter=active"
+                                               hx-include="#admin-search-input"
+                                               hx-target="#admin-table-body"
+                                               hx-select="#admin-table-body"
+                                               hx-swap="outerHTML"
+                                               hx-push-url="true"
+                                               onclick="updateActiveTab(this)"
+                                               style="cursor: pointer; height: 100%;">
+                                                <i class="ri-checkbox-circle-line me-1 align-bottom"></i> Active
+                                            </a>
+                                        </li>
+                                        <li class="nav-item flex-grow-1 flex-sm-grow-0">
+                                            <a class="nav-link {% if current_filter == 'senior' %}active{% endif %} py-3 text-center"
+                                               hx-get="{% url 'admin-list' %}?filter=senior"
+                                               hx-include="#admin-search-input"
+                                               hx-target="#admin-table-body"
+                                               hx-select="#admin-table-body"
+                                               hx-swap="outerHTML"
+                                               hx-push-url="true"
+                                               onclick="updateActiveTab(this)"
+                                               style="cursor: pointer; height: 100%;">
+                                                <i class="ri-shield-user-line me-1 align-bottom"></i> Senior <span
+                                                    class="d-none d-md-inline">Staff</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item flex-grow-1 flex-sm-grow-0">
+                                            <a class="nav-link {% if current_filter == 'inactive' %}active{% endif %} py-3 text-center"
+                                               hx-get="{% url 'admin-list' %}?filter=inactive"
+                                               hx-include="#admin-search-input"
+                                               hx-target="#admin-table-body"
+                                               hx-select="#admin-table-body"
+                                               hx-swap="outerHTML"
+                                               hx-push-url="true"
+                                               onclick="updateActiveTab(this)"
+                                               style="cursor: pointer; height: 100%;">
+                                                <i class="ri-close-circle-line me-1 align-bottom"></i> Inactive
+                                            </a>
+                                        </li>
+                                    </ul>
+
+                                    <div class="table-responsive table-card mb-1">
+                                        <table class="table table-nowrap align-middle" id="adminTable">
+                                            <thead class="text-muted table-light text-uppercase">
+                                            <tr>
+                                                <th>Full Name</th>
+                                                <th>Email</th>
+                                                <th>2FA Status</th>
+                                                <th>Date Joined</th>
+                                                <th>Last Login</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="list form-check-all" id="admin-table-body">
+                                            {% for admin in admins %}
+                                                <tr class="admin-row">
+                                                    <td class="customer_name">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="avatar-xs flex-shrink-0 me-2">
+                    <span class="avatar-title rounded-circle
+                        {% if admin.id == request.admin_user.id %}bg-success text-white
+                        {% elif admin.is_senior %}bg-soft-danger text-danger
+                        {% else %}bg-soft-primary text-primary{% endif %}">
+                        {{ admin.full_name|slice:":1" }}
+                    </span>
+                                                            </div>
+                                                            <div>
+                                                                <h5 class="fs-14 mb-0">
+                                                                    {{ admin.full_name|highlight:search_query }}
+                                                                    {% if admin.is_senior %}
+                                                                        <i class="ri-shield-star-line text-warning align-middle ms-1"
+                                                                           style="font-size: 16px;"
+                                                                           title="Senior Administrator"></i>
+                                                                    {% endif %}
+                                                                    {% if admin.id == request.admin_user.id %}
+                                                                        <span class="badge badge-soft-success badge-border sm ms-1"
+                                                                              style="font-size: 10px; font-weight: 600;">YOU</span>
+                                                                    {% endif %}
+                                                                </h5>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="email">{{ admin.email|highlight:search_query }}</td>
+                                                    <td class="2fa_status">
+                                                        {% if admin.is_otp_enabled %}
+                                                            <span class="badge badge-soft-success">Enabled</span>
+                                                        {% else %}
+                                                            <span class="badge badge-soft-danger">Disabled</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="date">{{ admin.date_joined|date:"d M, Y" }}</td>
+                                                    <td class="last_login">
+                                                        {% if admin.last_login %}
+                                                            <span class="d-inline-block"
+                                                                  data-bs-toggle="tooltip"
+                                                                  data-bs-placement="top"
+                                                                  title="IP: {{ admin.last_login_ip|default:'Unknown' }}">
+            {{ admin.last_login|date:"d M, Y H:i" }}
+        </span>
+                                                        {% else %}
+                                                            <span class="text-muted">Never</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="status">
+                                                        {% if admin.is_active %}
+                                                            <span class="badge bg-success text-uppercase">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger text-uppercase">Inactive</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if request.admin_user.is_senior %}
+                                                            <ul class="list-inline hstack gap-2 mb-0">
+                                                                <li class="list-inline-item" title="Edit">
+                                                                    <a href="javascript:void(0);"
+                                                                       class="text-primary d-inline-block edit-item-btn"
+                                                                       onclick="openEditModal('{{ admin.id }}', '{{ admin.full_name }}', '{{ admin.is_senior }}', '{{ admin.is_active }}', {{ admin.permissions|safe|default:'[]' }})">
+                                                                        <i class="ri-pencil-fill fs-16"></i>
+                                                                    </a>
+                                                                </li>
+                                                                <li class="list-inline-item" title="Remove">
+                                                                    <a class="text-danger d-inline-block"
+                                                                       href="javascript:void(0);"
+                                                                       onclick="openDeleteControl('{{ admin.id }}', '{{ admin.full_name }}', {% if admin.id == request.admin_user.id %}true{% else %}false{% endif %})">
+                                                                        <i class="ri-delete-bin-5-fill fs-16"></i>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        {% else %}
+                                                            <div class="readonly-container">
+                                                                <div class="readonly-expand-badge">
+                                                                    <i class="ri-lock-2-line"></i>
+                                                                    <span class="readonly-text">Read Only</span>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% empty %}
+                                                <tr id="empty-message-row">
+                                                    <td colspan="8" class="text-center py-5">
+                                                        <div>
+                                                            <lord-icon src="https://cdn.lordicon.com/msoeawqm.json"
+                                                                       trigger="loop"
+                                                                       colors="primary:#25a0e2,secondary:#00bd9d"
+                                                                       style="width:75px;height:75px"></lord-icon>
+                                                            <h5 class="mt-2">{% if search_query %}No result
+                                                                found{% else %}No admins found{% endif %}</h5>
+                                                            <p class="text-muted mb-0">
+                                                                {% if search_query %}No users found for your search.
+                                                                {% else %}There is nothing to display in this
+                                                                    category.{% endif %}
+                                                            </p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end">
+                                        <div class="pagination-wrap hstack gap-2">
+                                            <a class="page-item pagination-prev disabled" href="#">Previous</a>
+                                            <ul class="pagination listjs-pagination mb-0"></ul>
+                                            <a class="page-item pagination-next" href="#">Next</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 text-center text-sm-start">
+                    <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                         style="gap: 6px; line-height: 1;">
+                        <span>&copy;</span>
+                        <span id="footer-year" class="fw-medium"></span>
+                        <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                        <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                        <span>All rights reserved.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-soft-info p-3">
+                    <h5 class="modal-title" id="inviteModalLabel">Invite New Administrator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            id="close-modal"></button>
+                </div>
+
+                <form id="inviteAdminForm" autocomplete="off">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="admin-email-field" class="form-label text-semibold">Admin Email Address</label>
+                            <input type="email" name="email" id="admin-email-field" class="form-control"
+                                   placeholder="admin@domain.com" required/>
+                        </div>
+
+                        <div class="form-check form-switch form-switch-lg mb-3" dir="ltr">
+                            <input type="checkbox" class="form-check-input" name="is_senior_invite"
+                                   id="is_senior_invite">
+                            <label class="form-check-label fw-bold text-danger" for="is_senior_invite">
+                                <i class="ri-shield-star-line align-bottom me-1"></i> Invite as Senior Admin
+                            </label>
+                        </div>
+
+                        <div class="mt-4" id="permissions-section-wrapper">
+                            <label class="form-label text-primary fw-bold mb-3">
+                                <i class="ri-settings-5-line align-bottom me-1"></i> Operational Access Levels
+                            </label>
+
+                            <div class="accordion accordion-border-box" id="permissionsAccordion">
+                                <div class="accordion-item border-0 shadow-none mb-2">
+                                    <h2 class="accordion-header">
+                                        <div class="accordion-button collapsed py-2 rounded-2 bg-soft-secondary d-flex align-items-center">
+                                            <div class="form-check me-2">
+                                                <input class="form-check-input parent-checkbox" type="checkbox"
+                                                       id="all_financial">
+                                            </div>
+                                            <span class="flex-grow-1 text-dark fw-medium" data-bs-toggle="collapse"
+                                                  data-bs-target="#collapseFinancial" style="cursor: pointer;">
+                                            <i class="ri-money-dollar-box-line me-2 text-success"></i>Financial Management
+                                        </span>
+                                        </div>
+                                    </h2>
+                                    <div id="collapseFinancial" class="accordion-collapse collapse"
+                                         data-bs-parent="#permissionsAccordion">
+                                        <div class="accordion-body p-3 mt-1 rounded-2"
+                                             style="background-color: rgba(0,0,0,0.03);">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input child-checkbox" type="checkbox"
+                                                       name="perms" value="wallet" id="p_wallet">
+                                                <label class="form-check-label" for="p_wallet">Wallet Overview</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input child-checkbox" type="checkbox"
+                                                       name="perms" value="withdraw" id="p_withdraw">
+                                                <label class="form-check-label text-danger" for="p_withdraw">Withdrawals
+                                                    & Transactions</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item border-0 shadow-none mb-2">
+                                    <h2 class="accordion-header">
+                                        <div class="accordion-button collapsed py-2 rounded-2 bg-soft-secondary d-flex align-items-center">
+                                            <div class="form-check me-2">
+                                                <input class="form-check-input parent-checkbox" type="checkbox"
+                                                       id="all_users">
+                                            </div>
+                                            <span class="flex-grow-1 text-dark fw-medium" data-bs-toggle="collapse"
+                                                  data-bs-target="#collapseUsers" style="cursor: pointer;">
+                                            <i class="ri-user-settings-line me-2 text-primary"></i>Identity & Users
+                                        </span>
+                                        </div>
+                                    </h2>
+                                    <div id="collapseUsers" class="accordion-collapse collapse"
+                                         data-bs-parent="#permissionsAccordion">
+                                        <div class="accordion-body p-3 mt-1 rounded-2"
+                                             style="background-color: rgba(0,0,0,0.03);">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input child-checkbox" type="checkbox"
+                                                       name="perms" value="kyc" id="p_kyc">
+                                                <label class="form-check-label" for="p_kyc">KYC Verification &
+                                                    Approval</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item border-0 shadow-none mb-2">
+                                    <h2 class="accordion-header">
+                                        <div class="accordion-button collapsed py-2 rounded-2 bg-soft-secondary d-flex align-items-center">
+                                            <div class="form-check me-2">
+                                                <input class="form-check-input parent-checkbox" type="checkbox"
+                                                       id="all_prediction">
+                                            </div>
+                                            <span class="flex-grow-1 text-dark fw-medium" data-bs-toggle="collapse"
+                                                  data-bs-target="#collapseGames" style="cursor: pointer;">
+                                            <i class="ri-trophy-line me-2 text-warning"></i>Prediction Management
+                                        </span>
+                                        </div>
+                                    </h2>
+                                    <div id="collapseGames" class="accordion-collapse collapse"
+                                         data-bs-parent="#permissionsAccordion">
+                                        <div class="accordion-body p-3 mt-1 rounded-2"
+                                             style="background-color: rgba(0,0,0,0.03);">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input child-checkbox" type="checkbox"
+                                                       name="perms" value="prediction" id="p_pred">
+                                                <label class="form-check-label" for="p_pred">Game Rounds &
+                                                    Results</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item border-0 shadow-none mb-2">
+                                    <h2 class="accordion-header">
+                                        <div class="accordion-button collapsed py-2 rounded-2 bg-soft-secondary d-flex align-items-center">
+                                            <div class="form-check me-2">
+                                                <input class="form-check-input parent-checkbox" type="checkbox"
+                                                       id="all_support">
+                                            </div>
+                                            <span class="flex-grow-1 text-dark fw-medium" data-bs-toggle="collapse"
+                                                  data-bs-target="#collapseSupport" style="cursor: pointer;">
+                <i class="ri-customer-service-2-line me-2 text-info"></i>Customer Support
+            </span>
+                                        </div>
+                                    </h2>
+                                    <div id="collapseSupport" class="accordion-collapse collapse"
+                                         data-bs-parent="#permissionsAccordion">
+                                        <div class="accordion-body p-3 mt-1 rounded-2"
+                                             style="background-color: rgba(0,0,0,0.03);">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input child-checkbox" type="checkbox"
+                                                       name="perms" value="support" id="p_support">
+                                                <label class="form-check-label" for="p_support">User Ticket
+                                                    Management</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="permissions-error" class="text-danger small mt-2" style="display: none;">
+                                <i class="ri-error-warning-line align-middle me-1"></i>
+                                Please select at least one permission or invite as Senior Admin.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="hstack gap-2 justify-content-end">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success" id="send-invite-btn">
+                                <span class="spinner-border spinner-border-sm d-none" id="invite-spinner"></span>
+                                <i class="ri-send-plane-fill align-bottom me-1" id="invite-icon"></i> Send Invitation
+                            </button>
+                        </div>
+                    </div>
+                    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
+                        <div id="adminToast" class="toast align-items-center text-white border-0" role="alert"
+                             aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body" id="toastMessage"></div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                        data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteAdminModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-danger-subtle p-3">
+                    <h5 class="modal-title" id="modalTitle">Security: Account Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="deleteConfirmForm" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body text-center p-4">
+                        <div id="deleteStep1">
+                            <div class="avatar-lg mx-auto mb-3">
+                                <div class="avatar-title bg-soft-danger text-danger display-5 rounded-circle"><i
+                                        class="ri-error-warning-line"></i></div>
+                            </div>
+                            <h4>Are you sure?</h4>
+                            <p class="text-muted fs-15" id="warningMsg"></p>
+                            <div class="hstack gap-2 justify-content-center mt-4">
+                                <button type="button" class="btn btn-light w-xs" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-danger w-xs" onclick="handleNextStep()">Confirm
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="deleteStep2" style="display: none;">
+                            <div id="successor-selection-area">
+                                <label class="form-label fw-bold text-danger">Transfer Senior Authority</label>
+                                <select name="new_senior_id" class="form-select mb-3" id="successorSelect">
+                                    <option value="">Choose a successor...</option>
+                                    {% for admin_opt in admins %}{% if admin_opt.id != request.admin_user.id %}
+                                        <option value="{{ admin_opt.id }}">{{ admin_opt.full_name }}</option>
+                                    {% endif %}{% endfor %}
+                                </select>
+                            </div>
+                            <div id="direct-delete-area" style="display: none;">
+                                <div class="alert alert-info border-0">Other seniors exist. Proceed.</div>
+                            </div>
+                            <div class="hstack gap-2 justify-content-end mt-4">
+                                <button type="button" class="btn btn-light" onclick="resetDeleteSteps()">Back</button>
+                                <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                            </div>
+                        </div>
+
+                        <div id="deleteStepOTP" style="display: none;">
+                            <div class="avatar-sm mx-auto mb-3">
+                                <div class="avatar-title bg-soft-info text-info display-6 rounded-circle"><i
+                                        class="ri-shield-keyhole-line"></i></div>
+                            </div>
+                            <label class="form-label fw-bold">Enter Verification Code</label>
+                            <input type="text" name="otp_code" class="form-control text-center fs-18 mb-3"
+                                   placeholder="------" maxlength="6">
+                            <div class="hstack gap-2 justify-content-end">
+                                <button type="button" class="btn btn-light" onclick="resetDeleteSteps()">Back</button>
+                                <button type="submit" class="btn btn-danger">Verify & Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editAdminModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light p-3">
+                    <h5 class="modal-title">Edit Admin: <span id="modalAdminName" class="text-primary"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editAdminForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit_admin_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="edit_full_name" class="form-label">Full Name</label>
+                            <input type="text" id="edit_full_name" class="form-control" placeholder="Enter full name"
+                                   required/>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="edit_is_senior">
+                                    <label class="form-check-label" for="edit_is_senior">Senior Admin</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="edit_is_active">
+                                    <label class="form-check-label" for="edit_is_active">Active Status</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Permissions</label>
+                            <div class="d-flex flex-wrap gap-3 p-3 border rounded bg-light">
+                                {% for perm_value in "kyc,withdraw,prediction,support"|split:"," %}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input perm-check" type="checkbox"
+                                               value="{{ perm_value }}" id="p_{{ perm_value }}">
+                                        <label class="form-check-label"
+                                               for="p_{{ perm_value }}">{{ perm_value|title }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div id="otp_section" style="display: none;"
+                             class="mt-3 p-3 bg-light-danger rounded border border-danger border-dashed">
+                            <label class="form-label text-danger fw-bold">OTP Code (Sent to Email)</label>
+                            <input type="text" id="edit_otp_code" class="form-control text-center fs-18"
+                                   placeholder="000000" maxlength="6">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success" id="saveBtn">Update Admin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="adminLogModal" tabindex="-1" aria-labelledby="adminLogModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0" id="modal-content">
+                <div class="modal-body text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="mt-4">Fetching activity logs...</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="revenueModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 8px;">
+                <div class="modal-header p-3 bg-soft-info">
+                    <h5 class="modal-title">Platform Revenue Management Center</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- تب‌های اصلی مودال -->
+                <ul class="nav nav-tabs nav-justified" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab-manage" role="tab">Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab-history" role="tab" id="load-history-tab">History
+                            & Audit</a>
+                    </li>
+                </ul>
+
+                <div class="modal-body tab-content">
+                    <!-- بخش اول: مدیریت موجودی و ثبت درخواست برداشت -->
+                    <div class="tab-pane active" id="tab-manage" role="tabpanel">
+                        <div class="text-center py-3">
+                            <select class="form-select w-50 mx-auto mb-3" id="revenue-currency-selector">
+                                <option value="usdttrc20">USDT (TRC20)</option>
+                                <option value="btc">BTC</option>
+                                <option value="eth">ETH</option>
+                                <option value="trx">TRX</option>
+                            </select>
+                            <p class="text-muted text-uppercase mb-1">Current Revenue Balance</p>
+                            <h2 class="fw-bold text-primary">$<span id="revenue-amount">0.00</span> <span
+                                    id="revenue-currency-label">USDT</span></h2>
+                        </div>
+
+                        <hr class="border-dashed">
+
+                        <div class="mt-4">
+                            <div class="mb-3">
+                                <label for="withdraw-amount" class="form-label">Amount</label>
+                                <input type="number" step="0.01" class="form-control" id="withdraw-amount"
+                                       placeholder="0.00">
+                            </div>
+                            <div class="mb-3">
+                                <label for="withdraw-address" class="form-label">Destination Address</label>
+                                <input type="text" class="form-control" id="withdraw-address"
+                                       placeholder="Enter address">
+                            </div>
+                            <button type="button" id="confirm-withdrawal-btn" class="btn btn-danger w-100 shadow-none">
+                                Confirm and Process
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- بخش دوم: تاریخچه جامع تراکنش‌ها (هماهنگ با hx-swap-oob بک‌اِند) -->
+                    <div class="tab-pane" id="tab-history" role="tabpanel">
+                        <!-- ساب‌تب‌های داخلی برای سوئیچ بین پندینگ و آرشیو -->
+                        <ul class="nav nav-pills nav-justified mb-3 bg-light p-1" style="border-radius: 6px;"
+                            role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active btn-sm" data-bs-toggle="tab" href="#sub-tab-pending"
+                                   role="tab">Pending Requests</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn-sm" data-bs-toggle="tab" href="#sub-tab-full-log" role="tab">Full
+                                    Audit Log</a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- جدول لیست درخواست‌های در انتظار تأیید -->
+                            <div class="tab-pane active" id="sub-tab-pending" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Admin</th>
+                                            <th class="text-center">Wallet Address</th>
+                                            <th>Amount</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <!-- 🌟 شناسه کاملاً هماهنگ با تگ hx-swap-oob در بک‌اند شما -->
+                                        <tbody id="pending-table-body">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-3 text-muted">No pending requests
+                                                loaded.
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- جدول آرشیو کامل و نهایی شده حسابرسی -->
+                            <div class="tab-pane" id="sub-tab-full-log" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Admin</th>
+                                            <th class="text-center">Wallet Address</th>
+                                            <th>Amount</th>
+                                            <th class="text-center">Status</th>
+                                        </tr>
+                                        </thead>
+                                        <!-- 🌟 شناسه کاملاً هماهنگ با تگ hx-swap-oob در بک‌اند شما -->
+                                        <tbody id="history-table-body">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-3 text-muted">No transaction history
+                                                loaded.
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- گیرنده مخفی HTMX برای پردازش داده‌های ارسالی بدون تداخل با DOM اصلی -->
+                <div id="htmx-oob-receiver" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="adminRequestsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 8px;">
+                <div class="modal-header bg-soft-info p-3">
+                    <h5 class="modal-title"><i class="ri-user-follow-line me-2"></i>Pending Admin Requests</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" id="adminRequestsModalContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-info" role="status"></div>
+                        <p class="mt-2 text-muted">Loading requests...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script src="{% static 'assets/libs/list.js/list.min.js' %}"></script>
+    <script src="{% static 'assets/libs/list.pagination.js/list.pagination.min.js' %}"></script>
+    <script src="{% static 'assets/js/pages/ecommerce-order.init.js' %}"></script>
+    <script src="{% static 'assets/libs/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const inviteForm = document.getElementById('inviteAdminForm');
+            const seniorSwitch = document.getElementById('is_senior_invite');
+            const permsWrapper = document.getElementById('permissions-section-wrapper');
+
+            if (seniorSwitch) {
+                seniorSwitch.addEventListener('change', function () {
+                    permsWrapper.style.opacity = this.checked ? '0.5' : '1';
+                    permsWrapper.style.pointerEvents = this.checked ? 'none' : 'auto';
+                });
+            }
+
+            if (inviteForm) {
+                inviteForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const emailValue = document.getElementById('admin-email-field').value;
+                    const isSeniorChecked = document.getElementById('is_senior_invite').checked;
+                    const errorDiv = document.getElementById('permissions-error');
+
+                    let selectedPerms = [];
+                    document.querySelectorAll('.child-checkbox:checked').forEach(checkbox => {
+                        selectedPerms.push(checkbox.value);
+                    });
+
+                    if (!isSeniorChecked && selectedPerms.length === 0) {
+                        errorDiv.innerText = "Please select at least one permission or invite as Senior Admin.";
+                        errorDiv.style.display = 'block';
+                        return;
+                    } else {
+                        errorDiv.style.display = 'none';
+                    }
+
+                    if (isSeniorChecked) {
+                        selectedPerms.push("__senior__");
+                    }
+
+                    const sendBtn = document.getElementById('send-invite-btn');
+                    const spinner = document.getElementById('invite-spinner');
+                    const inviteIcon = document.getElementById('invite-icon');
+
+                    sendBtn.disabled = true;
+                    spinner.classList.remove('d-none');
+                    inviteIcon.classList.add('d-none');
+
+                    fetch("/adminPanel/invite/", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+                        body: JSON.stringify({email: emailValue, perms: selectedPerms})
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert("Success: " + data.message);
+                                location.reload();
+                            } else {
+                                alert("Error: " + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            alert("Connection lost. Please try again.");
+                        })
+                        .finally(() => {
+                            sendBtn.disabled = false;
+                            spinner.classList.add('d-none');
+                            inviteIcon.classList.remove('d-none');
+                        });
+                });
+            }
+
+            document.querySelectorAll('.parent-checkbox').forEach(parent => {
+                parent.addEventListener('change', function () {
+                    const children = this.closest('.accordion-item').querySelectorAll('.child-checkbox');
+                    children.forEach(child => child.checked = this.checked);
+                });
+            });
+        });
+    </script>
+
+    <script>
+        const deleteModalObj = new bootstrap.Modal(document.getElementById('deleteAdminModal'));
+        const deleteForm = document.getElementById('deleteConfirmForm');
+        const step1 = document.getElementById('deleteStep1');
+        const step2 = document.getElementById('deleteStep2');
+        const stepOTP = document.getElementById('deleteStepOTP');
+        const modalTitle = document.getElementById('modalTitle');
+
+        let activeAdminId = null;
+        let activeIsSelf = false;
+
+        function openDeleteControl(adminId, fullName, isSelf) {
+            activeAdminId = adminId;
+            activeIsSelf = isSelf;
+            deleteForm.action = `/adminPanel/delete/${adminId}/`;
+
+            document.getElementById('warningMsg').innerText = isSelf ?
+                "You are about to delete YOUR account. This action cannot be undone." :
+                `You are about to delete admin "${fullName}". Verification is required.`;
+
+            resetDeleteSteps();
+            deleteModalObj.show();
+        }
+
+        function handleNextStep() {
+            if (activeIsSelf) {
+                showTransferStep();
+            } else {
+                fetch(`/adminPanel/delete/${activeAdminId}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            step1.style.display = 'none';
+                            stepOTP.style.display = 'block';
+                            modalTitle.innerText = 'Verify OTP';
+                        } else {
+                            alert(data.message || "Error sending code.");
+                        }
+                    });
+            }
+        }
+
+        function showTransferStep() {
+            step1.style.display = 'none';
+            step2.style.display = 'block';
+            const seniorCount = {{ senior_count|default:1 }};
+            const selectionArea = document.getElementById('successor-selection-area');
+            const directArea = document.getElementById('direct-delete-area');
+
+            if (seniorCount > 1) {
+                selectionArea.style.display = 'none';
+                directArea.style.display = 'block';
+                document.getElementById('successorSelect').required = false;
+            } else {
+                selectionArea.style.display = 'block';
+                directArea.style.display = 'none';
+                document.getElementById('successorSelect').required = true;
+            }
+        }
+
+        function resetDeleteSteps() {
+            step1.style.display = 'block';
+            step2.style.display = 'none';
+            stepOTP.style.display = 'none';
+            modalTitle.innerText = 'Security: Account Deletion';
+        }
+
+        deleteForm.onsubmit = function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => console.error("Error:", err));
+        };
+    </script>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const toastEl = document.getElementById('adminToast');
+            const toastBody = document.getElementById('toastMessage');
+            if (!toastEl) return;
+
+            toastEl.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+            if (type === 'success') toastEl.classList.add('bg-success');
+            else if (type === 'warning') toastEl.classList.add('bg-warning');
+            else toastEl.classList.add('bg-danger');
+
+            toastBody.innerText = message;
+            new bootstrap.Toast(toastEl).show();
+        }
+
+        function openEditModal(id, name, isSenior, isActive, permissions) {
+            document.getElementById('edit_admin_id').value = id;
+            document.getElementById('modalAdminName').innerText = name;
+            document.getElementById('edit_full_name').value = name;
+
+            const isSeniorBool = (isSenior === 'True');
+            document.getElementById('edit_is_senior').checked = isSeniorBool;
+            document.getElementById('edit_is_active').checked = (isActive === 'True');
+
+            const permCheckboxes = document.querySelectorAll('.perm-check');
+            permCheckboxes.forEach(ch => {
+                ch.checked = false;
+                ch.disabled = isSeniorBool;
+            });
+
+            if (isSeniorBool) {
+                permCheckboxes.forEach(ch => ch.checked = true);
+            } else if (permissions) {
+                let permsArray = permissions;
+                if (typeof permissions === 'string' && permissions !== 'None') {
+                    try {
+                        permsArray = JSON.parse(permissions.replace(/'/g, '"'));
+                    } catch (e) {
+                        permsArray = [];
+                    }
+                }
+                if (Array.isArray(permsArray)) {
+                    permsArray.forEach(p => {
+                        let check = document.getElementById('p_' + p);
+                        if (check) check.checked = true;
+                    });
+                }
+            }
+
+            document.getElementById('otp_section').style.display = 'none';
+            document.getElementById('edit_otp_code').value = '';
+            document.getElementById('edit_full_name').readOnly = false;
+            document.getElementById('edit_is_senior').disabled = false;
+            document.getElementById('edit_is_active').disabled = false;
+
+            var editModal = new bootstrap.Modal(document.getElementById('editAdminModal'));
+            editModal.show();
+        }
+
+        document.getElementById('edit_is_senior').addEventListener('change', function () {
+            const isSenior = this.checked;
+            document.querySelectorAll('.perm-check').forEach(ch => {
+                ch.disabled = isSenior;
+                if (isSenior) ch.checked = true;
+            });
+        });
+
+        document.getElementById('editAdminForm').onsubmit = function (e) {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveBtn');
+            const id = document.getElementById('edit_admin_id').value;
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Updating...';
+
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData.append('full_name', document.getElementById('edit_full_name').value);
+            formData.append('is_senior', document.getElementById('edit_is_senior').checked);
+            formData.append('is_active', document.getElementById('edit_is_active').checked);
+            formData.append('otp_code', document.getElementById('edit_otp_code').value);
+
+            document.querySelectorAll('.perm-check:checked').forEach(ch => {
+                formData.append('permissions', ch.value);
+            });
+
+            fetch(`/adminPanel/update/${id}/`, {
+                method: 'POST',
+                body: formData,
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+                .then(response => response.json())
+                .then(data => {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'Update Admin';
+
+                    if (data.status === 'need_otp') {
+                        document.getElementById('otp_section').style.display = 'block';
+                        showToast(data.message, 'warning');
+                        document.getElementById('edit_full_name').readOnly = true;
+                        document.getElementById('edit_is_senior').disabled = true;
+                        document.getElementById('edit_is_active').disabled = true;
+                    } else if (data.status === 'success') {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'Update Admin';
+                    showToast('Server connection failed', 'danger');
+                });
+        };
+    </script>
+
+    <script>
+        function switchToDateView() {
+            document.getElementById('mainOptions').classList.add('d-none');
+            document.getElementById('dateSearchView').classList.remove('d-none');
+        }
+
+        function switchToMainView() {
+            document.getElementById('dateSearchView').classList.add('d-none');
+            document.getElementById('mainOptions').classList.remove('d-none');
+        }
+
+        function updateDropdownText(text) {
+            const el = document.getElementById('selectedText');
+            el.innerText = text;
+            el.classList.remove('text-muted');
+            el.classList.add('text-dark', 'fw-medium');
+        }
+
+        function updateActiveTab(element) {
+            document.querySelectorAll('#admin-tabs-list .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        function initTooltips() {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        }
+
+        document.addEventListener('DOMContentLoaded', initTooltips);
+
+        document.body.addEventListener('htmx:afterOnLoad', function (evt) {
+            initTooltips();
+            const filterMenu = document.getElementById('filterMenu');
+            if (filterMenu) {
+                const dropdownToggle = document.getElementById('filterDropdownBtn');
+                const bsDropdown = bootstrap.Dropdown.getInstance(dropdownToggle);
+                if (bsDropdown) bsDropdown.hide();
+            }
+            if (evt.detail.elt.id === "confirmDateBtn") {
+                updateDropdownText("Date Filter Applied");
+            }
+        });
+
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.withCredentials = true;
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
+
+    <script>
+        // تعریفِ سراسری برای دسترسی در کلِ صفحه
+        window.copyToClipboard = function (text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Wallet address copied to clipboard!");
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // ۱. ابزارهای امنیتی و پایه
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            // ۲. تنظیمات مودال و متغیرها
+            const revenueModal = new bootstrap.Modal(document.getElementById('revenueModal'));
+            const currencySelector = document.getElementById('revenue-currency-selector');
+            const revenueSpan = document.getElementById('revenue-amount');
+            const currencyLabel = document.getElementById('revenue-currency-label');
+            let allBalances = {};
+
+            // ۳. لود موجودی هنگام کلیک روی دکمه مشاهده
+            const btnView = document.getElementById('btn-view-revenue');
+            if (btnView) {
+                btnView.addEventListener('click', function () {
+                    fetch("{% url 'platform_revenue_api' %}")
+                        .then(res => res.json())
+                        .then(data => {
+                            allBalances = data.balances;
+                            currencySelector.dispatchEvent(new Event('change'));
+                            revenueModal.show();
+                        });
+                });
+            }
+
+            // ۴. آپدیت موجودی هنگام تغییر ارز
+            if (currencySelector) {
+                currencySelector.addEventListener('change', function () {
+                    const val = this.value;
+                    revenueSpan.innerText = allBalances[val] ? parseFloat(allBalances[val]).toFixed(2) : '0.00';
+                    currencyLabel.innerText = val.toUpperCase();
+                });
+            }
+
+            // ۵. لود تاریخچه در تب دوم (اصلاح شده برای هماهنگی با OOB و ساختار ۵ ستونه)
+            const historyTab = document.getElementById('load-history-tab');
+            if (historyTab) {
+                historyTab.addEventListener('shown.bs.tab', function () {
+                    const loader = '<tr><td colspan="5" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Loading data...</td></tr>';
+
+                    // قرار دادن لودینگ روی هر دو جدول، چون بک‌اِند هر دو را همزمان آپدیت می‌کند
+                    document.getElementById('pending-table-body').innerHTML = loader;
+                    document.getElementById('history-table-body').innerHTML = loader;
+
+                    // 🌟 شلیک درخواست به گیرنده مخفی برای پردازش بی‌نقص hx-swap-oob
+                    htmx.ajax('GET', "{% url 'withdrawal_action_api_list' %}", {
+                        target: '#htmx-oob-receiver',
+                        swap: 'innerHTML'
+                    });
+                });
+            }
+
+            // ۶. پردازش برداشت
+            const confirmBtn = document.getElementById('confirm-withdrawal-btn');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function () {
+                    const amount = document.getElementById('withdraw-amount').value;
+                    const address = document.getElementById('withdraw-address').value;
+                    const currency = currencySelector.value;
+
+                    if (!amount || !address) return alert("Please fill all fields");
+
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+
+                    const fd = new FormData();
+                    fd.append('amount', amount);
+                    fd.append('address', address);
+                    fd.append('currency', currency);
+                    fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                    fetch("{% url 'platform_revenue_api' %}", {method: 'POST', body: fd})
+                        .then(res => res.json())
+                        .then(data => {
+                            alert(data.message);
+                            if (data.status === 'success') {
+                                document.getElementById('withdraw-amount').value = '';
+                                document.getElementById('withdraw-address').value = '';
+                                if (btnView) btnView.click(); // رفرش موجودی
+                            }
+                        })
+                        .finally(() => {
+                            this.disabled = false;
+                            this.innerHTML = 'Confirm and Process';
+                        });
+                });
+            }
+        });
+    </script>
+{% endblock %}

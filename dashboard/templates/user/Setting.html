@@ -1,0 +1,971 @@
+{% extends 'shared/_layout.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+
+{% block title %}
+    KYC : {{ page_title }}
+{% endblock %}
+
+{% block css %}
+    <style>
+        .custom-input {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid var(--vz-input-border);
+            background-color: var(--vz-input-bg);
+            transition: all 0.2s ease;
+        }
+
+        .custom-input:focus {
+            border-color: var(--vz-primary);
+            box-shadow: 0 0 0 3px rgba(var(--vz-primary-rgb), 0.1);
+        }
+
+        .error-container {
+            min-height: 18px; /* جلوگیری از پرش فرم هنگام نمایش ارور */
+            margin-top: 4px;
+        }
+
+        .extra-small {
+            font-size: 11px;
+        }
+
+        .border-dashed {
+            border-style: dashed !important;
+            opacity: 0.5;
+        }
+    </style>
+    <style>
+        .pending-message {
+            display: flex;
+            background-color: rgba(44, 44, 58, 0.6); /* شفافیت برای حالت شیشه‌ای */
+            backdrop-filter: blur(10px); /* تار کردن پس‌زمینه */
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgb(57, 54, 54); /* حاشیه شفاف ملایم */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            font-family: sans-serif;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            white-space: nowrap; /* متن در یک خط */
+            width: fit-content; /* روی دسکتاپ به اندازه متن کشیده شود */
+        }
+
+
+        .pending-message-text {
+            font-weight: 600;
+        }
+
+        .button {
+            width: 30px;
+            height: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgb(44, 44, 44);
+            border-radius: 50%;
+            cursor: pointer;
+            transition-duration: .3s;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.13);
+            border: none;
+        }
+
+        .bell {
+            width: 12px;
+        }
+
+        .bell path {
+            fill: white;
+        }
+
+        .button:hover {
+            background-color: rgb(56, 56, 56);
+        }
+
+        .button:hover .bell {
+            animation: bellRing 0.9s both;
+        }
+
+        /* bell ringing animation keyframes*/
+        @keyframes bellRing {
+            0%,
+            100% {
+                transform-origin: top;
+            }
+
+            15% {
+                transform: rotateZ(10deg);
+            }
+
+            30% {
+                transform: rotateZ(-10deg);
+            }
+
+            45% {
+                transform: rotateZ(5deg);
+            }
+
+            60% {
+                transform: rotateZ(-5deg);
+            }
+
+            75% {
+                transform: rotateZ(2deg);
+            }
+        }
+
+        .button:active {
+            transform: scale(0.8);
+        }
+
+
+        /* ریسپانسیو موبایل */
+        @media (max-width: 480px) {
+            .pending-message {
+                width: 95%; /* روی موبایل اندازه مناسب و حداکثر 95% صفحه */
+                padding: 8px 10px;
+                font-size: 12px;
+                gap: 6px;
+                white-space: normal; /* اجازه دهید متن روی چند خط برود */
+            }
+
+            .pending-message-icon {
+                display: none; /* مخفی کردن آیکون روی موبایل */
+            }
+        }
+
+        .passport-text {
+            margin-top: 50px;
+            padding-left: 20px /* فاصله کمی از تصویر */
+
+        }
+
+        .arrow-left {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            margin-right: 8px; /* فاصله از متن */
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 10px solid #000; /* رنگ فلش */
+            vertical-align: middle;
+        }
+
+        .error-message {
+            display: none !important;
+        }
+
+        .passport-text svg {
+            margin-right: 8px; /* فاصله بین آیکون و متن */
+            vertical-align: middle; /* وسط‌چین شدن با متن */
+        }
+
+        .toggle-password svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* فضای کافی برای آیکون داخل input */
+        input.pe-5 {
+            padding-right: 2.5rem !important; /* Adjust if needed */
+        }
+
+        /* آیکون چشم کوچک و روی input */
+        .toggle-password {
+            top: 69% !important;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
+        /* فضای کافی برای آیکون داخل input */
+        input.pe-5 {
+            padding-right: 2.5rem !important;
+        }
+
+        /* آیکون چشم کوچک و ثابت روی input */
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .toggle-password svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* وقتی فیلد autofill شده یا سفید شده */
+        .toggle-password.autofill-active {
+            color: #000; /* سیاه */
+        }
+
+        body.light-mode .toggle-password {
+            color: #000; /* چشم مشکی در لایت */
+        }
+
+        body.dark-mode .toggle-password {
+            color: #fff; /* چشم سفید در دارک */
+        }
+
+
+    </style>
+
+{% endblock %}
+{% block content %}
+    <div class="main-content">
+
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <div class="py-3"></div>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">Settings</a></li>
+                                    <li class="breadcrumb-item active">{{ page_title }}</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="row justify-content-center">
+                        <div class="col-xxl-10">
+                            <div class="card mt-2">
+                                <div class="card-header">
+                                    <ul class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0 d-flex flex-wrap"
+                                        role="tablist">
+                                        <li class="nav-item flex-grow-1 flex-sm-grow-0">
+                                            <a class="nav-link {% if active_tab == 'personal' %}active{% endif %} text-center py-3"
+                                               href="{% url 'dashboard:profile-setting' %}?tab=personal">
+                                                <i class="fas fa-home me-1"></i> Personal Details
+                                            </a>
+                                        </li>
+                                        <li class="nav-item flex-grow-1 flex-sm-grow-0">
+                                            <a class="nav-link {% if active_tab == 'password' %}active{% endif %} text-center py-3"
+                                               href="{% url 'dashboard:profile-setting' %}?tab=password">
+                                                <i class="far fa-user me-1"></i> Change Password
+                                            </a>
+                                        </li>
+                                        <li class="nav-item flex-grow-1 flex-sm-grow-0">
+                                            <a class="nav-link {% if active_tab == 'twostep' %}active{% endif %} text-center py-3"
+                                               href="{% url 'dashboard:profile-setting' %}?tab=twostep">
+                                                <i class="fas fa-shield-alt me-1"></i> Two Step
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="tab-content">
+                                        <div class="tab-pane {% if active_tab == 'personal' %}active show{% endif %}"
+                                             id="personalDetails" role="tabpanel">
+                                            <!-- پیام‌های وضعیت (در صورت وجود) -->
+                                            <div class="profile-messages mt-2">
+                                                {% if show_pending_message %}
+                                                    <div class="d-flex align-items-center gap-3 p-3 rounded-3">
+                                                        <i class="ri-time-line fs-1 text-warning"></i>
+                                                        <div class="flex-grow-1">
+                                                            <strong class="d-block text-body">Under Review</strong>
+                                                            <span class="small text-body">Your information has been submitted. Please wait for admin response.</span>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if show_approved_message %}
+                                                    <div class="d-flex align-items-center gap-3 p-3 rounded-3">
+                                                        <i class="ri-checkbox-circle-line fs-1 text-success"></i>
+                                                        <div class="flex-grow-1">
+                                                            <strong class="d-block text-body">Verified</strong>
+                                                            <span class="small text-body">Your information has been approved. To edit, please submit a ticket.</span>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if show_rejected_message %}
+                                                    <div class="d-flex align-items-center gap-3 p-3 rounded-3">
+                                                        <i class="ri-close-circle-line fs-1 text-danger"></i>
+                                                        <div class="flex-grow-1">
+                                                            <strong class="d-block text-danger">Rejected</strong>
+                                                            <span class="small text-body">Your submitted information was rejected. Please correct and resubmit.</span>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="d-flex justify-content-end mt-1" style="margin-top: 200px">
+                                                <button type="button" class="btn btn-primary btn-label rounded-pill"
+                                                        data-bs-toggle="modal" data-bs-target="#customUsernameModal">
+                                                    <i class="ri-user-smile-line label-icon align-middle rounded-pill fs-16 me-2"></i>
+                                                    Choose Custom Username
+                                                </button>
+                                            </div>
+                                            {% if not is_locked %}
+                                                <!-- کارت شروع (شبیه نمونه درخواستی) -->
+                                                <div id="startCardContainer" class="row justify-content-center">
+                                                    <div class="col-lg-6">
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <div class="text-center">
+                                                                    <div class="row justify-content-center">
+                                                                        <div class="col-lg-9">
+                                                                            <h4 class="mt-4 fw-semibold">KYC
+                                                                                Verification</h4>
+                                                                            <p class="text-muted mt-3">
+                                                                                To start trading and withdrawals, please
+                                                                                verify your identity by providing
+                                                                                personal details and uploading valid
+                                                                                documents.
+                                                                            </p>
+                                                                            <div class="mt-4">
+                                                                                <button type="button"
+                                                                                        class="btn btn-primary"
+                                                                                        id="showProfileFormBtn">
+                                                                                    Click here for Verification
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row justify-content-center mt-5 mb-2">
+                                                                        <div class="col-sm-7 col-8">
+                                                                            <img src="{% static 'assets/images/verification-img.png' %}"
+                                                                                 alt="KYC" class="img-fluid">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            <!-- دکمه انتخاب نام کاربری دلخواه -->
+
+                                            <!-- فرم اطلاعات شخصی (در ابتدا مخفی) -->
+                                            <div id="profileFormContainer" style="display: none;">
+                                                <form method="post" enctype="multipart/form-data"
+                                                      class="profile-edit-form">
+                                                    {% csrf_token %}
+                                                    <div class="row g-4 text-start">
+                                                        <!-- بخش آپلود عکس پروفایل -->
+                                                        <div class="col-12 mb-2">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="profile-user position-relative"
+                                                                     style="width: 100px; height: 100px;">
+                                                                    <img id="user-profile-preview" src="
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                            {% if form.instance.profile_image %}{{ form.instance.profile_image.url }}{% else %}{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}{% endif %}"
+                                                                         class="rounded-circle img-thumbnail user-profile-image shadow-sm"
+                                                                         alt="user-profile-image"
+                                                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                                                    {% if not is_locked %}
+                                                                        <div class="avatar-xs position-absolute"
+                                                                             style="bottom: 5px; right: 5px;">
+                                                                            <input id="profile-img-file-input"
+                                                                                   type="file" class="d-none"
+                                                                                   name="profile_image">
+                                                                            <label for="profile-img-file-input"
+                                                                                   class="mb-0">
+                                    <span class="avatar-title rounded-circle bg-primary text-white shadow"
+                                          style="width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                        <i class="ri-camera-fill"></i>
+                                    </span>
+                                                                            </label>
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div class="ms-4">
+                                                                    <h5 class="mb-1 fw-bold text-content">Personal
+                                                                        Identity</h5>
+                                                                    <p class="text-muted small mb-0">{% if is_locked %}
+                                                                        Records are currently locked.{% else %}Update
+                                                                        your personal details.{% endif %}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <hr class="my-3 border-dashed">
+
+                                                        <!-- فیلدهای دیگر (مانند نام، تلفن، کشور، و ...) - همان کد قبلی خود را قرار دهید -->
+                                                        <div class="col-lg-6">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">First
+                                                                Name</label>
+                                                            <input type="text" class="form-control custom-input"
+                                                                   placeholder="Enter first name" name="first_name"
+                                                                   value="{{ form.first_name.value|default_if_none:'' }}"
+                                                                   {% if is_locked %}disabled{% endif %}>
+                                                            <div class="error-container">
+                                                                {% for error in form.first_name.errors %}
+                                                                    <span class="text-danger extra-small">{{ error }}</span>{% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">Last
+                                                                Name</label>
+                                                            <input type="text" class="form-control custom-input"
+                                                                   placeholder="Enter last name" name="last_name"
+                                                                   value="{{ form.last_name.value|default_if_none:'' }}"
+                                                                   {% if is_locked %}disabled{% endif %}>
+                                                            <div class="error-container">
+                                                                {% for error in form.last_name.errors %}
+                                                                    <span class="text-danger extra-small">{{ error }}</span>{% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">Phone
+                                                                Number</label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text bg-light border-0"><i
+                                                                        class="ri-phone-line"></i></span>
+                                                                <input type="text"
+                                                                       class="form-control custom-input border-start-0"
+                                                                       placeholder="+1 234..." name="phone_number"
+                                                                       value="{{ form.phone_number.value|default_if_none:'' }}"
+                                                                       {% if is_locked %}disabled{% endif %}>
+                                                            </div>
+                                                            <div class="error-container">
+                                                                {% for error in form.phone_number.errors %}
+                                                                    <span class="text-danger extra-small">{{ error }}</span>{% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">Email
+                                                                (System ID)</label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text bg-light border-0"><i
+                                                                        class="ri-mail-line"></i></span>
+                                                                <input type="email"
+                                                                       class="form-control bg-light text-muted border-0"
+                                                                       value="{{ request.user.email }}" disabled>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">City</label>
+                                                            <input type="text" class="form-control custom-input"
+                                                                   placeholder="City" name="city"
+                                                                   value="{{ form.city.value|default_if_none:'' }}"
+                                                                   {% if is_locked %}disabled{% endif %}>
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">Country</label>
+                                                            <input type="text" class="form-control custom-input"
+                                                                   placeholder="Country" name="country"
+                                                                   value="{{ form.country.value|default_if_none:'' }}"
+                                                                   {% if is_locked %}disabled{% endif %}>
+                                                        </div>
+                                                        <div class="col-lg-4">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">Zip
+                                                                Code</label>
+                                                            <input type="text" class="form-control custom-input"
+                                                                   placeholder="Zip" name="zipcode"
+                                                                   value="{{ form.zipcode.value|default_if_none:'' }}"
+                                                                   {% if is_locked %}disabled{% endif %}>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="p-3 rounded-3 bg-light-subtle border border-dashed">
+                                                                <label class="form-label fw-bold small text-uppercase text-muted mb-1">System
+                                                                    Joining Date</label>
+                                                                <p class="mb-0 fw-medium text-dark">
+                                                                    <i class="ri-calendar-check-line me-1 text-primary"></i>
+                                                                    {% if profile and profile.joining_date %}
+                                                                        {{ profile.joining_date|date:'Y-m-d' }}{% else %}
+                                                                        {% now "Y-m-d" %}{% endif %}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label fw-bold small text-uppercase text-muted">Bio
+                                                                / Description</label>
+                                                            <textarea class="form-control custom-input" rows="4"
+                                                                      placeholder="Briefly describe yourself..."
+                                                                      name="description"
+                                                                      {% if is_locked %}disabled{% endif %}>{{ form.description.value|default_if_none:'' }}</textarea>
+                                                        </div>
+                                                        {% if not is_locked %}
+                                                            <div class="col-12 mt-4">
+                                                                <div class="d-flex justify-content-end gap-3 border-top pt-4">
+                                                                    <button type="submit"
+                                                                            class="btn btn-primary px-5 fw-bold shadow">
+                                                                        <i class="ri-save-line me-1"></i> Update Profile
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </form>
+                                            </div>
+
+                                            {% if is_locked %}
+                                                <!-- 🔒 باکس وضعیت قفل حساب کاربری - کاملاً کالیبره شده با سیستم Soft UI تیره -->
+                                                <div class="text-center p-4 mt-3 custom-lock-container"
+                                                     style="border-radius: 8px; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.15); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.02) !important;">
+
+                                                    <!-- المان بصری قفل نئونی با پالس نرم امنیتی -->
+                                                    <div class="mb-3 d-inline-flex align-items-center justify-content-center secure-lock-glow"
+                                                         style="width: 58px; height: 58px; background: rgba(239, 68, 68, 0.08); border-radius: 50%; border: 1px solid rgba(239, 68, 68, 0.25);">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                             xmlns="http://www.w3.org/2000/svg" style="color: #f87171;">
+                                                            <path d="M12 2C9.23858 2 7 4.23858 7 7V9H6C4.89543 9 4 9.89543 4 11V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V11C20 9.89543 19.1046 9 18 9H17V7C17 4.23858 14.7614 2 12 2ZM9 7C9 5.34315 10.3431 4 12 4C13.6569 4 15 5.34315 15 7V9H9V7ZM6 11H18V19H6V11Z"
+                                                                  fill="currentColor"/>
+                                                            <circle cx="12" cy="15" r="2" fill="currentColor"/>
+                                                        </svg>
+                                                    </div>
+
+                                                    <!-- متون مقتدر امنیتی با کنتراست رنگی کالیبره -->
+                                                    <h5 class="fw-bold fs-15 mb-2"
+                                                        style="color: #f87171; letter-spacing: 0.3px;">Profile
+                                                        Temporarily Locked</h5>
+                                                </div>
+
+                                                <style>
+
+                                                    @keyframes secureLockPulse {
+                                                        0%, 100% {
+                                                            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.15);
+                                                            transform: scale(1);
+                                                        }
+                                                        50% {
+                                                            box-shadow: 0 0 18px 4px rgba(239, 68, 68, 0.3);
+                                                            transform: scale(1.03);
+                                                        }
+                                                    }
+                                                </style>
+                                            {% endif %}
+                                        </div>
+
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function () {
+                                                const showBtn = document.getElementById('showProfileFormBtn');
+                                                const startCard = document.getElementById('startCardContainer');
+                                                const formContainer = document.getElementById('profileFormContainer');
+                                                if (showBtn && startCard && formContainer) {
+                                                    showBtn.addEventListener('click', function () {
+                                                        startCard.style.display = 'none';
+                                                        formContainer.style.display = 'block';
+                                                    });
+                                                }
+                                            });
+                                        </script>
+
+                                        <div class="tab-pane {% if active_tab == 'password' %}active show{% endif %}"
+                                             id="changePassword" role="tabpanel">
+                                            <form id="change-password-form" autocomplete="off" novalidate>
+                                                {% csrf_token %}
+                                                <div class="row g-2">
+                                                    <div class="col-lg-4">
+                                                        <div class="position-relative">
+                                                            <label for="oldpasswordInput" class="form-label">Old
+                                                                Password*</label>
+                                                            <input type="password" class="form-control pe-5"
+                                                                   id="oldpasswordInput" name="old_password"
+                                                                   placeholder="Enter current password"
+                                                                   autocomplete="new-password">
+                                                            <span class="toggle-password"></span>
+                                                        </div>
+                                                        <div class="text-danger mt-1" id="error-old_password"></div>
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <div class="position-relative">
+                                                            <label for="newpasswordInput" class="form-label">New
+                                                                Password*</label>
+                                                            <input type="password" class="form-control pe-5"
+                                                                   id="newpasswordInput" name="new_password"
+                                                                   placeholder="Enter new password"
+                                                                   autocomplete="new-password">
+                                                            <span class="toggle-password"></span>
+                                                        </div>
+                                                        <div class="text-danger mt-1" id="error-new_password"></div>
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <div class="position-relative">
+                                                            <label for="confirmpasswordInput" class="form-label">Confirm
+                                                                Password*</label>
+                                                            <input type="password" class="form-control pe-5"
+                                                                   id="confirmpasswordInput" name="confirm_password"
+                                                                   placeholder="Confirm password"
+                                                                   autocomplete="new-password">
+                                                            <span class="toggle-password"></span>
+                                                        </div>
+                                                        <div class="text-danger mt-1" id="error-confirm_password"></div>
+                                                    </div>
+                                                    <div class="col-lg-12 text-end mt-2">
+                                                        <button type="button" id="submit-btn" class="btn btn-primary">
+                                                            <span class="btn-text">Change Password</span>
+                                                            <span class="spinner-border spinner-border-sm"
+                                                                  id="btn-spinner" role="status" aria-hidden="true"
+                                                                  style="display:none;"></span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <div class="tab-pane {% if active_tab == 'twostep' %}active show{% endif %}"
+                                             id="TwoStep" role="tabpanel">
+                                            {% include 'UserTwoStep/profile_two_step.html' %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--end row-->
+
+            </div>
+            <!-- container-fluid -->
+        </div><!-- End Page-content -->
+        <footer class="footer"
+                style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-12 text-center text-sm-start">
+                        <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                             style="gap: 6px; line-height: 1;">
+                            <span>&copy;</span>
+                            <span id="footer-year" class="fw-medium"></span>
+                            <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                            <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                            <span>All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for Custom Username -->
+    <div class="modal fade" id="customUsernameModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form id="customUsernameForm" action="{% url 'dashboard:custom_username' %}" method="POST"
+                  enctype="multipart/form-data" class="modal-content">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Profile Identity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Choose a unique username</label>
+                        <input type="text" class="form-control" id="customUsernameInput" name="custom_username"
+                               placeholder="e.g., john_doe" value="{{ user.profile.custom_username|default:'' }}">
+                        <small class="text-muted">Only letters, numbers, and underscores. Must be unique.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Profile Picture (Avatar)</label>
+                        <input type="file" class="form-control" id="profilePictureInput" name="avatar"
+                               accept="image/jpeg, image/png, image/webp">
+                        <small class="text-muted">Supported formats: JPG, PNG, WebP (Max 2MB).</small>
+                    </div>
+
+                    <div class="text-danger small" id="usernameError" style="display: none; margin-top: 10px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveUsernameBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'assets/js/pages/profile-setting.init.js' %}"></script>
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('change-password-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnSpinner = document.getElementById('btn-spinner');
+
+            const inputs = {
+                old_password: form.querySelector("input[name='old_password']"),
+                new_password: form.querySelector("input[name='new_password']"),
+                confirm_password: form.querySelector("input[name='confirm_password']")
+            };
+
+            const errorDivs = {
+                old_password: document.getElementById('error-old_password'),
+                new_password: document.getElementById('error-new_password'),
+                confirm_password: document.getElementById('error-confirm_password')
+            };
+
+            const clearFieldError = (field) => {
+                if (errorDivs[field]) errorDivs[field].textContent = '';
+            };
+
+            const liveValidate = () => {
+                const oldVal = inputs.old_password.value.trim();
+                const newVal = inputs.new_password.value.trim();
+                const confirmVal = inputs.confirm_password.value.trim();
+
+                clearFieldError('new_password');
+                clearFieldError('confirm_password');
+
+                const strengthErrors = [];
+                if (newVal) {
+                    if (newVal.length < 8) strengthErrors.push('at least 8 characters');
+                    if (!/[A-Z]/.test(newVal)) strengthErrors.push('one uppercase letter');
+                    if (!/\d/.test(newVal)) strengthErrors.push('one number');
+                    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newVal)) strengthErrors.push('one special character');
+                }
+
+                if (oldVal && newVal && oldVal === newVal) {
+                    errorDivs.new_password.textContent = 'New password must differ from old.';
+                } else if (strengthErrors.length) {
+                    errorDivs.new_password.textContent = 'Password must have: ' + strengthErrors.join(', ');
+                }
+
+                if (confirmVal && newVal && confirmVal !== newVal) {
+                    errorDivs.confirm_password.textContent = 'Passwords do not match.';
+                }
+            };
+
+            Object.values(inputs).forEach(input => {
+                input.addEventListener('input', liveValidate);
+            });
+
+            document.querySelectorAll('.toggle-password').forEach(function (eyeSpan) {
+                const eyeClosedSVG = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="m637-425-62-62q4-38-23-65.5T487-576l-62-62q13-5 27-7.5t28-2.5q70 0 119 49t49 119q0 14-2.5 28t-8.5 27Zm133 133-52-52q36-28 65.5-61.5T833-480q-49-101-144.5-158.5T480-696q-26 0-51 3t-49 10l-58-58q38-15 77.5-21t80.5-6q143 0 261.5 77.5T912-480q-22 57-58.5 103.5T770-292Zm-2 202L638-220q-38 14-77.5 21t-80.5 7q-143 0-261.5-77.5T48-480q22-57 58-104t84-85L90-769l51-51 678 679-51 51ZM241-617q-35 28-65 61.5T127-480q49 101 144.5 158.5T480-264q26 0 51-3.5t50-9.5l-45-45q-14 5-28 7.5t-28 2.5q-70 0-119-49t-49-119q0-14 3.5-28t6.5-28l-81-81Zm287 89Zm-96 96Z"/></svg>`;
+                const eyeOpenSVG = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M480-312q70 0 119-49t49-119q0-70-49-119t-119-49q-70 0-119 49t-49 119q0 70 49 119t119 49Zm0-72q-40 0-68-28t-28-68q0-40 28-68t68-28q40 0 68 28t28 68q0 40-28 68t-68 28Zm0 192q-142.6 0-259.8-78.5Q103-349 48-480q55-131 172.2-209.5Q337.4-768 480-768q142.6 0 259.8 78.5Q857-611 912-480q-55 131-172.2 209.5Q622.6-192 480-192Zm0-288Zm0 216q112 0 207-58t146-158q-51-100-146-158t-207-58q-112 0-207 58T127-480q51 100 146 158t207 58Z"/></svg>`;
+
+                eyeSpan.innerHTML = eyeClosedSVG;
+                eyeSpan.addEventListener('click', function () {
+                    const input = this.previousElementSibling;
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.innerHTML = eyeOpenSVG;
+                    } else {
+                        input.type = 'password';
+                        this.innerHTML = eyeClosedSVG;
+                    }
+                });
+            });
+
+            submitBtn.addEventListener('click', function () {
+                let hasError = false;
+                const oldVal = inputs.old_password.value.trim();
+                const newVal = inputs.new_password.value.trim();
+                const confirmVal = inputs.confirm_password.value.trim();
+
+                Object.keys(errorDivs).forEach(clearFieldError);
+
+                if (!oldVal) {
+                    errorDivs.old_password.textContent = 'Old password is required.';
+                    hasError = true;
+                }
+                if (!newVal) {
+                    errorDivs.new_password.textContent = 'Password is required.';
+                    hasError = true;
+                }
+                if (!confirmVal) {
+                    errorDivs.confirm_password.textContent = 'Confirm password is required.';
+                    hasError = true;
+                }
+
+                if (newVal) {
+                    const messages = [];
+                    if (newVal.length < 8) messages.push('at least 8 characters');
+                    if (!/[A-Z]/.test(newVal)) messages.push('one uppercase letter');
+                    if (!/\d/.test(newVal)) messages.push('one number');
+                    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newVal)) messages.push('one special character');
+                    if (oldVal && newVal && oldVal === newVal) messages.push('New password must differ from old.');
+
+                    if (messages.length) {
+                        errorDivs.new_password.textContent = messages.join(', ');
+                        hasError = true;
+                    }
+                }
+
+                if (confirmVal && newVal && confirmVal !== newVal) {
+                    errorDivs.confirm_password.textContent = 'Passwords do not match.';
+                    hasError = true;
+                }
+
+                if (hasError) return;
+
+                submitBtn.disabled = true;
+                btnText.textContent = 'Updating...';
+                btnSpinner.style.display = 'inline-block';
+
+                const formData = new FormData(form);
+                fetch('{% url "change_password" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            submitBtn.disabled = false;
+                            btnText.textContent = 'Change Password';
+                            btnSpinner.style.display = 'none';
+                            for (const key in data.errors) {
+                                if (errorDivs[key]) {
+                                    errorDivs[key].textContent = Array.isArray(data.errors[key]) ? data.errors[key].join(', ') : data.errors[key];
+                                }
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        submitBtn.disabled = false;
+                        btnText.textContent = 'Change Password';
+                        btnSpinner.style.display = 'none';
+                    });
+            });
+        });
+    </script>
+
+    <script>
+        // Custom Username AJAX
+        // Custom Username AJAX (با ارسال داده فرم)
+        // Custom Username AJAX (نسخه نهایی)
+        const saveUsernameBtn = document.getElementById('saveUsernameBtn');
+        if (saveUsernameBtn) {
+            saveUsernameBtn.addEventListener('click', function () {
+                const usernameInput = document.getElementById('customUsernameInput');
+                const username = usernameInput.value.trim();
+                const errorDiv = document.getElementById('usernameError');
+
+                // حذف خطای قبلی
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+
+                if (!username) {
+                    errorDiv.textContent = 'Please enter a username.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                const formData = new URLSearchParams();
+                formData.append('custom_username', username);
+
+                fetch("{% url 'dashboard:custom_username' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('customUsernameModal')).hide();
+                            location.reload();
+                        } else {
+                            errorDiv.textContent = data.message;
+                            errorDiv.style.display = 'block';
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        errorDiv.textContent = 'Network error. Please try again.';
+                        errorDiv.style.display = 'block';
+                    });
+            });
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const errorDivs = document.querySelectorAll(".error-message");
+            errorDivs.forEach(err => {
+                const inputId = err.getAttribute("data-input");
+                const input = inputId ? document.getElementById(inputId) : null;
+
+                if (input) {
+                    const oldPlaceholder = input.getAttribute("placeholder") || "";
+                    input.dataset._origPlaceholder = oldPlaceholder;
+                    input.classList.add("is-invalid");
+                    input.setAttribute("placeholder", err.textContent.trim());
+                    err.style.display = "none";
+
+                    setTimeout(() => {
+                        input.setAttribute("placeholder", input.dataset._origPlaceholder || "");
+                        input.classList.remove("is-invalid");
+                        if (err.parentNode) err.parentNode.removeChild(err);
+                    }, 3000);
+                } else {
+                    err.style.display = "none";
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fileInput = document.getElementById('profile-img-file-input');
+            const profilePreview = document.getElementById('user-profile-preview');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    const file = this.files[0];
+                    if (file) {
+                        // بررسی اینکه فایل حتماً تصویر باشد
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+
+                            reader.onload = function (e) {
+                                // جایگذاری آدرس موقت تصویر در تگ img
+                                profilePreview.src = e.target.result;
+                            }
+
+                            reader.readAsDataURL(file);
+                        } else {
+                            alert("Please select only the image file.");
+                            this.value = ""; // ریست کردن اینپوت
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

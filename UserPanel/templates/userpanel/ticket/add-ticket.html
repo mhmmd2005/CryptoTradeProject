@@ -1,0 +1,184 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+{% block title %} Create New Ticket {% endblock %}
+
+{% block css %}
+    <style>
+        /* Wide Layout Calibration */
+        .card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(120, 15, 15, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        /* افزایش پدینگ برای فرم‌های عریض جهت حفظ تعادل بصری */
+        .card-body.wide-form-padding {
+            padding: 2.5rem !important;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--bs-body-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #494747;
+            box-shadow: 0 0 0 4px rgba(37, 160, 226, 0.1);
+        }
+
+        /* Success Message Styling */
+        .ticket-success-message {
+            background-color: #222928;
+            border-right: 4px solid #0ab39c; /* برای زبان‌های راست‌چین یا تاکید بصری */
+            border-left: 4px solid #0ab39c;
+            color: #0ab39c;
+            margin-bottom: 25px;
+        }
+
+        .auto-resize {
+            overflow: hidden;
+            resize: none;
+            min-height: 50px;
+        }
+
+        /* استایل دکمه‌ها در حالت عریض */
+        .btn-submit-wide {
+            padding: 0.8rem 2.5rem;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">New Support Ticket</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">Support</a></li>
+                                    <li class="breadcrumb-item active">Add Ticket</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-transparent border-bottom py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar-sm">
+                                            <div class="avatar-title bg-soft-primary text-primary fs-22 rounded">
+                                                <i class="ri-mail-send-line"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h4 class="card-title mb-0">Ticket Details</h4>
+                                        <p class="text-muted mb-0">Fill out the form below to reach our experts.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body wide-form-padding">
+                                <form method="post" enctype="multipart/form-data" action="{% url 'add-ticket' %}">
+                                    {% csrf_token %}
+
+
+                                    <div class="row">
+                                        <div class="col-12 mb-4">
+                                            <label class="form-label">Ticket Subject *</label>
+                                            <input type="text" class="form-control" name="title"
+                                                   placeholder="Briefly describe your request..." required>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label class="form-label">Priority Level *</label>
+                                            <select name="priority" class="form-select" required>
+                                                <option value="" selected disabled>Select urgency</option>
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="important">Important</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label class="form-label">Department *</label>
+                                            <select name="department" class="form-select" required>
+                                                <option value="" selected disabled>Where should this go?</option>
+                                                <option value="General">General Inquiries</option>
+                                                <option value="Security">Security & Verification</option>
+                                                <option value="Payment">Payments & Finance</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-12 mb-4">
+                                            <label class="form-label">Your Message *</label>
+                                            <textarea class="form-control auto-resize" name="message" rows="8"
+                                                      placeholder="Write your message here... The more details, the faster we can help."
+                                                      required></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                        <div class="text-muted fs-13 d-flex align-items-center">
+                                            <i class="ri-timer-flash-line fs-16 me-1 text-primary"
+                                               style="margin-bottom: 0px;"></i>
+                                            <span>Your inquiry will be processed by our experts in the shortest possible time.</span>
+                                        </div>
+                                        <div class="hstack gap-2">
+                                            <a href="{% url 'my-ticket' %}" class="btn btn-light px-4">Back to List</a>
+                                            <button type="submit" class="btn btn-primary btn-submit-wide shadow-none">
+                                                Submit Request <i class="ri-arrow-right-line ms-1 align-bottom"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textareas = document.querySelectorAll('.auto-resize');
+            textareas.forEach(textarea => {
+                textarea.addEventListener('input', function () {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+            });
+
+            setTimeout(() => {
+                document.querySelectorAll('.ticket-success-message').forEach(msg => {
+                    msg.style.transition = 'all 0.6s ease';
+                    msg.style.opacity = '0';
+                    msg.style.transform = 'translateY(-20px)';
+                    setTimeout(() => msg.remove(), 600);
+                });
+            }, 6000);
+        });
+    </script>
+{% endblock %}

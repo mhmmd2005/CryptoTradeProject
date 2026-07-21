@@ -1,0 +1,887 @@
+{% extends 'shared/layout.html' %}
+{% load static %}
+
+{% block title %}
+    Sign Up
+{% endblock %}
+
+{% block css %}
+    <style>
+        .auth-one-bg, .auth-one-bg::before, .auth-one-bg::after, .bg-overlay, .shape {
+            display: none !important;
+            content: none !important;
+            background: none !important;
+        }
+
+        /* پس‌زمینه زنده و مدرن Aurora */
+        .auth-modern-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background-color: #080a0f;
+            overflow: hidden;
+        }
+
+        .glow-orb {
+            position: absolute;
+            width: 550px;
+            height: 550px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.18;
+            pointer-events: none;
+            will-change: transform;
+            transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .orb-blue {
+            background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+            top: -15%;
+            left: -15%;
+        }
+
+        .orb-emerald {
+            background: radial-gradient(circle, #10b981 0%, transparent 70%);
+            bottom: -15%;
+            right: -15%;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-size: 45px 45px;
+            pointer-events: none;
+        }
+
+        /* استایل کارت Soft UI با انحنای مدرن ۸ پیکسلی */
+        .modern-auth-card {
+            border: 1px solid rgba(255, 255, 255, 0.03) !important;
+            transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .modern-auth-card:focus-within {
+            border-color: rgba(59, 130, 246, 0.2) !important;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.03) !important;
+        }
+
+        .uppercase-text {
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* فیلدهای شیشه‌ای تاریک مدرن */
+        .custom-dark-input {
+            background-color: rgba(32, 37, 48, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            color: #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding: 11px 14px;
+            font-size: 13px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .custom-dark-input:focus {
+            background-color: #1a1e27 !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+            color: #f1f5f9 !important;
+        }
+
+        .custom-dark-input::placeholder {
+            color: #475569;
+        }
+
+        /* کالیبراسیون و حل تداخل دکمه چشم با آیکون اعتبارسنجی بوت‌استرپ */
+        .password-field-calibrated {
+            padding-right: 75px !important; /* فضای کافی برای هر دو آیکون */
+        }
+
+        /* شیفت دادن آیکون‌های اعتبارسنجی بوت‌استرپ به اندازه عرض دکمه چشم به سمت چپ */
+        .was-validated .auth-pass-inputgroup .password-field-calibrated:invalid,
+        .auth-pass-inputgroup .password-field-calibrated.is-invalid {
+            background-position: right 42px center !important;
+        }
+
+        .was-validated .auth-pass-inputgroup .password-field-calibrated:valid,
+        .auth-pass-inputgroup .password-field-calibrated.is-valid {
+            background-position: right 42px center !important;
+        }
+
+        .eye-btn:hover {
+            color: #f1f5f9 !important;
+        }
+
+        .transition-link:hover {
+            color: #3b82f6 !important;
+        }
+
+        /* دکمه اکشن داینامیک و انیمیشنی */
+        .custom-action-btn {
+            background-color: #10b981 !important;
+            border: none !important;
+            color: #064e3b !important;
+            padding: 0;
+            height: 46px;
+            position: relative;
+            overflow: hidden;
+            will-change: width, border-radius, background-color, box-shadow;
+            transition: width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+            border-radius 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+            background-color 0.4s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .custom-action-btn:hover {
+            background-color: #059669 !important;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25) !important;
+        }
+
+        .btn-content-inner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .btn-text {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: inline-block;
+        }
+
+        .custom-action-btn.btn-processing .btn-text,
+        .custom-action-btn.btn-success-state .btn-text,
+        .custom-action-btn.btn-error-state .btn-text {
+            opacity: 0 !important;
+            transform: scale(0.5) !important;
+            position: absolute !important;
+            pointer-events: none;
+        }
+
+        .spinner-soft, .checkmark-svg, .cross-svg {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .spinner-soft {
+            border: 2.5px solid rgba(16, 185, 129, 0.2);
+            border-top-color: #10b981;
+            border-radius: 50%;
+        }
+
+        .checkmark-check {
+            stroke: #ffffff;
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+        }
+
+        .cross-line {
+            stroke: #ffffff;
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+        }
+
+        .modern-auth-card.card-processing {
+            box-shadow: 0 20px 45px rgba(16, 185, 129, 0.12) !important;
+            border: 1px solid rgba(16, 185, 129, 0.15) !important;
+        }
+
+        .custom-action-btn.btn-processing {
+            width: 46px !important;
+            border-radius: 50% !important;
+            background-color: #191e28 !important;
+            border: 2px solid rgba(16, 185, 129, 0.25) !important;
+        }
+
+        .custom-action-btn.btn-processing .spinner-soft {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            animation: spin-soft 0.8s linear infinite;
+        }
+
+        @keyframes spin-soft {
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        .custom-action-btn.btn-success-state {
+            width: 46px !important;
+            border-radius: 50% !important;
+            background-color: #10b981 !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
+        }
+
+        .custom-action-btn.btn-success-state .checkmark-svg {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .custom-action-btn.btn-success-state .checkmark-check {
+            animation: stroke-draw 0.35s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .custom-action-btn.btn-error-state {
+            width: 46px !important;
+            border-radius: 50% !important;
+            background-color: #ef4444 !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4) !important;
+        }
+
+        .custom-action-btn.btn-error-state .cross-svg {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .custom-action-btn.btn-error-state .cross-line {
+            animation: stroke-draw 0.3s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        @keyframes stroke-draw {
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .shake-element {
+            animation: card-shake-anim 0.45s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes card-shake-anim {
+            10%, 90% {
+                transform: translate3d(-2px, 0, 0);
+            }
+            20%, 80% {
+                transform: translate3d(4px, 0, 0);
+            }
+            30%, 50%, 70% {
+                transform: translate3d(-6px, 0, 0);
+            }
+            40%, 60% {
+                transform: translate3d(6px, 0, 0);
+            }
+        }
+
+        .animate-error {
+            animation: slideDownIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform-origin: top center;
+        }
+
+        @keyframes slideDownIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scaleY(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scaleY(1);
+            }
+        }
+
+        .opacity-animate {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .custom-alert-close {
+            filter: invert(0.4) sepia(1) hue-rotate(190deg) saturate(2);
+        }
+
+        /* غیرفعال کردن پس‌زمینه سفید پیش‌فرض مرورگر در حالت تکمیل خودکار (Autofill) */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            /* استفاده از سایه داخلی کاملاً شفاف برای خنثی کردن رنگ سفید مرورگر */
+            -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0) inset !important;
+            box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0) inset !important;
+
+            /* تنظیم رنگ متن دلخواه شما (مثلاً سفید یا تیره هماهنگ با تم شما) */
+            -webkit-text-fill-color: #ffffff !important; /* اگر تم شما تیره است سفید، در غیر این صورت رنگ تیره مثل #1e293b قرار دهید */
+
+            /* ایجاد تاخیر بی‌نهایت در تغییر رنگ پس‌زمینه توسط مرورگر */
+            transition: background-color 5000s ease-in-out 0s;
+
+            /* حفظ فونت و ویژگی‌های ظاهری فیلد */
+            font-family: inherit !important;
+        }
+
+        /* اعمال همین قوانین برای حالت فوکوس مرورگر */
+        input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0) inset !important;
+            box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0) inset !important;
+            -webkit-text-fill-color: #ffffff !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="auth-modern-bg">
+        <div class="glow-orb orb-blue"></div>
+        <div class="glow-orb orb-emerald"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="auth-page-wrapper pt-4" style="position: relative; z-index: 10; min-height: 100vh;">
+        <div class="auth-page-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="text-center mt-sm-4 mb-3">
+                            <p class="mt-3 fs-15 fw-medium opacity-animate"
+                               style="color: #94a3b8; letter-spacing: 0.3px;">Join us today – Start easily, manage
+                                better!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6 col-xl-5">
+                        <div class="card mt-2 border-0 shadow-lg modern-auth-card {% if form.errors or messages %}has-backend-errors{% endif %}"
+                             id="auth-card"
+                             style="border-radius: 8px; background: #171a21; box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;">
+                            <div class="card-body p-4">
+                                <div class="text-center mt-1">
+                                    <h5 class="fw-bold fs-18 mb-1" style="color: #e2e8f0; letter-spacing: -0.3px;">
+                                        Create New Account</h5>
+                                    <p style="color: #64748b; font-size: 13px;">Get your free account and get
+                                        started</p>
+                                </div>
+
+                                <div class="p-2 mt-3">
+                                    <div id="django-alerts-container">
+                                        {% if messages %}
+                                            {% for message in messages %}
+                                                <div class="alert alert-
+
+
+
+
+
+                                                        {% if message.tags %}{{ message.tags }}{% else %}info{% endif %} border-0 fade show animate-error"
+                                                     role="alert"
+                                                     style="border-radius: 8px; background-color: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+                                                    {{ message }}
+                                                    <button type="button" class="btn-close custom-alert-close"
+                                                            data-bs-dismiss="alert" aria-label="Close"></button>
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <form method="post" class="needs-validation" id="register-form" novalidate
+                                          action="{% url 'register' %}">
+                                        {% csrf_token %}
+
+                                        <div class="mb-3">
+                                            <label for="useremail" class="form-label fw-semibold fs-11 uppercase-text"
+                                                   style="color: #64748b;">Email Address</label>
+                                            <input type="email" name="email" class="form-control custom-dark-input"
+                                                   id="useremail"
+                                                   placeholder="Enter email address"
+                                                   value="{{ form.email.value|default_if_none:'' }}" required>
+
+                                            <div id="email-errors-container" class="error-wrapper">
+                                                {% for error in form.email.errors %}
+                                                    <div class="invalid-feedback d-block fs-11 mt-1.5 text-danger animate-error">
+                                                        <p class="mb-0 d-flex align-items-center">
+                                                            <i class="ri-error-warning-line me-1 fs-13"></i>{{ error }}
+                                                        </p>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="password1" class="form-label fw-semibold fs-11 uppercase-text"
+                                                   style="color: #64748b;">Password</label>
+                                            <div class="position-relative auth-pass-inputgroup">
+                                                <input type="password" name="password1" id="password1"
+                                                       class="form-control custom-dark-input password-field-calibrated"
+                                                       placeholder="Enter strong password" required>
+                                                <button class="btn position-absolute end-0 top-0 text-decoration-none d-flex align-items-center justify-content-center eye-btn"
+                                                        style="width: 42px; height: 100%; border: none; background: transparent; color: #64748b; border-radius: 6px; transition: color 0.2s ease; z-index: 5;"
+                                                        type="button" id="password1-addon">
+                                                    <i class="ri-eye-fill fs-15"></i>
+                                                </button>
+                                            </div>
+
+                                            <div id="password1-errors-container" class="error-wrapper">
+                                                {% for error in form.password1.errors %}
+                                                    <div class="invalid-feedback d-block fs-11 mt-1.5 text-danger animate-error">
+                                                        <p class="mb-0 d-flex align-items-center">
+                                                            <i class="ri-error-warning-line me-1 fs-13"></i>{{ error }}
+                                                        </p>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="password2" class="form-label fw-semibold fs-11 uppercase-text"
+                                                   style="color: #64748b;">Confirm Password</label>
+                                            <div class="position-relative auth-pass-inputgroup">
+                                                <input type="password" name="password2" id="password2"
+                                                       class="form-control custom-dark-input password-field-calibrated"
+                                                       placeholder="Confirm your password" required>
+                                                <button class="btn position-absolute end-0 top-0 text-decoration-none d-flex align-items-center justify-content-center eye-btn"
+                                                        style="width: 42px; height: 100%; border: none; background: transparent; color: #64748b; border-radius: 6px; transition: color 0.2s ease; z-index: 5;"
+                                                        type="button" id="password2-addon">
+                                                    <i class="ri-eye-fill fs-15"></i>
+                                                </button>
+                                            </div>
+
+                                            <div id="password2-errors-container" class="error-wrapper">
+                                                {% for error in form.password2.errors %}
+                                                    <div class="invalid-feedback d-block fs-11 mt-1.5 text-danger animate-error">
+                                                        <p class="mb-0 d-flex align-items-center">
+                                                            <i class="ri-error-warning-line me-1 fs-13"></i>{{ error }}
+                                                        </p>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <p class="mb-0 fs-12 fst-italic" style="color: #64748b;">By registering you
+                                                agree to the
+                                                <a href="#" class="fst-normal fw-bold text-decoration-none"
+                                                   style="color: #3b82f6;">Terms of Use</a>
+                                            </p>
+                                        </div>
+
+                                        <div class="mt-4 d-flex justify-content-center" style="height: 46px;">
+                                            <button class="btn w-100 fw-bold fs-14 custom-action-btn" type="submit"
+                                                    id="btn-register-submit" style="border-radius: 8px;">
+                                                <span class="btn-content-inner">
+                                                    <span class="btn-text">Sign Up</span>
+                                                    <span class="spinner-soft"></span>
+
+                                                    <svg class="checkmark-svg" viewBox="0 0 52 52">
+                                                        <path class="checkmark-check" fill="none"
+                                                              d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                                                    </svg>
+
+                                                    <svg class="cross-svg" viewBox="0 0 52 52">
+                                                        <path class="cross-line" fill="none" d="M16 16 L36 36"/>
+                                                        <path class="cross-line" fill="none" d="M36 16 L16 36"/>
+                                                    </svg>
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <p class="mb-0 fs-13" style="color: #64748b;">Already have an account? <a
+                                    href="{% url 'login' %}"
+                                    class="fw-semibold text-decoration-none transition-link"
+                                    style="color: #3b82f6;">
+                                Log In </a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const registerForm = document.getElementById('register-form');
+            const submitBtn = document.getElementById('btn-register-submit');
+            const authCard = document.getElementById('auth-card');
+            const orbBlue = document.querySelector('.orb-blue');
+            const orbEmerald = document.querySelector('.orb-emerald');
+
+            // دریافت فیلدها و کانتینرهای خطا
+            const emailInput = document.getElementById('useremail');
+            const emailErrorsContainer = document.getElementById('email-errors-container');
+            const password1Input = document.getElementById('password1');
+            const password1ErrorsContainer = document.getElementById('password1-errors-container');
+            const password2Input = document.getElementById('password2');
+            const password2ErrorsContainer = document.getElementById('password2-errors-container');
+
+            // آبجکتی برای ذخیره تایمرهای فعال جهت مدیریت حذف خطاها پس از ۳ ثانیه
+            const errorTimeouts = {
+                email: null,
+                password1: null,
+                password2: null
+            };
+
+            // تابع کمکی برای پاکسازی کامل خطا و تایمرهای یک فیلد
+            function clearFieldError(input, container, key) {
+                if (errorTimeouts[key]) {
+                    clearTimeout(errorTimeouts[key]);
+                    errorTimeouts[key] = null;
+                }
+                input.setCustomValidity("");
+                container.innerHTML = "";
+            }
+
+            // تابع کمکی برای نمایش خطاهای موقت (مثل خطای اجباری بودن فیلدها با طول عمر ۳ ثانیه)
+            function showTemporaryError(input, container, key, message) {
+                if (errorTimeouts[key]) {
+                    clearTimeout(errorTimeouts[key]);
+                }
+
+                input.setCustomValidity(message);
+                container.innerHTML = `
+                    <div class="invalid-feedback d-block fs-11 mt-1.5 text-danger animate-error" style="transition: opacity 0.4s ease, transform 0.4s ease;">
+                        <p class="mb-0 d-flex align-items-center">
+                            <i class="ri-error-warning-line me-1 fs-13"></i>${message}
+                        </p>
+                    </div>`;
+
+                // محو شدن نرم خطا دقیقاً پس از ۳ ثانیه
+                errorTimeouts[key] = setTimeout(() => {
+                    const errorDiv = container.querySelector('.animate-error');
+                    if (errorDiv) {
+                        errorDiv.style.opacity = '0';
+                        errorDiv.style.transform = 'translateY(-4px)';
+                        setTimeout(() => {
+                            input.setCustomValidity("");
+                            container.innerHTML = "";
+                        }, 400); // زمان پایان انیمیشن CSS
+                    } else {
+                        input.setCustomValidity("");
+                        container.innerHTML = "";
+                    }
+                    errorTimeouts[key] = null;
+                }, 3000);
+            }
+
+            // ۱. اعتبارسنجی هوشمند ایمیل
+            function validateEmail() {
+                const val = emailInput.value.trim();
+
+                // قانون جدید: اگر فیلد خالی شد، خطاها را کاملاً پاک کن و خارج شو
+                if (val === "") {
+                    clearFieldError(emailInput, emailErrorsContainer, 'email');
+                    return;
+                }
+
+                if (!registerForm.classList.contains('was-validated') && document.activeElement === emailInput) {
+                    return;
+                }
+
+                if (!emailInput.validity.valid) {
+                    // اگر خطایی غیر از خالی بودن (مثل فرمت اشتباه) بود، تایمر زمان‌دار را لغو و خطای دائم نشان بده
+                    if (errorTimeouts['email']) {
+                        clearTimeout(errorTimeouts['email']);
+                        errorTimeouts['email'] = null;
+                    }
+                    emailInput.setCustomValidity("Please enter a valid email address.");
+                    emailErrorsContainer.innerHTML = `
+                        <div class="invalid-feedback d-block fs-11 mt-1.5 text-danger animate-error">
+                            <p class="mb-0 d-flex align-items-center">
+                                <i class="ri-error-warning-line me-1 fs-13"></i>Please enter a valid email address.
+                            </p>
+                        </div>`;
+                } else {
+                    clearFieldError(emailInput, emailErrorsContainer, 'email');
+                }
+            }
+
+            // ۲. اعتبارسنجی رمز عبور اول
+            function validatePassword1() {
+                const val = password1Input.value;
+
+                // قانون جدید: اگر فیلد خالی شد، خطاها را کاملاً پاک کن
+                if (val === "") {
+                    clearFieldError(password1Input, password1ErrorsContainer, 'password1');
+                    return;
+                }
+
+                if (!registerForm.classList.contains('was-validated') && document.activeElement === password1Input) {
+                    return;
+                }
+
+                let errorMsg = "";
+                if (val.length < 8) {
+                    errorMsg = "Password must be at least 8 characters long.";
+                } else if (!/[A-Z]/.test(val)) {
+                    errorMsg = "Password must contain at least one uppercase letter.";
+                } else if (!/\d/.test(val)) {
+                    errorMsg = "Password must contain at least one number.";
+                } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+                    errorMsg = "Password must contain at least one special character.";
+                }
+
+                if (errorMsg) {
+                    if (errorTimeouts['password1']) {
+                        clearTimeout(errorTimeouts['password1']);
+                        errorTimeouts['password1'] = null;
+                    }
+                    password1Input.setCustomValidity(errorMsg);
+                    password1ErrorsContainer.innerHTML = `
+                        <div class="invalid-feedback d-block fs-11 mt-1.5 text-danger animate-error">
+                            <p class="mb-0 d-flex align-items-center">
+                                <i class="ri-error-warning-line me-1 fs-13"></i>${errorMsg}
+                            </p>
+                        </div>`;
+                } else {
+                    clearFieldError(password1Input, password1ErrorsContainer, 'password1');
+                }
+            }
+
+            // ۳. اعتبارسنجی تایید رمز عبور
+            function validatePasswordMatch() {
+                const val1 = password1Input.value;
+                const val2 = password2Input.value;
+
+                // قانون جدید: اگر فیلد خالی شد، خطاها را کاملاً پاک کن
+                if (val2 === "") {
+                    clearFieldError(password2Input, password2ErrorsContainer, 'password2');
+                    return;
+                }
+
+                if (!registerForm.classList.contains('was-validated') && document.activeElement === password2Input) {
+                    return;
+                }
+
+                if (val1 !== val2) {
+                    if (errorTimeouts['password2']) {
+                        clearTimeout(errorTimeouts['password2']);
+                        errorTimeouts['password2'] = null;
+                    }
+                    password2Input.setCustomValidity("Passwords do not match");
+                    password2ErrorsContainer.innerHTML = `
+                        <div class="invalid-feedback d-block fs-11 mt-1.5 text-danger animate-error">
+                            <p class="mb-0 d-flex align-items-center">
+                                <i class="ri-error-warning-line me-1 fs-13"></i>Passwords do not match.
+                            </p>
+                        </div>`;
+                } else {
+                    clearFieldError(password2Input, password2ErrorsContainer, 'password2');
+                }
+            }
+
+            // شنود رویدادها برای بررسی‌های آنی (Live Validation)
+            emailInput.addEventListener('input', validateEmail);
+            emailInput.addEventListener('blur', validateEmail);
+
+            password1Input.addEventListener('input', function () {
+                validatePassword1();
+                if (password2Input.value !== "") {
+                    validatePasswordMatch();
+                }
+            });
+            password1Input.addEventListener('blur', validatePassword1);
+
+            password2Input.addEventListener('input', validatePasswordMatch);
+            password2Input.addEventListener('blur', validatePasswordMatch);
+
+
+            // افکت تعاملی زنده هاله‌های پس‌زمینه
+            document.addEventListener('mousemove', function (e) {
+                const amountX = (e.clientX / window.innerWidth - 0.5) * 100;
+                const amountY = (e.clientY / window.innerHeight - 0.5) * 100;
+
+                if (orbBlue && orbEmerald) {
+                    orbBlue.style.transform = `translate(${amountX}px, ${amountY}px)`;
+                    orbEmerald.style.transform = `translate(${-amountX}px, ${-amountY}px)`;
+                }
+            });
+
+            // مدیریت دکمه نمایش پسورد (چشم)
+            document.querySelectorAll('.eye-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const inputGroup = this.closest('.auth-pass-inputgroup');
+                    const passwordInput = inputGroup.querySelector('input');
+                    const icon = this.querySelector('i');
+
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.replace('ri-eye-fill', 'ri-eye-off-fill');
+                        this.style.color = '#3b82f6';
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.replace('ri-eye-off-fill', 'ri-eye-fill');
+                        this.style.color = '#64748b';
+                    }
+                });
+            });
+
+            function toggleFormInputs(locked) {
+                registerForm.querySelectorAll('input').forEach(el => {
+                    if (locked) {
+                        el.setAttribute('readonly', 'true');
+                        el.style.pointerEvents = 'none';
+                    } else {
+                        el.removeAttribute('readonly');
+                        el.style.pointerEvents = 'auto';
+                    }
+                });
+                registerForm.querySelectorAll('button:not(#btn-register-submit)').forEach(el => {
+                    if (locked) el.setAttribute('disabled', 'true');
+                    else el.removeAttribute('disabled');
+                });
+            }
+
+            // سابمیت داینامیک و غیر همزمان فرم با اعمال انیمیشن خطا
+            registerForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // فعال‌سازی حالت اعتبارسنجی کلی فرم
+                registerForm.classList.add('was-validated');
+
+                let isFormValid = true;
+
+                // مدیریت و ثبت خطاهای زمان‌دار (Required) در صورت خالی بودن فیلدها هنگام سابمیت
+                if (emailInput.value.trim() === "") {
+                    showTemporaryError(emailInput, emailErrorsContainer, 'email', "Email address is required.");
+                    isFormValid = false;
+                } else {
+                    validateEmail();
+                }
+
+                if (password1Input.value === "") {
+                    showTemporaryError(password1Input, password1ErrorsContainer, 'password1', "Password is required.");
+                    isFormValid = false;
+                } else {
+                    validatePassword1();
+                }
+
+                if (password2Input.value === "") {
+                    showTemporaryError(password2Input, password2ErrorsContainer, 'password2', "Please confirm your password.");
+                    isFormValid = false;
+                } else {
+                    validatePasswordMatch();
+                }
+
+                // اگر فرم معتبر نباشد (کلاینت‌ساید)
+                if (!isFormValid || !registerForm.checkValidity()) {
+                    authCard.classList.add('shake-element');
+                    submitBtn.classList.add('btn-error-state');
+                    setTimeout(() => {
+                        authCard.classList.remove('shake-element');
+                        submitBtn.classList.remove('btn-error-state');
+                    }, 1200);
+                    return;
+                }
+
+                const formData = new FormData(registerForm);
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                toggleFormInputs(true);
+                authCard.classList.add('card-processing');
+                submitBtn.classList.add('btn-processing');
+
+                const startTime = Date.now();
+
+                fetch(registerForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok && response.status === 403) {
+                            throw new Error("Forbidden 403");
+                        }
+                        return response.text().then(html => {
+                            const elapsed = Date.now() - startTime;
+                            const delay = Math.max(0, 1000 - elapsed);
+
+                            setTimeout(() => {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const isStillRegisterPage = doc.getElementById('register-form') !== null;
+
+                                if (!isStillRegisterPage) {
+                                    submitBtn.classList.remove('btn-processing');
+                                    submitBtn.classList.add('btn-success-state');
+
+                                    setTimeout(() => {
+                                        window.location.href = response.url;
+                                    }, 750);
+                                } else {
+                                    submitBtn.classList.remove('btn-processing');
+                                    submitBtn.classList.add('btn-error-state');
+                                    authCard.classList.add('shake-element');
+
+                                    registerForm.classList.remove('was-validated');
+
+                                    // به‌روزرسانی آنی کانتینرهای خطای بک‌اند
+                                    document.getElementById('django-alerts-container').innerHTML =
+                                        doc.getElementById('django-alerts-container').innerHTML;
+                                    document.getElementById('email-errors-container').innerHTML =
+                                        doc.getElementById('email-errors-container').innerHTML;
+                                    document.getElementById('password1-errors-container').innerHTML =
+                                        doc.getElementById('password1-errors-container').innerHTML;
+                                    document.getElementById('password2-errors-container').innerHTML =
+                                        doc.getElementById('password2-errors-container').innerHTML;
+
+                                    setTimeout(() => {
+                                        authCard.classList.remove('shake-element', 'card-processing');
+                                        submitBtn.classList.remove('btn-error-state');
+                                        toggleFormInputs(false);
+                                    }, 1600);
+                                }
+                            }, delay);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Critical Registration Failure:", error);
+                        submitBtn.classList.remove('btn-processing');
+                        submitBtn.classList.add('btn-error-state');
+                        authCard.classList.add('shake-element');
+
+                        document.getElementById('django-alerts-container').innerHTML = `
+                        <div class="alert alert-danger border-0 fade show animate-error" role="alert" style="border-radius: 8px; background-color: rgba(239, 68, 68, 0.12); color: #f87171;">
+                            <i class="ri-error-warning-line me-1"></i> Security or network rejection. Please check CSRF setup.
+                        </div>`;
+
+                        setTimeout(() => {
+                            authCard.classList.remove('shake-element', 'card-processing');
+                            submitBtn.classList.remove('btn-error-state');
+                            toggleFormInputs(false);
+                        }, 1600);
+                    });
+            });
+        });
+    </script>
+{% endblock %}

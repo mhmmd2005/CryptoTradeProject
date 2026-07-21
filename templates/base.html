@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-layout="vertical" data-topbar="dark" data-sidebar="dark" data-sidebar-size="lg"
+      data-layout-mode="dark" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}{% endblock %}
+    </title>
+
+    <script>
+        (function () {
+            let savedTheme = localStorage.getItem('data-layout-mode') ||
+                sessionStorage.getItem('data-layout-mode') ||
+                localStorage.getItem('layout-mode') ||
+                sessionStorage.getItem('layout-mode');
+
+            if (!savedTheme) {
+                try {
+                    const velzonConfig = JSON.parse(sessionStorage.getItem('defaultAttribute') || '{}');
+                    savedTheme = velzonConfig['data-layout-mode'] || velzonConfig['layout-mode'];
+                } catch (e) {
+                    // نادیده گرفتن خطاها در صورت نبود آبجکت پیکربندی
+                }
+            }
+
+            if (!savedTheme) {
+                savedTheme = 'dark';
+            }
+
+            // اعمال آنی تغییرات روی روت المنت قبل از رندر شدن صفحه
+            document.documentElement.setAttribute('data-layout-mode', savedTheme);
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            document.documentElement.setAttribute('data-topbar', savedTheme === 'dark' ? 'dark' : 'light');
+        })();
+    </script>
+
+    {% block css %}{% endblock %}
+</head>
+<body>
+{% block content %}{% endblock %}
+{% block js %}{% endblock %}
+</body>
+</html>

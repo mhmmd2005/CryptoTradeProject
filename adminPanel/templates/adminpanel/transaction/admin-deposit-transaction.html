@@ -1,0 +1,421 @@
+{% extends 'shared/layout__.html' %}
+{% load static %}
+{% block title %}
+    Deposit transaction
+{% endblock %}
+
+{% block css %}
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        /* حالت پیش‌فرض: لایت مود */
+        .highlight {
+            background-color: rgba(255, 243, 176, 0.5); /* زرد شفاف‌تر برای لایت مود */
+            border-radius: 2px;
+            transition: background-color 0.3s;
+        }
+
+        /* حالت دارک مود */
+        @media (prefers-color-scheme: dark) {
+            .highlight {
+                background-color: rgba(73, 73, 68, 0.7); /* کمی پررنگ‌تر برای دارک مود */
+            }
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0"></h4>
+
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    {% for item in breadcrumb %}
+                                        {% if item.url %}
+                                            <li class="breadcrumb-item"><a>{{ item.title }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="breadcrumb-item active">{{ item.title }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ol>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0 flex-grow-1">Transaction List</h4>
+                            </div><!-- end card header -->
+
+                            <div class="card-body">
+                                <div id="table-gridjs">
+                                    <div role="complementary" class="gridjs gridjs-container" style="width: 100%;">
+                                        <div class="search-box">
+                                            <input style="max-width: 220px" type="text" class="form-control search"
+                                                   id="transactionSearch"
+                                                   placeholder="Type a keyword">
+                                            <i class="ri-search-line search-icon"></i>
+                                        </div>
+                                        <br>
+                                        <div class="gridjs-wrapper" style="height: auto;">
+                                            <table role="grid" class="gridjs-table" style="height: auto;">
+                                                <thead class="gridjs-thead">
+                                                <tr class="gridjs-tr">
+                                                    <th data-column-id="id" class="gridjs-th gridjs-th-sort"
+                                                        tabindex="0" style="min-width: 3.5%; width: 81px;">
+                                                        <div class="gridjs-th-content">No.</div>
+                                                    </th>
+                                                    <th data-column-id="name" class="gridjs-th gridjs-th-sort"
+                                                        tabindex="0" style="min-width: 78px; width: 141px;">
+                                                        <div class="gridjs-th-content">Date</div>
+                                                    </th>
+                                                    <th data-column-id="position" class="gridjs-th gridjs-th-sort"
+                                                        tabindex="0" style="min-width: 232px; width: 416px;">
+                                                        <div class="gridjs-th-content">User</div>
+                                                    </th>
+                                                    <th data-column-id="email" class="gridjs-th gridjs-th-sort"
+                                                        tabindex="0" style="min-width: 179px; width: 320px;">
+                                                        <div class="gridjs-th-content">Transaction ID</div>
+                                                    </th>
+                                                    <th data-column-id="company" class="gridjs-th gridjs-th-sort"
+                                                        tabindex="0" style="min-width: 10%; width: 208px;">
+                                                        <div class="gridjs-th-content">Type</div>
+                                                    </th>
+                                                    <th data-column-id="country" class="gridjs-th gridjs-th-sort"
+                                                        tabindex="0" style="min-width:10%; width: 203px;">
+                                                        <div class="gridjs-th-content">Amount</div>
+                                                    </th>
+                                                    <th data-column-id="actions" class="gridjs-th gridjs-th-sort"
+                                                        style="width: 120px;" tabindex="0">
+                                                        <div class="gridjs-th-content">Status</div>
+                                                    </th>
+                                                </tr>
+
+                                                </thead>
+                                                <tbody class="gridjs-tbody" id="transaction-body">
+                                                <!-- ردیف‌ها به‌صورت خودکار از سرور جایگزین می‌شن -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="gridjs-footer">
+                                            <div class="gridjs-pagination"
+                                                 style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div class="pagination-wrap hstack gap-2">
+                                                    <a class="page-item pagination-prev disabled" href="#">Previous</a>
+                                                    <ul class="pagination listjs-pagination mb-0">
+                                                        <li class="page-item active">
+                                                            <a class="page-link" href="?page=1&amp;q=">1</a>
+                                                        </li>
+                                                    </ul>
+                                                    <a class="page-item pagination-next disabled" href="#">Next</a>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div id="gridjs-temp" class="gridjs-temp"></div>
+                                    </div>
+                                </div>
+                            </div><!-- end card-body -->
+                        </div><!-- end card -->
+                    </div>
+                    <!-- end col -->
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-6">
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-sm-end d-none d-sm-block">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'assets/libs/prismjs/prism.js' %}"></script>
+    <script src="{% static 'assets/js/app.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.getElementById('transaction-body');
+            const prevBtn = document.querySelector('.pagination-prev');
+            const nextBtn = document.querySelector('.pagination-next');
+            const pageList = document.querySelector('.listjs-pagination');
+            let currentPage = 1;
+            let numPages = 1;
+            let perPage; // مقدار واقعی از سرور گرفته می‌شود
+
+            function fetchTransactions(page = 1) {
+                fetch(`/adminPanel/transactions/deposit/?page=${page}`, {
+                    headers: {'x-requested-with': 'XMLHttpRequest'}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        currentPage = data.current_page;
+                        numPages = data.num_pages;
+                        perPage = data.per_page; // <--- مقدار واقعی perPage از سرور
+                        renderTable(data.main_transaction);
+                        renderPagination();
+                    })
+                    .catch(err => console.error('Error:', err));
+            }
+
+
+            function renderTable(transactions) {
+                tbody.innerHTML = '';
+                transactions.forEach((tx, index) => {
+                    const rowNumber = (currentPage - 1) * perPage + index + 1; // شماره واقعی تراکنش
+                    const row = document.createElement('tr');
+                    row.className = 'gridjs-tr';
+                    row.innerHTML = `
+            <td data-column-id="id" class="gridjs-td"><span><span class="fw-semibold">${rowNumber}</span></span></td>
+            <td data-column-id="name" class="gridjs-td">${tx.timestamp}</td>
+            <td data-column-id="position" class="gridjs-td">${tx.user_email}</td>
+            <td data-column-id="email" class="gridjs-td"><span>${tx.tx_hash || '-'}</span></td>
+            <td data-column-id="company" class="gridjs-td">${tx.type}</td>
+            <td data-column-id="country" class="gridjs-td">${tx.amount}</td>
+            <td data-column-id="actions" class="gridjs-td"><span>${tx.status}</span></td>
+        `;
+                    tbody.appendChild(row);
+                });
+            }
+
+
+            function renderPagination() {
+                pageList.innerHTML = '';
+
+                const visiblePages = 3; // تعداد صفحات قابل نمایش
+                let startPage = Math.max(currentPage - 1, 1);
+                let endPage = startPage + visiblePages - 1;
+
+                if (endPage > numPages) {
+                    endPage = numPages;
+                    startPage = Math.max(endPage - visiblePages + 1, 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', e => {
+                        e.preventDefault();
+                        fetchTransactions(i);
+                    });
+                    pageList.appendChild(li);
+                }
+
+                prevBtn.classList.toggle('disabled', currentPage === 1);
+                nextBtn.classList.toggle('disabled', currentPage === numPages);
+            }
+
+            prevBtn.addEventListener('click', e => {
+                e.preventDefault();
+                if (currentPage > 1) fetchTransactions(currentPage - 1);
+            });
+
+            nextBtn.addEventListener('click', e => {
+                e.preventDefault();
+                if (currentPage < numPages) fetchTransactions(currentPage + 1);
+            });
+
+            // فراخوانی اولیه
+            fetchTransactions();
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.getElementById('transaction-body');
+            const prevBtn = document.querySelector('.pagination-prev');
+            const nextBtn = document.querySelector('.pagination-next');
+            const pageList = document.querySelector('.listjs-pagination');
+            const searchInput = document.getElementById('transactionSearch');
+            let currentPage = 1;
+            let numPages = 1;
+            let perPage = 10; // مقدار پیش‌فرض تا سرور مقدار واقعی بدهد
+
+            // ---------- تابع نمایش پیام خالی / بدون نتیجه ----------
+            function showMessage(type) {
+                tbody.innerHTML = '';
+                const colCount = document.querySelectorAll('thead th').length;
+                const tr = document.createElement('tr');
+                let title = '', desc = '', className = '';
+                if (type === 'empty') {
+                    title = 'No transactions found';
+                    desc = 'There is nothing to display.';
+                    className = 'no-transactions-row';
+                } else if (type === 'search') {
+                    title = 'No result found';
+                    desc = 'No users found for your search.';
+                    className = 'no-results-row';
+                }
+                tr.className = className;
+                tr.innerHTML = `
+            <td colspan="${colCount}" class="text-center">
+                <div>
+                    <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop"
+                               colors="primary:#25a0e2,secondary:#00bd9d"
+                               style="width:75px;height:75px"></lord-icon>
+                    <h5 class="mt-2">${title}</h5>
+                    <p class="text-muted mb-0">${desc}</p>
+                </div>
+            </td>
+        `;
+                tbody.appendChild(tr);
+            }
+
+            // ---------- پاک کردن پیام‌های قبلی ----------
+            function removeMessageRows() {
+                tbody.querySelectorAll('.no-results-row, .no-transactions-row').forEach(row => row.remove());
+            }
+
+            // ---------- جدول را با داده‌ها رندر می‌کنیم ----------
+            function renderTable(transactions) {
+                tbody.innerHTML = '';
+                if (!transactions.length) {
+                    showMessage('empty');
+                    return;
+                }
+
+                transactions.forEach((tx, index) => {
+                    const rowNumber = (currentPage - 1) * perPage + index + 1;
+                    const row = document.createElement('tr');
+                    row.className = 'gridjs-tr';
+                    // وضعیت با آیکون
+                    let statusIcon = '';
+                    if (tx.status === 'success') statusIcon = '<span style="color:green; margin-right:5px;">✔</span>';
+                    else if (tx.status === 'failed') statusIcon = '<span style="color:red; margin-right:5px;">✖</span>';
+
+                    row.innerHTML = `
+                <td data-column-id="id" class="gridjs-td"><span class="fw-semibold">${rowNumber}</span></td>
+                <td data-column-id="name" class="gridjs-td">${tx.timestamp}</td>
+                <td data-column-id="position" class="gridjs-td">${tx.user_email}</td>
+                <td data-column-id="email" class="gridjs-td">${tx.tx_hash || '-'}</td>
+                <td data-column-id="company" class="gridjs-td">${tx.type}</td>
+                <td data-column-id="country" class="gridjs-td">${tx.amount}</td>
+                <td data-column-id="actions" class="gridjs-td">${statusIcon}<span>${tx.status}</span></td>
+            `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            // ---------- فراخوانی داده‌ها از سرور ----------
+            function fetchTransactions(page = 1) {
+                fetch(`/adminPanel/transactions/deposit/?page=${page}`, {
+                    headers: {'x-requested-with': 'XMLHttpRequest'}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        currentPage = data.current_page;
+                        numPages = data.num_pages;
+                        perPage = data.per_page;
+                        removeMessageRows();
+                        renderTable(data.main_transaction);
+                        renderPagination();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showMessage('empty');
+                    });
+            }
+
+            // ---------- رندر صفحه‌بندی ----------
+            function renderPagination() {
+                pageList.innerHTML = '';
+                const visiblePages = 3;
+                let startPage = Math.max(currentPage - 1, 1);
+                let endPage = startPage + visiblePages - 1;
+                if (endPage > numPages) {
+                    endPage = numPages;
+                    startPage = Math.max(endPage - visiblePages + 1, 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', e => {
+                        e.preventDefault();
+                        fetchTransactions(i);
+                    });
+                    pageList.appendChild(li);
+                }
+
+                prevBtn.classList.toggle('disabled', currentPage === 1);
+                nextBtn.classList.toggle('disabled', currentPage === numPages);
+            }
+
+            prevBtn.addEventListener('click', e => {
+                e.preventDefault();
+                if (currentPage > 1) fetchTransactions(currentPage - 1);
+            });
+            nextBtn.addEventListener('click', e => {
+                e.preventDefault();
+                if (currentPage < numPages) fetchTransactions(currentPage + 1);
+            });
+
+            // ---------- جستجو در جدول ----------
+            searchInput.addEventListener('input', () => {
+                const filter = searchInput.value.toLowerCase();
+                const rows = tbody.querySelectorAll('tr:not(.no-results-row):not(.no-transactions-row)');
+                let anyMatch = false;
+
+                removeMessageRows();
+
+                if (!filter) {
+                    // اگر سرچ پاک شد، دوباره داده‌ها را از سرور لود کن
+                    fetchTransactions(currentPage);
+                    return;
+                }
+
+                rows.forEach(row => {
+                    let match = false;
+                    row.querySelectorAll('td').forEach(cell => {
+                        const text = cell.textContent.toLowerCase();
+                        if (text.includes(filter)) {
+                            match = true;
+                            const regex = new RegExp(`(${filter})`, 'gi');
+                            cell.innerHTML = cell.textContent.replace(regex, '<span class="highlight">$1</span>');
+                        } else {
+                            cell.innerHTML = cell.textContent;
+                        }
+                    });
+                    row.style.display = match ? '' : 'none';
+                    if (match) anyMatch = true;
+                });
+
+                if (!anyMatch) showMessage('search');
+            });
+
+
+            // ---------- فراخوانی اولیه ----------
+            fetchTransactions();
+        });
+    </script>
+
+
+{% endblock %}

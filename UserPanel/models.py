@@ -1,0 +1,122 @@
+import random
+import string
+
+import pyotp
+from django.db import models
+
+from accounts.models import User
+
+
+def generate_ticket_id(length=10):
+    """تولید شناسه ۱۰ کاراکتری شامل حروف و حداکثر ۲ عدد بدون خط فاصله"""
+    letters = string.ascii_uppercase
+    digits = string.digits
+
+    # انتخاب تعداد اعداد (۰ تا ۲ عدد)
+    num_digits = random.randint(0, 2)
+    num_letters = length - num_digits
+
+    # انتخاب تصادفی از هر نوع
+    chosen_letters = random.choices(letters, k=num_letters)
+    chosen_digits = random.choices(digits, k=num_digits)
+
+    # ترکیب و درهم‌ریختن ترتیب نهایی
+    all_chars = chosen_letters + chosen_digits
+    random.shuffle(all_chars)
+
+    return ''.join(all_chars)
+
+
+# Create your models here.
+
+class UserTicket(models.Model):
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('important', 'Important'),
+    ]
+
+    DEPARTMENT_CHOICES = [
+        ('General', 'General'),
+        ('Security', 'Security'),
+        ('Payment', 'Payment'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tickets')
+    ticket_id = models.CharField(max_length=20, unique=True, blank=True, db_index=True)
+    title = models.CharField(max_length=200, null=True, blank=True)
+    priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default='low')
+    department = models.CharField(max_length=50, choices=DEPARTMENT_CHOICES, default='General')
+    start_date = models.DateField(blank=True, null=True)
+    message = models.TextField()
+
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('answered', 'answered'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.ticket_id:
+            self.ticket_id = generate_ticket_id()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"
+
+
+class UserTwoFactor(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='two_factor')
+    secret_key = models.CharField(max_length=32, blank=True, null=True)
+    is_enabled = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+
+    def generate_secret_key(self):
+        """تولید کلید جدید"""
+        self.secret_key = pyotp.random_base32()
+        self.save()
+        return self.secret_key
+
+    def get_totp_uri(self):
+        """ساخت QRCode URI برای اپلیکیشن‌ها"""
+        return pyotp.totp.TOTP(self.secret_key).provisioning_uri(
+            name=self.user.email,
+            issuer_name="YourWebsiteName"
+        )
+
+    def verify_token(self, token):
+        """تأیید کد با در نظر گرفتن نوسان زمانی (Time Window)"""
+        if not self.secret_key:
+            return False
+        totp = pyotp.TOTP(self.secret_key)
+        # استفاده از valid_window=1 اجازه می‌دهد اگر زمان گوشی کاربر ۳۰ ثانیه اختلاف داشت، کد رد نشود
+        return totp.verify(token, valid_window=1)
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return f"{self.user.username}"
+
+
+class FAQCategory(models.Model):
+    title = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title
+
+
+class FAQ(models.Model):
+    category = models.ForeignKey(FAQCategory, on_delete=models.CASCADE, related_name='faqs')
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    order = models.PositiveIntegerField(default=0)  # برای مرتب‌سازی
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.question

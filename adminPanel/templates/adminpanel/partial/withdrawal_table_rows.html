@@ -1,0 +1,61 @@
+<tbody id="pending-table-body" hx-swap-oob="innerHTML">
+{% for w in withdrawals %}
+    {% if w.status == 'pending' %}
+        <tr>
+            <td><small>{{ w.created_at|date:"Y-m-d H:i" }}</small></td>
+            <td>{{ w.admin.email|slice:":10" }}...</td>
+            <td>
+                <div class="d-flex align-items-center justify-content-center">
+                    <code class="text-muted me-2">{{ w.destination_wallet|slice:":6" }}...</code>
+                    <button class="btn btn-sm btn-ghost-primary p-0"
+                            onclick="copyToClipboard('{{ w.destination_wallet }}')">
+                        <i class="ri-file-copy-line"></i>
+                    </button>
+                </div>
+            </td>
+            <td class="fw-bold text-primary">${{ w.amount }}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-success px-2 py-1"
+                        hx-post="{% url 'withdrawal_action_api' w.id %}"
+                        hx-vals='{"action": "approve"}'
+                        hx-confirm="Are you sure?"
+                        hx-trigger="click consume"
+                        hx-disabled-elt="this"> Approve
+                </button>
+                <button class="btn btn-sm btn-danger px-2 py-1 ms-1"
+                        hx-post="{% url 'withdrawal_action_api' w.id %}"
+                        hx-vals='{"action": "reject"}'
+                        hx-confirm="Reject this request?"
+                        hx-disabled-elt="this"> Reject
+                </button>
+            </td>
+        </tr>
+    {% endif %}
+{% empty %}
+    <tr>
+        <td colspan="5" class="text-center py-3 text-muted">No pending requests.</td>
+    </tr>
+{% endfor %}
+</tbody>
+
+<tbody id="history-table-body" hx-swap-oob="innerHTML">
+{% for w in withdrawals %}
+    {% if w.status != 'pending' %}
+        <tr>
+            <td><small>{{ w.created_at|date:"Y-m-d H:i" }}</small></td>
+            <td>{{ w.admin.email|slice:":10" }}...</td>
+            <td><code class="text-muted">{{ w.destination_wallet|slice:":6" }}...</code></td>
+            <td class="fw-bold text-dark">${{ w.amount }}</td>
+            <td>
+                <span class="badge {% if w.status == 'approved' %}bg-success{% else %}bg-danger{% endif %}">
+                    {{ w.status|upper }}
+                </span>
+            </td>
+        </tr>
+    {% endif %}
+{% empty %}
+    <tr>
+        <td colspan="5" class="text-center py-3 text-muted">No transaction history.</td>
+    </tr>
+{% endfor %}
+</tbody>

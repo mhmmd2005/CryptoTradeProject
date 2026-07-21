@@ -1,0 +1,460 @@
+
+:root {
+    --bg-main: #f4f6f9;
+    --card-radius: 8px;
+    --primary: #0d6efd;
+    --success: #10b981;
+    --danger: #ef4444;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+    --soft-shadow: 0 8px 30px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+    --border-color: #e2e8f0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-dark);
+    overflow-x: hidden;
+    letter-spacing: -0.01em;
+}
+
+/* --- Premium Soft UI Navbar --- */
+.custom-nav {
+    padding: 16px 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    z-index: 1050;
+}
+
+/* --- Master Soft UI Components --- */
+.soft-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--soft-shadow);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+}
+
+.soft-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05);
+}
+
+.soft-btn {
+    border-radius: var(--card-radius) !important;
+    padding: 10px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.soft-btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 14px rgba(13, 110, 253, 0.25);
+}
+
+.soft-btn-primary:hover {
+    background: #0b5ed7;
+    transform: translateY(-1px);
+}
+
+.soft-btn-secondary {
+    background: #ffffff;
+    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+}
+
+.soft-btn-secondary:hover {
+    background: #f8fafc;
+}
+
+/* --- Hero Section & Glow Orbs --- */
+.hero-section {
+    padding: 160px 0 80px 0;
+    background: white;
+    position: relative;
+}
+
+.glow-orb {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(13, 110, 253, 0.06) 0%, transparent 70%);
+    filter: blur(50px);
+    z-index: 0;
+}
+
+/* --- Live 4-Crypto Ribbon Grid --- */
+.ticker-container {
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 0;
+}
+
+.ticker-card {
+    background: var(--bg-main);
+    border-radius: var(--card-radius);
+    padding: 12px 18px;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--success);
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px var(--success);
+    animation: pulse 2s infinite;
+}
+
+/* --- Live Terminal Simulation Mockups --- */
+.interactive-desk-mock {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius);
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+.mock-header {
+    background: #fafafa;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 18px;
+}
+
+.mock-tab {
+    cursor: pointer;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.mock-input-grp {
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius);
+    padding: 8px 12px;
+    background: var(--bg-main);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* --- Custom Micro-charts & Tables --- */
+.market-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 12px 16px;
+}
+
+.market-table td {
+    padding: 16px;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.section-padding {
+    padding: 90px 0;
+}
+
+.feature-hover-card {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease;
+}
+
+.feature-hover-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.feature-hover-card:hover .icon-box {
+    transform: scale(1.08);
+    transition: transform 0.3s ease;
+}
+
+/* 🌌 Background Soft Aura Design pattern */
+.workspace-glow-core {
+    position: absolute;
+    width: 700px;
+    height: 450px;
+    top: 55%;
+    left: 50%;
+    transform: translate(-25%, -35%);
+    background: radial-gradient(circle, rgba(13, 110, 253, 0.06) 0%, rgba(13, 110, 253, 0) 65%);
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+#workspaceTabs .nav-link {
+    border-radius: 6px !important;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+}
+
+#workspaceTabs .nav-link.active {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    color: var(--bs-primary) !important;
+    border: 1px solid rgba(13, 110, 253, 0.12) !important;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.03);
+}
+
+#workspaceTabs .nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+    color: #212529 !important;
+}
+
+/* 🖥️ Clean Viewport Configuration (Strict 8px Corner Radius Calibration) */
+.workspace-viewport {
+    max-width: 1100px;
+    border-radius: 8px !important;
+    overflow: hidden;
+    background-color: #16181b;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+
+.workspace-viewport:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12), 0 10px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* 🖼️ Pristine Edge-to-Edge Image Control */
+.viewport-body {
+    background-color: #16181b;
+    cursor: zoom-in;
+}
+
+.workspace-img {
+    width: 100%;
+    display: block;
+    border-radius: 8px !important; /* اعمال ساختار یکپارچه ۸ پیکسلی به تمام زوایای عکس */
+    transition: opacity 0.25s ease;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* Elegant Floating Zoom Tag */
+.zoom-trigger-badge {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: rgba(22, 24, 27, 0.8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: rgba(255, 255, 255, 0.95);
+    padding: 8px 18px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+}
+
+.viewport-body:hover .zoom-trigger-badge {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.viewport-body:hover .workspace-img {
+    opacity: 0.92;
+}
+
+/* 📝 Typography Transitions */
+.workspace-caption-node {
+    animation-duration: 0.4s;
+    animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation-name: fadeIn;
+}
+
+/* 🔍 Soft UI Blurry Fullscreen Lightbox Overlays */
+.workspace-zoom-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(10, 12, 16, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 2500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.workspace-zoom-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lightbox-content {
+    max-width: 94%;
+    max-height: 90%;
+    transform: scale(0.96);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workspace-zoom-overlay.active .lightbox-content {
+    transform: scale(1);
+}
+
+#lightboxTargetImg {
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px !important; /* کالیبراسیون ۸ پیکسلی برای نسخه زوم */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.6);
+    image-rendering: -webkit-optimize-contrast;
+}
+
+.lightbox-close-btn {
+    position: absolute;
+    top: -45px;
+    right: 0;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 28px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.lightbox-close-btn:hover {
+    color: #fff;
+}
+
+
+.footer-link {
+    transition: color 0.2s ease-in-out;
+}
+
+.footer-link:hover {
+    color: var(--bs-primary) !important; /* تغییر رنگ نرم به رنگ اصلی پلتفرم هنگام هوور */
+}
+
+html {
+    scroll-behavior: smooth !important;
+}
+
+/* ⬆️ Circular Progress & Back to Top Button */
+.back-to-top-wrapper {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 48px;
+    height: 48px;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.back-to-top-wrapper.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* تنظیمات دایره SVG پیشرفت */
+.back-to-top-wrapper svg.progress-circle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg); /* شروع انیمیشن پر شدن از بالامحور */
+}
+
+.back-to-top-wrapper svg.progress-circle path.progress-bg {
+    fill: none;
+    stroke: rgba(13, 110, 253, 0.15); /* مسیر خاکستری/کم‌رنگ زیرین */
+    stroke-width: 4;
+}
+
+.back-to-top-wrapper svg.progress-circle path.progress-bar-path {
+    fill: none;
+    stroke: var(--bs-primary, #0d6efd); /* رنگ نوار پیشرفت اصلی */
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 10ms linear;
+}
+
+/* استایل دکمه داخل دایره */
+.back-to-top-btn {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    color: var(--bs-primary, #0d6efd);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transition: all 0.25s ease;
+}
+
+.back-to-top-wrapper:hover .back-to-top-btn {
+    background-color: var(--bs-primary, #0d6efd);
+    color: #ffffff;
+    transform: scale(1.05);
+}

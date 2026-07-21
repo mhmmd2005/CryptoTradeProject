@@ -1,0 +1,281 @@
+{% extends 'shared/_layout.html' %}
+{% load humanize %}
+{% block title %}
+    Trade history
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Trades History</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                            <div class="card-header bg-transparent border-bottom">
+                                <h4 class="card-title mb-0">My Internal Trades</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <form method="GET" action="" id="filterForm">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                                        <div class="search-box position-relative">
+                                            <input type="text" name="search" class="form-control search"
+                                                   id="tradeSearch"
+                                                   placeholder="Search Asset, Type..." value="{{ search_query }}"
+                                                   style="width: 300px; padding-left: 35px;" autocomplete="off">
+                                            <i class="ri-search-line position-absolute"
+                                               style="left: 12px; top: 49%; transform: translateY(-50%); color: #adb5bd;"></i>
+                                        </div>
+
+                                        <input type="hidden" name="action" id="filterActionInput"
+                                               value="{{ filter_action }}">
+
+                                        <div class="dropdown">
+                                            <button class="btn btn-soft-primary dropdown-toggle d-flex align-items-center gap-2"
+                                                    type="button" id="filterDropdown" data-bs-toggle="dropdown"
+                                                    aria-expanded="false" style="border-radius: 8px;">
+                                                <i class="ri-filter-3-line"></i>
+                                                <span id="dropdownLabel">
+                                                    {% if filter_action == 'BUY' %}Buys
+                                                    {% elif filter_action == 'SELL' %}Sells
+                                                    {% else %}All Trades{% endif %}
+                                                </span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2"
+                                                style="border-radius: 12px; min-width: 200px;">
+                                                <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted">
+                                                    Filter by Action</h6></li>
+                                                <li>
+                                                    <button type="button"
+                                                            class="dropdown-item rounded-2 filter-ajax-btn {% if not filter_action %}active{% endif %}"
+                                                            data-value="">All Trades
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li>
+                                                    <button type="button"
+                                                            class="dropdown-item rounded-2 filter-ajax-btn {% if filter_action == 'BUY' %}active{% endif %}"
+                                                            data-value="BUY">Buys
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button type="button"
+                                                            class="dropdown-item rounded-2 filter-ajax-btn {% if filter_action == 'SELL' %}active{% endif %}"
+                                                            data-value="SELL">Sells
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <div id="table-data-wrapper" style="transition: opacity 0.2s ease;">
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-nowrap mb-0" style="width: 100%;">
+                                            <thead class="text-muted text-uppercase fw-bold">
+                                            <tr>
+                                                <th class="px-3" style="width: 60px;">No.</th>
+                                                <th>Date & Time</th>
+                                                <th>Asset</th>
+                                                <th>Type</th>
+                                                <th>Price</th>
+                                                <th>Amount</th>
+                                                <th>Total Cost</th>
+                                                <th class="text-end pe-3">Fee</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for trade in page_obj %}
+                                                <tr>
+                                                    <td class="px-3 fw-medium">
+                                                        #{{ page_obj.start_index|add:forloop.counter0 }}
+                                                    </td>
+                                                    <td class="text-muted">{{ trade.created_at|date:"Y-m-d H:i:s" }}</td>
+                                                    <td>
+                                                        <span class="fw-bold text-dark">{{ trade.crypto_currency|upper }}</span>
+                                                    </td>
+                                                    <td>
+                                                        {% if trade.trade_type == 'BUY' %}
+                                                            <span class="badge bg-soft-success text-success text-uppercase fs-11"
+                                                                  style="padding: 5px 10px; border-radius: 6px;">Buy</span>
+                                                        {% else %}
+                                                            <span class="badge bg-soft-danger text-danger text-uppercase fs-11"
+                                                                  style="padding: 5px 10px; border-radius: 6px;">Sell</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="fw-medium">${{ trade.price|floatformat:2|intcomma }}</td>
+
+                                                    <td class="text-muted">{{ trade.amount|floatformat:4|intcomma }}</td>
+
+                                                    <td class="fw-semibold text-dark">
+                                                        ${{ trade.total_cost|floatformat:2|intcomma }}</td>
+                                                    <td class="text-end pe-3 text-secondary">
+                                                        ${{ trade.fee|floatformat:4|intcomma }}</td>
+                                                </tr>
+                                            {% empty %}
+                                                <tr>
+                                                    <td colspan="8" class="text-center py-4 text-muted">
+                                                        <i class="ri-inbox-line fs-24 d-block mb-2"></i>
+                                                        No trades found matching criteria.
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-4">
+                                        <div class="text-muted small">
+                                            Showing {{ page_obj.start_index|default:0 }}
+                                            to {{ page_obj.end_index|default:0 }} of {{ total_count }} entries
+                                        </div>
+
+                                        <div class="pagination-wrap hstack gap-2">
+                                            {% if page_obj.has_previous %}
+                                                <button type="button" class="btn btn-sm btn-light page-ajax-btn"
+                                                        data-page="{{ page_obj.previous_page_number }}">Previous
+                                                </button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-light" disabled>Previous
+                                                </button>
+                                            {% endif %}
+
+                                            <ul class="pagination listjs-pagination mb-0 hstack gap-1">
+                                                {% for num in page_obj.paginator.page_range %}
+                                                    {% if page_obj.number == num %}
+                                                        <li class="page-item active">
+                                                            <button type="button" class="page-link btn btn-sm"
+                                                                    style="border-radius: 6px;">{{ num }}</button>
+                                                        </li>
+                                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                                        <li class="page-item">
+                                                            <button type="button"
+                                                                    class="page-link btn btn-sm page-ajax-btn"
+                                                                    data-page="{{ num }}"
+                                                                    style="border-radius: 6px;">{{ num }}</button>
+                                                        </li>
+                                                    {% endif %}
+                                                {% empty %}
+                                                    <li class="page-item active">
+                                                        <button type="button" class="page-link btn btn-sm"
+                                                                style="border-radius: 6px;" disabled>1
+                                                        </button>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+
+                                            {% if page_obj.has_next %}
+                                                <button type="button" class="btn btn-sm btn-light page-ajax-btn"
+                                                        data-page="{{ page_obj.next_page_number }}">Next
+                                                </button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-light" disabled>Next
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let searchTimeout;
+            const searchInput = document.getElementById('tradeSearch');
+            const filterActionInput = document.getElementById('filterActionInput');
+            const dataWrapper = document.getElementById('table-data-wrapper');
+            const dropdownLabel = document.getElementById('dropdownLabel');
+
+            // تابع اصلی واکشی داده از جنگو و تزریق هوشمند به صفحه
+            function fetchFilteredData(page = 1) {
+                // افکت محو شدن ملایم در زمان بارگذاری دارایی‌ها (Soft UI Style)
+                dataWrapper.style.opacity = '0.5';
+
+                const searchVal = searchInput.value;
+                const actionVal = filterActionInput.value;
+
+                // ساخت داینامیک URL با پارامترها
+                const url = `?page=${page}&search=${encodeURIComponent(searchVal)}&action=${encodeURIComponent(actionVal)}`;
+
+                // به روز رسانی URL مرورگر بدون رفرش شدن صفحه (برای اینکه کاربر بتونه لینک رو کپی کنه یا بک بزنه)
+                window.history.pushState({path: url}, '', url);
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        // تبدیل متن HTML دریافتی به DOM موقت جهت استخراج بخش جدول
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newTableContent = doc.getElementById('table-data-wrapper').innerHTML;
+
+                        // جایگزینی محتوای جدول و بازگرداندن وضوح تصویر
+                        dataWrapper.innerHTML = newTableContent;
+                        dataWrapper.style.opacity = '1';
+
+                        // اتصال مجدد لیسنرهای پیجینیشن جدید که تزریق شده‌اند
+                        bindPaginationEvents();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        dataWrapper.style.opacity = '1';
+                    });
+            }
+
+            // لیسنر سرچ متنی (با مکانیسم تأخیر یا Debounce جهت جلوگیری از ارسال رگباری به دیتابیس)
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    fetchFilteredData(1); // همیشه سرچ جدید برود صفحه اول
+                }, 400);
+            });
+
+            // لیسنر دکمه‌های دراپ‌داون کوییک فیلتر
+            document.querySelectorAll('.filter-ajax-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.filter-ajax-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // تنظیم مقدار فیلتر و تغییر متن دکمه دشبورد
+                    filterActionInput.value = this.getAttribute('data-value');
+                    dropdownLabel.innerText = this.innerText;
+
+                    fetchFilteredData(1); // فیلتر جدید هم برود صفحه اول
+                });
+            });
+
+            // تابع اتصال رویداد کلیک به دکمه‌های پیجینیشن (چون بعد از هر لود حذف و دوباره ساخته میشن)
+            function bindPaginationEvents() {
+                document.querySelectorAll('.page-ajax-btn').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const targetPage = this.getAttribute('data-page');
+                        fetchFilteredData(targetPage);
+                    });
+                });
+            }
+
+            // اولین اجرای اتصال پیجینیشن در بدو ورود به صفحه
+            bindPaginationEvents();
+        });
+    </script>
+{% endblock %}

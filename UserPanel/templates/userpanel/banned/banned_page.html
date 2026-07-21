@@ -1,0 +1,197 @@
+{% extends 'shared/layout.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+    {% if error_message %}
+        Access denied
+    {% elif just_unbanned %}
+        Account Unbanned
+    {% else %}
+        Account Suspended
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if error_message %}
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    <div class="row" style="padding-left: 370px;">
+                        <div class="col-xl-6 col-lg-8">
+                            <div class="card border-warning mt-5">
+                                <div class="card-header bg-warning text-dark">
+                                    <h4 class="card-title mb-0">⚠️ Access Denied</h4>
+                                </div>
+                                <div class="card-body text-center">
+                                    <i class="ri-error-warning-line text-warning" style="font-size: 64px;"></i>
+                                    <h3 class="mt-3">{{ error_message }}</h3>
+                                    <a href="{% url 'dashboard:dashboard' %}" class="btn btn-primary mt-3">back
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% elif just_unbanned %}
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    <div class="row" style="padding-left: 370px;">
+                        <div class="col-xl-6 col-lg-8">
+                            <div class="card border-success mt-5">
+                                <div class="card-header bg-success text-white">
+                                    <h4 class="card-title mb-0 text-white">✅ Account Unbanned</h4>
+                                </div>
+                                <div class="card-body text-center">
+                                    <i class="ri-checkbox-circle-line text-success" style="font-size: 64px;"></i>
+                                    <h3 class="mt-3">You have been unbanned!</h3>
+                                    <p class="text-muted">Your account has been restored by the administrator.</p>
+                                    <p>Please <a href="{% url 'logout' %}"
+                                                 class="text-primary text-decoration-underline">logout</a> and then
+                                        login again to access your account.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="main-content d-flex align-items-center min-vh-100">
+            <div class="container-fluid">
+                <div class="row" style="padding-left: 370px;">
+                    <div class="col-xl-6 col-lg-8">  <!-- اضافه شدن ms-auto و me-3 -->
+                        <div class="card border-danger shadow-lg mt-2">
+                            <div class="card-header bg-danger text-white py-3">
+                                <h4 class="card-title mb-0 text-white fw-semibold">🚫 Account Suspended</h4>
+                            </div>
+                            <div class="card-body text-center p-4">
+                                <i class="ri-shield-cross-line text-danger" style="font-size: 64px;"></i>
+                                <h3 class="mt-3 fw-semibold">Your account has been banned</h3>
+                                <p class="text-muted">You cannot access the platform at this time.</p>
+
+                                <!-- اطلاعات اصلی (تاریخ و وضعیت) -->
+                                <div class="alert bg-soft-secondary text-start mt-4 p-3 rounded-3">
+                                    <strong>Banned since :</strong> {{ ban_start|date:"Y-m-d H:i" }}<br>
+                                    {% if is_permanent %}
+                                        <strong>Status :</strong> <span class="badge bg-danger">Still ban</span>
+                                    {% else %}
+                                        <strong>Unban date :</strong> {{ ban_end|date:"Y-m-d H:i" }}
+                                    {% endif %}
+                                </div>
+
+                                <!-- کادر جداگانه برای دلیل بن (با قابلیت اسکرول در صورت طولانی بودن) -->
+                                <div class="mt-3 p-3 rounded-3 bg-soft-warning border-start border-3 border-warning"
+                                     dir="auto"
+                                     style="direction:ltr;text-align:left;">
+                                    <strong class="d-block mb-1 text-dark">📋 Reason for ban :</strong>
+
+                                    <p class="mb-0" style="padding-top: 5px">
+                                        {{ ban_reason|default:"No reason provided" }}
+                                    </p>
+                                </div>
+                                <p class="text-muted mt-4">
+                                    If you believe this is a mistake, please
+                                    <a href="#" id="contactSupportLink" class="text-primary text-decoration-underline">contact
+                                        support</a>.
+                                </p>
+                                <a href="{% url 'logout' %}" class="btn btn-secondary mt-2">
+                                    <i class="ri-logout-circle-line me-1"></i> Logout
+                                </a>
+
+                                <!-- متا رفرش (در صورت نیاز فعال کنید) -->
+                                <meta http-equiv="refresh" content="10">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="modal fade" id="supportTicketModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📩 Contact Support</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="supportTicketForm">
+                        <div class="mb-3">
+                            <label class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="ticketSubject" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-control" id="ticketMessage" rows="4" required></textarea>
+                        </div>
+                        <div id="ticketResponseMsg" class="alert d-none"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitTicketBtn">Send Ticket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.getElementById('contactSupportLink').addEventListener('click', function (e) {
+            e.preventDefault();
+            var myModal = new bootstrap.Modal(document.getElementById('supportTicketModal'));
+            myModal.show();
+        });
+
+        document.getElementById('submitTicketBtn').addEventListener('click', function () {
+            var subject = document.getElementById('ticketSubject').value.trim();
+            var message = document.getElementById('ticketMessage').value.trim();
+            if (!subject || !message) {
+                alert('Please fill in both subject and message.');
+                return;
+            }
+
+            fetch("{% url 'create_support_ticket' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    subject: subject,
+                    message: message
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var msgDiv = document.getElementById('ticketResponseMsg');
+                    if (data.success) {
+                        msgDiv.className = 'alert alert-success';
+                        msgDiv.innerHTML = '✅ Ticket submitted successfully. Our team will review it.';
+                        msgDiv.classList.remove('d-none');
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById('supportTicketModal')).hide();
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        msgDiv.className = 'alert alert-danger';
+                        msgDiv.innerHTML = '❌ ' + (data.message || 'Failed to submit ticket. Please try again.');
+                        msgDiv.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    var msgDiv = document.getElementById('ticketResponseMsg');
+                    msgDiv.className = 'alert alert-danger';
+                    msgDiv.innerHTML = '❌ Network error. Please try again later.';
+                    msgDiv.classList.remove('d-none');
+                });
+        });
+    </script>
+{% endblock %}

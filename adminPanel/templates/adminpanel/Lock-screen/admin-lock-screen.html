@@ -1,0 +1,378 @@
+{% extends 'shared/layout.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}
+    Admin | Lock
+{% endblock %}
+
+{% block css %}
+    <style>
+        /* === هماهنگی کامل با پالت رنگی و استایل اختصاصی Velzon Dark === */
+        body {
+            background-color: #0f1115 !important;
+        }
+
+        /* اتمسفر بک‌گراند اختصاصی ولزون با شبیه‌ساز شفق متحرک */
+        .velzon-aurora-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 10% 20%, rgba(64, 81, 137, 0.08) 0%, transparent 40%),
+            radial-gradient(circle at 90% 80%, rgba(10, 179, 156, 0.06) 0%, transparent 40%),
+            #111318;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* شبکه گرید پیکسلی بسیار نرم ولزون */
+        .velzon-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 2;
+        }
+
+        /* کارت فوق‌العاده شیک با استایل Glassmorphic به سبک Velzon Premium */
+        .velzon-glass-card {
+            background: rgba(26, 29, 38, 0.65) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06) !important;
+            border-radius: 8px !important; /* کالیبره شده روی ۸ پیکسل */
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+            z-index: 5;
+        }
+
+        /* افکت پالس فعال بودن به دور آواتار ادمین */
+        .avatar-pulse-ring {
+            position: relative;
+            display: inline-block;
+        }
+
+        .avatar-pulse-ring::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            border: 2px solid rgba(10, 179, 156, 0.4); /* رنگ موفقیت ولزون */
+            animation: pulse-ring-anim 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+            z-index: 1;
+        }
+
+        @keyframes pulse-ring-anim {
+            0% {
+                transform: scale(0.95);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.15);
+                opacity: 0;
+            }
+        }
+
+        /* فیلد پسورد کاستومایز شده بر اساس فرم‌های ولزون */
+        .velzon-input-group input {
+            background: rgba(30, 32, 41, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #f3f6f9 !important;
+            border-radius: 8px !important;
+            padding: 11px 16px !important;
+            padding-right: 45px !important;
+            font-size: 14px;
+            transition: all 0.2s ease-in-out !important;
+        }
+
+        .velzon-input-group input:focus {
+            border-color: #405189 !important; /* رنگ سرمه‌ای برند ولزون */
+            box-shadow: 0 0 0 3px rgba(64, 81, 137, 0.2) !important;
+            outline: none;
+        }
+
+        /* دکمه با گرادینت عمیق و انیمیشن درخشندگی مخفی */
+        .btn-velzon-primary {
+            background: linear-gradient(135deg, #405189 0%, #354375 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(64, 81, 137, 0.25) !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-velzon-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: all 0.6s ease;
+        }
+
+        .btn-velzon-primary:hover::after {
+            left: 100%;
+        }
+
+        .btn-velzon-primary:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 16px rgba(64, 81, 137, 0.35) !important;
+            background: linear-gradient(135deg, #4b5ea3 0%, #405189 100%) !important;
+        }
+
+        .btn-velzon-primary:active {
+            transform: translateY(1px);
+        }
+
+        /* تراز بی نقص خطای تک ضربدر */
+        .velzon-error-alert {
+            display: flex;
+            align-items: center;
+            background: rgba(240, 101, 72, 0.08); /* رنگ قرمز دنجر ولزون */
+            border: 1px solid rgba(240, 101, 72, 0.15);
+            color: #f06548 !important;
+            border-radius: 8px;
+            padding: 9px 14px;
+            margin-top: 14px;
+            font-size: 12.5px;
+            font-weight: 500;
+            animation: velzonSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes velzonSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* لرزش کارت هنگام دریافت لوپ اشتباه */
+        .shake-element {
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% {
+                transform: translate3d(-1px, 0, 0);
+            }
+            20%, 80% {
+                transform: translate3d(2px, 0, 0);
+            }
+            30%, 50%, 70% {
+                transform: translate3d(-3px, 0, 0);
+            }
+            40%, 60% {
+                transform: translate3d(3px, 0, 0);
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="velzon-aurora-bg">
+        <div class="velzon-grid"></div>
+    </div>
+
+    <div class="auth-page-wrapper pt-5" style="position: relative; z-index: 10; min-height: 100vh;">
+        <div class="auth-page-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="text-center mt-sm-5 mb-4">
+                            <p class="mt-3 fs-15 fw-medium" style="color: #878a99; letter-spacing: 0.3px;">
+                                Unlock , Start easily , manage better
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6 col-xl-5">
+                        <div id="auth-card" class="card mt-4 border-0 shadow-lg velzon-glass-card">
+                            <div class="card-body p-4">
+                                <div class="text-center mt-2">
+                                    <h5 class="fw-bold fs-18 mb-1" style="color: #f3f6f9; letter-spacing: -0.3px;">
+                                        Lock </h5>
+                                    <p style="color: #878a99; font-size: 13px;">Enter your password to continue</p>
+                                </div>
+
+                                <div class="user-thumb text-center my-4">
+                                    <div class="avatar-pulse-ring">
+                                        <img src="{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}"
+                                             class="rounded-circle img-thumbnail" alt="thumbnail"
+                                             style="border: 2px solid rgba(10, 179, 156, 0.5); padding: 3px; background: #1a1d26; width: 88px; height: 88px; object-fit: cover; position: relative; z-index: 2;">
+                                    </div>
+                                    <h5 class="font-size-15 mt-3" style="color: #f3f6f9; font-weight: 600;">
+                                        {{ admin_user.email | mask_email_custom }}
+                                    </h5>
+                                </div>
+
+                                <div class="p-2 mt-4">
+                                    <form id="adminLockScreenForm" method="post" novalidate>
+                                        {% csrf_token %}
+                                        <div class="mb-3 velzon-input-group">
+                                            <label class="form-label fw-semibold fs-11 text-uppercase"
+                                                   style="color: #878a99; letter-spacing: 0.5px;">
+                                                Password
+                                            </label>
+                                            <div class="position-relative">
+                                                {{ form.password }}
+                                                <button class="btn position-absolute end-0 top-0 text-decoration-none d-flex align-items-center justify-content-center"
+                                                        style="width: 40px; height: 100%; border: none; background: transparent; color: #878a99; z-index: 5;"
+                                                        type="button" id="password-addon">
+                                                    <i class="ri-eye-fill fs-15"></i>
+                                                </button>
+                                            </div>
+                                            <div id="passwordError"></div>
+                                        </div>
+
+                                        <div class="mb-2 mt-4">
+                                            <button type="submit"
+                                                    class="btn btn-velzon-primary w-100 py-2.5 fs-14 fw-semibold"
+                                                    id="btn-submit">
+                                                Unlock
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <p class="mb-0 fs-13" style="color: #878a99;">Not you ? return
+                                <a href="{% url 'admin-logout' %}" class="fw-semibold text-decoration-none"
+                                   style="color: #405189; transition: color 0.15s ease;"
+                                   title="Return to sign in">
+                                    Sign In
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('adminLockScreenForm');
+            const btn = document.getElementById('btn-submit');
+            const errorText = document.getElementById('passwordError');
+            const passwordInput = document.getElementById('id_password');
+            const authCard = document.getElementById('auth-card');
+
+            // مدیریت نمایش و پنهان‌سازی پسورد با آیکون چشم ولزون
+            const eyeBtn = document.getElementById('password-addon');
+            if (eyeBtn && passwordInput) {
+                eyeBtn.addEventListener('click', () => {
+                    const icon = eyeBtn.querySelector('i');
+                    if (passwordInput.type === "password") {
+                        passwordInput.type = "text";
+                        icon.classList.replace('ri-eye-fill', 'ri-eye-off-fill');
+                        eyeBtn.style.color = '#405189';
+                    } else {
+                        passwordInput.type = "password";
+                        icon.classList.replace('ri-eye-off-fill', 'ri-eye-fill');
+                        eyeBtn.style.color = '#878a99';
+                    }
+                });
+            }
+
+            // شنود فیلد رمز عبور برای حذف آنی حالت خطا
+            if (passwordInput) {
+                passwordInput.addEventListener('input', () => {
+                    errorText.innerHTML = "";
+                    authCard.classList.remove('shake-element');
+                });
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorText.innerHTML = ""; // پاک کردن خطاهای قبلی
+
+                if (!passwordInput.value.trim()) {
+                    authCard.classList.add('shake-element');
+                    setTimeout(() => authCard.classList.remove('shake-element'), 500);
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = "Checking...";
+
+                try {
+                    const res = await fetch("", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({password: passwordInput.value})
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        btn.textContent = "Unlocked ✓";
+                        btn.style.background = "#0ab39c"; // تبدیل دکمه به سبز ولزون در صورت موفقیت
+                        setTimeout(() => {
+                            window.location.href = "{% url 'admin-panel' %}";
+                        }, 400);
+                    } else {
+                        // تراز بی‌نقص تک ضربدر به همراه متن خطا به صورت Flexbox
+                        errorText.innerHTML = `
+                            <div class="velzon-error-alert">
+                                <i class="ri-close-circle-fill fs-15 me-2"></i> Password incorrect!
+                            </div>`;
+
+                        authCard.classList.add('shake-element');
+
+                        setTimeout(() => {
+                            errorText.innerHTML = "";
+                            authCard.classList.remove('shake-element');
+                        }, 3500);
+
+                        btn.disabled = false;
+                        btn.textContent = "Unlock";
+                        passwordInput.value = "";
+                        passwordInput.focus();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    // تراز بی‌نقص برای خطای ارتباط شبکه
+                    errorText.innerHTML = `
+                        <div class="velzon-error-alert">
+                            <i class="ri-close-circle-fill fs-15 me-2"></i> Network error!
+                        </div>`;
+
+                    authCard.classList.add('shake-element');
+
+                    setTimeout(() => {
+                        errorText.innerHTML = "";
+                        authCard.classList.remove('shake-element');
+                    }, 3500);
+
+                    btn.disabled = false;
+                    btn.textContent = "Unlock";
+                }
+            });
+        });
+    </script>
+{% endblock %}

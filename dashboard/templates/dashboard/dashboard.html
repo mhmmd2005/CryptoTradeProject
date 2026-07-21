@@ -1,0 +1,1772 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+{% block title %}
+    dashboard
+{% endblock %}
+{% block css %}
+    <link href="{% static 'assets/libs/swiper/swiper-bundle.min.css' %}" rel="stylesheet"/>
+    <style>
+        .avatar-title i {
+            color: inherit !important;
+        }
+
+        .text-warning {
+            color: #f7b84b !important;
+        }
+
+        /* استایل فوق‌مینیمال برای Soft UI */
+        .empty-state-wrapper {
+            width: fit-content;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .empty-state-folder {
+            transform: scale(0.35);
+            transform-origin: center;
+            animation: float 2.5s infinite ease-in-out;
+        }
+
+        .empty-state-folder .top {
+            background-color: #ffb88e;
+            width: 60px;
+            height: 12px;
+            border-top-right-radius: 8px;
+        }
+
+        .empty-state-folder .bottom {
+            background-color: #ffe099;
+            width: 100px;
+            height: 70px;
+            box-shadow: 0 4px 8px -3px rgba(0, 0, 0, 0.06);
+            border-radius: 0 8px 8px 8px;
+        }
+
+        .empty-state-title {
+            font-size: 0.99em;
+            text-align: center;
+            margin-top: -10px;
+            font-weight: 500;
+        }
+
+        .empty-state-description {
+            font-size: 1em;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: scale(0.35) translateY(0px);
+            }
+            50% {
+                transform: scale(0.35) translateY(-5px);
+            }
+        }
+
+        /* بهینه‌سازی رسپونسیو لایه کنترلرها برای عدم اعوجاج در دکمه‌ها */
+        @media (max-width: 768px) {
+            .card-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+            }
+
+            .mobile-controls-wrapper {
+                width: 100%;
+                justify-content: space-between !important; /* توزیع متوازن المان‌ها در عرض موبایل */
+            }
+
+            #chart-timeframe-selector {
+                width: auto; /* حفظ ماهیت d-inline-flex و جلوگیری از کشیده شدن بیهوده پس‌زمینه */
+                flex-grow: 0;
+            }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="main-content">
+
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Crypto</h4>
+
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item">Dashboard</li>
+
+                                </ol>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- end page title -->
+
+                <div class="row">
+                    <div class="col-xxl-3 col-md-6">
+                        <div class="card card-height-100" style="border-radius: 8px;">
+                            <div class="card-header border-0 align-items-center d-flex">
+                                <h4 class="card-title mb-0 flex-grow-1">My Portfolio</h4>
+                                <div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+
+                                <div id="portfolio_donut_box" class="position-relative" style="min-height: 224px;">
+                                    <div id="portfolio_donut_charts" class="apex-charts" dir="ltr"></div>
+
+                                    <div id="portfolio-skeleton"
+                                         class="d-flex align-items-center justify-content-center"
+                                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: var(--vz-card-bg, #ffffff); border-radius: 8px;">
+                                        <div style="width: 140px; height: 140px; animation: skeleton-soft-pulse 1.5s ease-in-out infinite;">
+                                            <svg width="100%" height="100%" viewBox="0 0 100 100">
+                                                <circle cx="50" cy="50" r="36" stroke="#f0f2f5" stroke-width="12"
+                                                        fill="none"></circle>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <ul class="list-group list-group-flush border-dashed mb-0 mt-3 pt-2">
+                                    <li class="list-group-item px-0" data-portfolio-coin="usdt">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 avatar-xs">
+                            <span class="avatar-title bg-soft-success text-success rounded-circle fs-16">
+                                <i class="ri-coins-line"></i>
+                            </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <h6 class="mb-0 fs-13 fw-semibold">Tether</h6>
+                                                <p class="fs-11 mb-0 text-muted"><i
+                                                        class="mdi mdi-circle fs-9 align-middle text-success me-1"></i>USDT
+                                                    (TRC-20)</p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end">
+                                                <h6 class="mb-0 fs-13 fw-bold asset-balance">0.00</h6>
+                                                <p class="asset-usd-value text-muted fs-11 mb-0">$0.00</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item px-0" data-portfolio-coin="btc">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 avatar-xs">
+                            <span class="avatar-title bg-soft-warning text-warning rounded-circle fs-16">
+                                <i class="ri-bit-coin-fill"></i>
+                            </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <h6 class="mb-0 fs-13 fw-semibold">Bitcoin</h6>
+                                                <p class="fs-11 mb-0 text-muted"><i
+                                                        class="mdi mdi-circle fs-9 align-middle text-warning me-1"></i>BTC
+                                                </p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end">
+                                                <h6 class="mb-0 fs-13 fw-bold asset-balance">0.000000</h6>
+                                                <p class="asset-usd-value text-muted fs-11 mb-0">$0.00</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item px-0" data-portfolio-coin="eth">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 avatar-xs">
+                            <span class="avatar-title bg-soft-primary text-primary rounded-circle fs-16">
+                                <i class="ri-copper-coin-fill"></i>
+                            </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <h6 class="mb-0 fs-13 fw-semibold">Ethereum</h6>
+                                                <p class="fs-11 mb-0 text-muted"><i
+                                                        class="mdi mdi-circle fs-9 align-middle text-primary me-1"></i>ETH
+                                                </p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end">
+                                                <h6 class="mb-0 fs-13 fw-bold asset-balance">0.000000</h6>
+                                                <p class="asset-usd-value text-muted fs-11 mb-0">$0.00</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item px-0 pb-0" data-portfolio-coin="trx">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 avatar-xs">
+                            <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
+                                <i class="ri-water-flash-fill"></i>
+                            </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <h6 class="mb-0 fs-13 fw-semibold">Tron</h6>
+                                                <p class="fs-11 mb-0 text-muted"><i
+                                                        class="mdi mdi-circle fs-9 align-middle text-danger me-1"></i>TRX
+                                                </p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end">
+                                                <h6 class="mb-0 fs-13 fw-bold asset-balance">0.00</h6>
+                                                <p class="asset-usd-value text-muted fs-11 mb-0">$0.00</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xxl-9 order-xxl-0 order-first">
+                        <div class="d-flex flex-column h-100">
+                            <div class="row h-100">
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="card" style="border-radius: 8px;">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm flex-shrink-0">
+                    <span id="balance_avatar_box" class="avatar-title bg-soft-success text-success rounded-circle fs-3">
+                        <i id="balance_avatar_icon" class="ri-coins-line"></i>
+                    </span>
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">
+                                                        Available Balance
+                                                    </p>
+                                                    <h4 class="mb-0">
+                                                        <span id="balance_value_display"
+                                                              class="counter-value">0.00</span>
+                                                        <span id="balance_ticker_display" class="text-muted fs-14 ms-1">USDT</span>
+                                                    </h4>
+                                                </div>
+                                                <div class="flex-shrink-0 align-self-start">
+                                                    <button type="button" id="balance-switcher-btn"
+                                                            class="btn btn-sm bg-light text-secondary border-0 p-2 d-flex align-items-center justify-content-center"
+                                                            style="border-radius: 8px; width: 42px; height: 42px; transition: all 0.2s;"
+                                                            title="Switch Currency">
+                                                        <i class="mdi mdi-sync fs-16"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="card">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm flex-shrink-0">
+                    <span class="avatar-title bg-soft-success text-success rounded-circle fs-3">
+                        <i class="ri-line-chart-fill"></i>
+                    </span>
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Total
+                                                        Profit</p>
+                                                    <h4 class="mb-0"><span id="total-profit-counter"
+                                                                           class="counter-value"
+                                                                           data-target="0">0.00</span></h4>
+                                                </div>
+                                                <div class="flex-shrink-0 align-self-end">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="card">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm flex-shrink-0">
+                                                    <!-- از کلاس rounded-circle برای ظاهر نرم‌تر استفاده کن -->
+                                                    <span class="avatar-title bg-light text-primary rounded-circle fs-2">
+                                                         <i class="mdi mdi-target"></i>
+                                                        </span>
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Win
+                                                        Rate</p>
+                                                    <h4 class="mb-0"><span id="win-rate-counter"
+                                                                           class="counter-value">0</span>%</h4>
+                                                </div>
+                                                <div class="flex-shrink-0 align-self-end">
+                                                    <span class="badge badge-soft-warning">Performance</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-xl-12">
+                                    <div class="card" style="border-radius: 8px;">
+                                        <div class="card-header border-0 align-items-center d-flex flex-wrap gap-2"
+                                             style="border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                                            <h4 class="card-title mb-0 flex-grow-1" id="market-chart-title">Market
+                                                Analytics (BTC)</h4>
+
+                                            <span class="badge bg-soft-success text-success fs-10" id="live-indicator">
+                <i class="mdi mdi-circle-medium align-middle"></i> Live
+            </span>
+
+                                            <div class="d-flex gap-2 flex-wrap justify-content-end align-items-center mobile-controls-wrapper">
+                                                <select class="form-select form-select-sm border-0 bg-light fw-semibold"
+                                                        style="width: 120px; cursor: pointer; border-radius: 8px;"
+                                                        onchange="changeMarketAsset(this.value)" id="asset-selector">
+                                                </select>
+
+                                                <div id="chart-timeframe-selector"
+                                                     class="d-inline-flex gap-1 p-1 bg-light"
+                                                     style="border-radius: 8px;">
+                                                    <button type="button" onclick="updateChart('15m')"
+                                                            class="btn btn-sm fw-semibold" style="border-radius: 6px;">
+                                                        15m
+                                                    </button>
+                                                    <button type="button" onclick="updateChart('1H')"
+                                                            class="btn btn-sm fw-semibold" style="border-radius: 6px;">
+                                                        1H
+                                                    </button>
+                                                    <button type="button" onclick="updateChart('4H')"
+                                                            class="btn btn-sm fw-semibold" style="border-radius: 6px;">
+                                                        4H
+                                                    </button>
+                                                    <button type="button" onclick="updateChart('1D')"
+                                                            class="btn btn-sm fw-semibold" style="border-radius: 6px;">
+                                                        1D
+                                                    </button>
+                                                    <button type="button" onclick="updateChart('1W')"
+                                                            class="btn btn-sm fw-semibold" style="border-radius: 6px;">
+                                                        1W
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-body position-relative" style="height: 360px;">
+                                            <div id="chart-skeleton"
+                                                 class="d-flex flex-column align-items-center justify-content-center h-100 w-100 position-absolute start-0 top-0"
+                                                 style="z-index: 10; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+                                                <div class="spinner-border text-primary" role="status"
+                                                     style="width: 1.5rem; height: 1.5rem;"></div>
+                                                <span class="text-muted mt-2 fw-medium" style="font-size: 11px;">Fetching data...</span>
+                                            </div>
+                                            <div id="Market_chart" style="height: 100%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><!-- end row -->
+                        </div>
+                    </div><!-- end col -->
+                </div><!-- end row -->
+
+                <div class="row">
+                    <div class="col-xl-8">
+                        <div class="card card-height-100">
+                            <div class="card-header align-items-center d-flex">
+                                <h4 class="card-title mb-0 flex-grow-1">Market Overview</h4>
+                                <div class="flex-shrink-0">
+                                    <button class="btn btn-soft-secondary btn-sm" id="sync-status">24H Live</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive table-card">
+                                    <table class="table table-hover table-borderless table-centered align-middle table-nowrap mb-0"
+                                           id="market-watch-table">
+                                        <thead class="text-muted bg-soft-light">
+                                        <tr>
+                                            <th>Coin Name</th>
+                                            <th>Price</th>
+                                            <th>24h Change</th>
+                                            <th>24h High</th>
+                                            <th>24h Volume</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <!-- BTC -->
+                                        <tr data-coin="BTC" onclick="selectMarketAsset('BTC/USDT', 'Bitcoin')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/btc.svg' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">Bitcoin</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        <!-- ETH -->
+                                        <tr data-coin="ETH" onclick="selectMarketAsset('ETH/USDT', 'Ethereum')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/eth.svg' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">Ethereum</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        <!-- BNB -->
+                                        <tr data-coin="BNB" onclick="selectMarketAsset('BNB/USDT', 'Binance Coin')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/bnb.svg' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">Binance</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        <!-- SOL -->
+                                        <tr data-coin="SOL" onclick="selectMarketAsset('SOL/USDT', 'Solana')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/sol.svg' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">Solana</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        <!-- XRP -->
+                                        <tr data-coin="XRP" onclick="selectMarketAsset('XRP/USDT', 'Ripple')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/xrp.svg' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">Ripple</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        <!-- ADA (جایگزین تتر) -->
+                                        <tr data-coin="ADA" onclick="selectMarketAsset('ADA/USDT', 'Cardano')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/ada.svg' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">Cardano</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        <!-- DOGE -->
+                                        <tr data-coin="DOGE" onclick="selectMarketAsset('DOGE/USDT', 'Dogecoin')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/doge.svg' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">Dogecoin</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        <!-- TRX -->
+                                        <tr data-coin="TRX" onclick="selectMarketAsset('TRX/USDT', 'TRON')"
+                                            style="cursor: pointer;">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2"><img
+                                                            src="{% static 'assets/images/svg/crypto-icons/Tron Trx.png' %}"
+                                                            alt="" class="avatar-xxs"></div>
+                                                    <div><h6 class="fs-14 mb-0 fw-medium">TRON</h6></div>
+                                                </div>
+                                            </td>
+                                            <td class="coin-price">Loading...</td>
+                                            <td class="coin-change">-</td>
+                                            <td class="coin-high">-</td>
+                                            <td class="text-muted coin-volume">-</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4">
+                        <div class="card card-height-100">
+                            <div class="card-header align-items-center border-0 d-flex">
+                                <h4 class="card-title mb-0 flex-grow-1">Trading Desk</h4>
+                                <div class="flex-shrink-0">
+                                    <ul class="nav justify-content-end nav-tabs-custom rounded card-header-tabs border-bottom-0"
+                                        role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#buy-tab" role="tab"
+                                               aria-selected="false">Buy</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#sell-tab" role="tab"
+                                               aria-selected="true">Sell</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="tab-content p-0">
+
+                                    <!-- 🟢 TAB: BUY COIN -->
+                                    <div class="tab-pane active" id="buy-tab" role="tabpanel">
+                                        <div class="p-3 bg-soft-primary d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0 text-primary fw-semibold">Buy Crypto</h6>
+                                            <h6 class="text-primary mb-0 fs-12">Available: <span
+                                                    class="text-dark fw-bold" id="buy_available_usdt">$0.00</span></h6>
+                                        </div>
+                                        <div class="p-3">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fs-12 text-muted">Asset to Buy</label>
+                                                        <select class="form-select" id="buy_crypto_select">
+                                                            <option value="btc">BTC (Bitcoin)</option>
+                                                            <option value="eth">ETH (Ethereum)</option>
+                                                            <option value="trx">TRX (TRON)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div class="input-group mb-2">
+                                                    <label class="input-group-text justify-content-center"
+                                                           style="width: 75px;">Amount</label>
+                                                    <input type="number" step="any" id="buy_amount" class="form-control"
+                                                           placeholder="0.00">
+                                                    <span class="input-group-text text-uppercase fw-semibold"
+                                                          id="buy_asset_ticker"
+                                                          style="width: 60px; justify-content: center;">BTC</span>
+                                                </div>
+
+                                                <!-- دکمه‌های میانبر درصد خرید بر اساس USDT موجود در کیف پول -->
+                                                <div class="d-flex justify-content-between gap-1 mb-3">
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 buy-pct"
+                                                            data-pct="0.25" style="font-size: 11px; padding: 2px;">25%
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 buy-pct"
+                                                            data-pct="0.50" style="font-size: 11px; padding: 2px;">50%
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 buy-pct"
+                                                            data-pct="0.75" style="font-size: 11px; padding: 2px;">75%
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 buy-pct"
+                                                            data-pct="1.00" style="font-size: 11px; padding: 2px;">100%
+                                                    </button>
+                                                </div>
+
+                                                <div class="input-group mb-3">
+                                                    <label class="input-group-text justify-content-center"
+                                                           style="width: 75px;">Price</label>
+                                                    <input type="number" step="any" id="buy_price" class="form-control"
+                                                           placeholder="Loading price...">
+                                                    <label class="input-group-text"
+                                                           style="width: 60px; justify-content: center;">$</label>
+                                                </div>
+
+                                                <div class="input-group mb-0">
+                                                    <label class="input-group-text justify-content-center"
+                                                           style="width: 75px;">Total</label>
+                                                    <input type="number" step="any" id="buy_total" class="form-control"
+                                                           placeholder="0.00">
+                                                    <label class="input-group-text"
+                                                           style="width: 60px; justify-content: center;">$</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 pt-1">
+                                                <div class="d-flex mb-2">
+                                                    <div class="flex-grow-1">
+                                                        <p class="fs-12 text-muted mb-0">Trading Fee <span
+                                                                class="text-muted ms-1 fs-11">(0.05%)</span></p>
+                                                    </div>
+                                                    <div class="flex-shrink-0">
+                                                        <h6 class="mb-0 fs-12 text-dark" id="buy_fee_display">
+                                                            $0.0000</h6>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex">
+                                                    <div class="flex-grow-1">
+                                                        <p class="fs-12 text-muted mb-0">Live Executing Rate</p>
+                                                    </div>
+                                                    <div class="flex-shrink-0">
+                                                        <h6 class="mb-0 fs-12 text-success fw-semibold"
+                                                            id="buy_rate_display">1 BTC ~ $0.00</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button type="button" id="btn_execute_buy"
+                                                        class="btn btn-success w-100 fw-semibold shadow-none">Execute
+                                                    Buy Order
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 🔴 TAB: SELL COIN -->
+                                    <div class="tab-pane" id="sell-tab" role="tabpanel">
+                                        <div class="p-3 bg-soft-danger d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0 text-danger fw-semibold">Sell Crypto</h6>
+                                            <h6 class="text-danger mb-0 fs-12">Available: <span
+                                                    class="text-dark fw-bold" id="sell_available_crypto">0.00 BTC</span>
+                                            </h6>
+                                        </div>
+                                        <div class="p-3">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fs-12 text-muted">Asset to Sell</label>
+                                                        <select class="form-select" id="sell_crypto_select">
+                                                            <option value="btc">BTC (Bitcoin)</option>
+                                                            <option value="eth">ETH (Ethereum)</option>
+                                                            <option value="trx">TRX (TRON)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div class="input-group mb-2">
+                                                    <label class="input-group-text justify-content-center"
+                                                           style="width: 75px;">Amount</label>
+                                                    <input type="number" step="any" id="sell_amount"
+                                                           class="form-control" placeholder="0.00">
+                                                    <span class="input-group-text text-uppercase fw-semibold"
+                                                          id="sell_asset_ticker"
+                                                          style="width: 60px; justify-content: center;">BTC</span>
+                                                </div>
+
+                                                <!-- دکمه‌های میانبر درصد فروش بر اساس موجودی خود کوین -->
+                                                <div class="d-flex justify-content-between gap-1 mb-3">
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 sell-pct"
+                                                            data-pct="0.25" style="font-size: 11px; padding: 2px;">25%
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 sell-pct"
+                                                            data-pct="0.50" style="font-size: 11px; padding: 2px;">50%
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 sell-pct"
+                                                            data-pct="0.75" style="font-size: 11px; padding: 2px;">75%
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-soft-secondary btn-sm flex-grow-1 sell-pct"
+                                                            data-pct="1.00" style="font-size: 11px; padding: 2px;">100%
+                                                    </button>
+                                                </div>
+
+                                                <div class="input-group mb-3">
+                                                    <label class="input-group-text justify-content-center"
+                                                           style="width: 75px;">Price</label>
+                                                    <input type="number" step="any" id="sell_price" class="form-control"
+                                                           placeholder="Loading price...">
+                                                    <label class="input-group-text"
+                                                           style="width: 60px; justify-content: center;">$</label>
+                                                </div>
+
+                                                <div class="input-group mb-0">
+                                                    <label class="input-group-text justify-content-center"
+                                                           style="width: 75px;">Total</label>
+                                                    <input type="number" step="any" id="sell_total" class="form-control"
+                                                           placeholder="0.00">
+                                                    <label class="input-group-text"
+                                                           style="width: 60px; justify-content: center;">$</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 pt-1">
+                                                <div class="d-flex mb-2">
+                                                    <div class="flex-grow-1">
+                                                        <p class="fs-12 text-muted mb-0">Trading Fee <span
+                                                                class="text-muted ms-1 fs-11">(0.05%)</span></p>
+                                                    </div>
+                                                    <div class="flex-shrink-0">
+                                                        <h6 class="mb-0 fs-12 text-dark" id="sell_fee_display">
+                                                            $0.0000</h6>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex">
+                                                    <div class="flex-grow-1">
+                                                        <p class="fs-12 text-muted mb-0">Live Executing Rate</p>
+                                                    </div>
+                                                    <div class="flex-shrink-0">
+                                                        <h6 class="mb-0 fs-12 text-danger fw-semibold"
+                                                            id="sell_rate_display">1 BTC ~ $0.00</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button type="button" id="btn_execute_sell"
+                                                        class="btn btn-danger w-100 fw-semibold shadow-none">Execute
+                                                    Sell Order
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <!-- container-fluid -->
+        </div>
+        <!-- End Page-content -->
+
+        <footer class="footer"
+                style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-12 text-center text-sm-start">
+                        <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                             style="gap: 6px; line-height: 1;">
+                            <span>&copy;</span>
+                            <span id="footer-year" class="fw-medium"></span>
+                            <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                            <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                            <span>All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+
+{% block js %}
+
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+    <script>
+        // ===================================================
+        // مینی ماژول مدیریت سوییچ دارایی‌ها (USDT, BTC, ETH, TRX)
+        // ===================================================
+        const walletBalances = {
+            'usdt': parseFloat("{{ wallet_usdt_balance|stringformat:".6f"|default:'0.000000' }}"),
+            'btc': parseFloat("{{ wallet_btc_balance|stringformat:".6f"|default:'0.000000' }}"),
+            'eth': parseFloat("{{ wallet_eth_balance|stringformat:".6f"|default:'0.000000' }}"),
+            'trx': parseFloat("{{ wallet_trx_balance|stringformat:".6f"|default:'0.000000' }}")
+        };
+        const switcherOrder = ['usdt', 'btc', 'eth', 'trx'];
+        let currentBalanceIndex = 0;
+
+        function updateAvailableBalanceCard() {
+            const activeCurrency = switcherOrder[currentBalanceIndex];
+            const balanceValue = walletBalances[activeCurrency];
+
+            const valueDisplay = document.getElementById('balance_value_display');
+            const tickerDisplay = document.getElementById('balance_ticker_display');
+            const avatarBox = document.getElementById('balance_avatar_box');
+            const avatarIcon = document.getElementById('balance_avatar_icon');
+
+            if (!valueDisplay || !tickerDisplay) return;
+
+            const decimals = (activeCurrency === 'btc' || activeCurrency === 'eth') ? 6 : 2;
+            valueDisplay.innerText = balanceValue.toLocaleString(undefined, {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+
+            tickerDisplay.innerText = activeCurrency.toUpperCase();
+
+            if (activeCurrency === 'usdt') {
+                avatarBox.className = "avatar-title bg-soft-success text-success rounded-circle fs-3";
+                avatarIcon.className = "ri-coins-line";
+            } else if (activeCurrency === 'btc') {
+                avatarBox.className = "avatar-title bg-soft-warning text-warning rounded-circle fs-3";
+                avatarIcon.className = "ri-bit-coin-fill";
+            } else if (activeCurrency === 'eth') {
+                avatarBox.className = "avatar-title bg-soft-primary text-primary rounded-circle fs-3";
+                avatarIcon.className = "ri-copper-coin-fill";
+            } else if (activeCurrency === 'trx') {
+                avatarBox.className = "avatar-title bg-soft-danger text-danger rounded-circle fs-3";
+                avatarIcon.className = "ri-water-flash-fill";
+            }
+        }
+
+        let marketChart;
+        let currentSymbol = 'BTC/USDT';
+        let currentTimeframe = '1H';
+        const tickerSymbols = [
+            'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
+            'ADAUSDT', 'DOGEUSDT', 'TRXUSDT', 'DOTUSDT', 'LINKUSDT',
+            'AVAXUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT'
+        ];
+
+        async function selectMarketAsset(symbol, fullName) {
+            currentSymbol = symbol;
+            const titleEl = document.getElementById('market-chart-title');
+            if (titleEl) titleEl.innerText = `Market Analytics (${fullName})`;
+            await updateChart(currentTimeframe);
+        }
+
+        async function updateChart(timeframe = '1H') {
+            currentTimeframe = timeframe;
+            localStorage.setItem('market_timeframe', timeframe);
+            updateButtonStyles(timeframe);
+
+            const chartContainer = document.querySelector("#Market_chart");
+            const skeleton = document.getElementById('chart-skeleton');
+
+            if (skeleton) skeleton.classList.remove('d-none');
+            chartContainer.style.opacity = '0.5';
+
+            try {
+                const response = await fetch(`/dashboard/api/market-data/?symbol=${currentSymbol}&timeframe=${currentTimeframe}`);
+                if (!response.ok) throw new Error('Network response failure');
+
+                const result = await response.json();
+                if (!result.series || result.series.length === 0) throw new Error('No data');
+
+                const isDarkMode = document.documentElement.getAttribute('data-layout-mode') === 'dark';
+
+                if (marketChart) {
+                    marketChart.destroy();
+                    marketChart = null;
+                }
+
+                const options = {
+                    series: [{data: result.series}],
+                    chart: {
+                        type: 'candlestick',
+                        height: '100%',
+                        background: 'transparent',
+                        fontFamily: 'Inter, sans-serif',
+                        toolbar: {show: false},
+                        animations: {enabled: false}
+                    },
+                    xaxis: {
+                        type: 'datetime',
+                        labels: {style: {colors: '#878a99', fontSize: '11px'}},
+                        axisBorder: {show: false},
+                        axisTicks: {show: false}
+                    },
+                    yaxis: {
+                        labels: {
+                            style: {colors: '#878a99', fontSize: '11px'},
+                            formatter: (val) => '$' + Number(val).toLocaleString()
+                        },
+                        opposite: true
+                    },
+                    plotOptions: {
+                        candlestick: {colors: {upward: '#00bd9d', downward: '#f06548'}}
+                    },
+                    grid: {
+                        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(135, 138, 153, 0.15)',
+                        strokeDashArray: 4,
+                        xaxis: {lines: {show: true}},
+                        yaxis: {lines: {show: true}}
+                    },
+                    tooltip: {
+                        enabled: true,
+                        theme: isDarkMode ? 'dark' : 'light',
+                        x: {format: 'dd MMM HH:mm'}
+                    }
+                };
+
+                marketChart = new ApexCharts(chartContainer, options);
+                await marketChart.render();
+
+                if (skeleton) skeleton.classList.add('d-none');
+                chartContainer.style.opacity = '1';
+
+            } catch (error) {
+                console.error("Error loading chart data:", error);
+                if (skeleton) {
+                    skeleton.innerHTML = `<span class="text-danger fw-semibold" style="font-size: 11px;">Data Connection Error</span>`;
+                }
+            }
+        }
+
+        function updateButtonStyles(activeTimeframe) {
+            const selector = document.getElementById('chart-timeframe-selector');
+            if (!selector) return;
+
+            const buttons = selector.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.classList.remove('btn-soft-primary', 'btn-soft-secondary');
+                if (btn.innerText.trim() === activeTimeframe) {
+                    btn.classList.add('btn-soft-primary');
+                } else {
+                    btn.classList.add('btn-soft-secondary');
+                }
+            });
+        }
+
+        function changeMarketAsset(symbol) {
+            localStorage.setItem('market_symbol', symbol);
+            currentSymbol = symbol;
+
+            const fullName = symbol.replace('USDT', '').replace('/', '').trim();
+            const titleEl = document.getElementById('market-chart-title');
+            if (titleEl) titleEl.innerText = `Market Analytics (${fullName})`;
+
+            updateChart(currentTimeframe);
+        }
+
+        function renderCoinRow(coinName, lastPrice, priceChangePercent, highPrice, quoteVolume) {
+            const row = document.querySelector(`#market-watch-table tr[data-coin="${coinName}"]`);
+            if (!row) return;
+
+            const price = parseFloat(lastPrice);
+            const change = parseFloat(priceChangePercent);
+            const high = parseFloat(highPrice);
+            const volume = parseFloat(quoteVolume);
+
+            let precision = 2;
+            if (price < 1) precision = 4;
+            else if (price < 10) precision = 3;
+
+            row.querySelector('.coin-price').innerText = `$${price.toLocaleString(undefined, {
+                minimumFractionDigits: precision,
+                maximumFractionDigits: precision
+            })}`;
+
+            const changeCell = row.querySelector('.coin-change');
+            if (change > 0) {
+                changeCell.innerHTML = `<h6 class="text-success fs-13 mb-0"><i class="mdi mdi-trending-up align-middle me-1"></i>+${change.toFixed(2)}%</h6>`;
+            } else if (change < 0) {
+                changeCell.innerHTML = `<h6 class="text-danger fs-13 mb-0"><i class="mdi mdi-trending-down align-middle me-1"></i>${change.toFixed(2)}%</h6>`;
+            } else {
+                changeCell.innerHTML = `<h6 class="text-muted fs-13 mb-0"><i class="mdi mdi-minus align-middle me-1"></i>0.00%</h6>`;
+            }
+
+            row.querySelector('.coin-high').innerText = `$${high.toLocaleString(undefined, {
+                minimumFractionDigits: precision,
+                maximumFractionDigits: precision
+            })}`;
+
+            let formattedVol = `$${(volume / 1000000).toFixed(2)}M`;
+            if (volume >= 1000000000) formattedVol = `$${(volume / 1000000000).toFixed(2)}B`;
+            row.querySelector('.coin-volume').innerText = formattedVol;
+        }
+
+        // ⚡ متصل شده به سیستم محاسبات چارت دونات پورتفولیو
+        async function fetchRealMarketData() {
+            try {
+                const response = await fetch('/dashboard/api/market-tickers/');
+                if (!response.ok) {
+                    console.error("Server responded with an error status:", response.status);
+                    return;
+                }
+
+                const liveData = await response.json();
+                localStorage.setItem('last_known_market_prices', JSON.stringify(liveData));
+
+                // ✅ اجرای محاسبات و رندر/بروزرسانی چارت دونات با قیمت‌های زنده مارکت
+                updatePortfolioCalculations(liveData);
+
+                liveData.forEach(ticker => {
+                    const coinName = ticker.symbol.replace('USDT', '');
+                    renderCoinRow(coinName, ticker.lastPrice, ticker.priceChangePercent, ticker.highPrice, ticker.quoteVolume);
+                });
+
+                const syncStatus = document.getElementById('sync-status');
+                if (syncStatus) syncStatus.innerText = "24H Live";
+
+            } catch (error) {
+                console.warn("Network proxy layer error. Using fallback session data layer.", error);
+                // لود آفلاین در صورت خطای شبکه
+                const cachedPrices = localStorage.getItem('last_known_market_prices');
+                updatePortfolioCalculations(cachedPrices ? JSON.parse(cachedPrices) : null);
+            }
+        }
+
+        let currentActivityFilter = 'today';
+        let activityAbortController = null;
+
+        async function loadActivity(filter = 'today', page = 1, label = 'Today') {
+            if (activityAbortController) {
+                activityAbortController.abort();
+            }
+            activityAbortController = new AbortController();
+            const {signal} = activityAbortController;
+
+            currentActivityFilter = filter;
+
+            const labelElement = document.getElementById('current-filter-label');
+            if (labelElement) labelElement.innerText = label;
+
+            const container = document.getElementById('activity-list-container');
+            const loadMoreContainer = document.getElementById('load-more-container');
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            if (!container) return;
+
+            if (page === 1) {
+                container.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                <p class="text-muted fs-11 mb-0 mt-2">Loading activity...</p>
+            </div>`;
+                if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+            }
+
+            try {
+                const response = await fetch(`/activity/recent/?filter=${filter}&page=${page}`, {signal});
+
+                // 🛡️ بررسی اینکه آیا سرور پاسخ درستی داده یا خطای ۵۰۰ برگردانده است
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({message: "Unknown Server Error"}));
+                    throw new Error(errData.message || `Server returned status ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (page === 1 && (!data.activities || data.activities.length === 0)) {
+                    container.innerHTML = `
+                <div class="text-center py-4">
+                    <h5 class="text-muted mb-1 fs-13">No activity found...</h5>
+                    <p class="text-muted fs-11 mb-0">There is no recorded activity for this time period.</p>
+                </div>`;
+                    return;
+                }
+
+                let html = '';
+                data.activities.forEach(act => {
+                    html += `
+            <div class="activity-group mb-3 border-bottom border-bottom-dashed pb-2">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-soft-info text-info fs-11 text-uppercase fw-bold p-1 px-2">${act.date}</span>
+                    <div class="flex-grow-1 border-bottom ms-2" style="opacity: 0.1;"></div>
+                </div>
+                <div class="d-flex align-items-center py-1">
+                    <div class="avatar-xs flex-shrink-0 me-2">
+                        <div class="avatar-title bg-soft-primary text-primary rounded-circle fs-13"><i class="ri-line-chart-fill"></i></div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0 fs-12 fw-semibold">Trades</h6>
+                        <p class="text-muted mb-0 fs-11">Total executed</p>
+                    </div>
+                    <div class="text-end"><h6 class="mb-0 text-primary fw-bold fs-12">+${act.trades}</h6></div>
+                </div>
+                <div class="d-flex align-items-center py-1">
+                    <div class="avatar-xs flex-shrink-0 me-2">
+                        <div class="avatar-title bg-soft-success text-success rounded-circle fs-13"><i class="ri-wallet-3-fill"></i></div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0 fs-12 fw-semibold">Wallet</h6>
+                        <p class="text-muted mb-0 fs-11">${act.withdraw} W / ${act.deposit} D</p>
+                    </div>
+                    <div class="text-end"><span class="badge bg-soft-success text-success fs-10 p-1">Active</span></div>
+                </div>
+                <div class="d-flex align-items-center py-1">
+                    <div class="avatar-xs flex-shrink-0 me-2">
+                        <div class="avatar-title bg-soft-warning text-warning rounded-circle fs-13"><i class="ri-customer-service-2-fill"></i></div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0 fs-12 fw-semibold">Tickets</h6>
+                        <p class="text-muted mb-0 fs-11">Pending flags</p>
+                    </div>
+                    <div class="text-end"><h6 class="mb-0 text-dark fw-bold fs-12">${act.tickets}</h6></div>
+                </div>
+            </div>`;
+                });
+
+                if (page === 1) container.innerHTML = html;
+                else container.insertAdjacentHTML('beforeend', html);
+
+                if (loadMoreContainer && loadMoreBtn) {
+                    if (data.has_next) {
+                        loadMoreContainer.style.display = 'block';
+                        loadMoreBtn.setAttribute('data-page', page + 1);
+                    } else {
+                        loadMoreContainer.style.display = 'none';
+                    }
+                }
+                window.dispatchEvent(new Event('resize'));
+
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+                console.error("Critical stream failure:", err);
+                // نمایش گرافیکی و دقیق خطا در باکس به جای قفل شدن روی لودینگ
+                container.innerHTML = `
+            <div class="text-center text-danger p-3 fs-12 fw-semibold">
+                <i class="ri-error-warning-line fs-18 d-block mb-1"></i>
+                Error: ${err.message}
+            </div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    const nextPage = parseInt(this.getAttribute('data-page')) || 1;
+                    const currentLabel = document.getElementById('current-filter-label')?.innerText || 'Today';
+                    loadActivity(currentActivityFilter, nextPage, currentLabel);
+                });
+            }
+            loadActivity('today', 1, 'Today');
+        });
+
+        // ==========================================================
+        // نسخه کالیبره‌شده: انیمیشن آپدیت فوق‌العاده نرم و نامحسوس
+        // ==========================================================
+        let portfolioDonutChart = null;
+
+        function updatePortfolioCalculations(liveTickers) {
+            // ۱. نگاشت قیمت‌های زنده از دیتای مارکت
+            let prices = {'usdt': 1.0, 'btc': 0.0, 'eth': 0.0, 'trx': 0.0};
+
+            if (liveTickers && Array.isArray(liveTickers)) {
+                liveTickers.forEach(t => {
+                    if (t.symbol === 'BTCUSDT') prices['btc'] = parseFloat(t.lastPrice);
+                    if (t.symbol === 'ETHUSDT') prices['eth'] = parseFloat(t.lastPrice);
+                    if (t.symbol === 'TRXUSDT') prices['trx'] = parseFloat(t.lastPrice);
+                });
+            }
+
+            // ۲. محاسبه ارزش دلاری واقعی هر ولت
+            let valuations = {
+                'usdt': (walletBalances['usdt'] || 0) * prices['usdt'],
+                'btc': (walletBalances['btc'] || 0) * prices['btc'],
+                'eth': (walletBalances['eth'] || 0) * prices['eth'],
+                'trx': (walletBalances['trx'] || 0) * prices['trx']
+            };
+
+            let totalValue = 0;
+
+            // ۳. بروزرسانی متون لیست متنی پایین کارت
+            switcherOrder.forEach(coin => {
+                totalValue += valuations[coin];
+
+                const row = document.querySelector(`[data-portfolio-coin="${coin}"]`);
+                if (row) {
+                    const dec = (coin === 'btc' || coin === 'eth') ? 6 : 2;
+                    row.querySelector('.asset-balance').innerText = walletBalances[coin].toLocaleString(undefined, {
+                        minimumFractionDigits: dec,
+                        maximumFractionDigits: dec
+                    });
+                    row.querySelector('.asset-usd-value').innerText = '$' + valuations[coin].toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            });
+
+            // مخفی کردن اسکلتون لودر
+            const skeleton = document.getElementById('portfolio-skeleton');
+            if (skeleton) skeleton.classList.add('d-none');
+
+            const isDarkMode = document.documentElement.getAttribute('data-layout-mode') === 'dark';
+            const ethereumColor = '#299cdb';
+
+            // ۴. مدیریت رندرهای بعدی با انیمیشن بسیار نرم و مرکز ۱۰۰٪ ثابت
+            if (portfolioDonutChart) {
+                portfolioDonutChart.updateOptions({
+                    series: [1, 1, 1, 1], // 🌟 قفل کردن گرافیک قاچ‌ها روی ۴ قسمت کاملاً مساوی در آپدیت‌ها
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                labels: {
+                                    name: {
+                                        formatter: () => 'Total Value' // قفل کردن نام در آپدیت‌های داینامیک
+                                    },
+                                    value: {
+                                        formatter: () => '$' + totalValue.toLocaleString(undefined, {maximumFractionDigits: 2}) // آپدیت آنی عدد مرکز بدون رفرش
+                                    },
+                                    total: {
+                                        formatter: () => '$' + totalValue.toLocaleString(undefined, {maximumFractionDigits: 2})
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }, false, true);
+            } else {
+                // ساخت اولیه چارت با تنظیمات انیمیشن اختصاصی و قفل متن مرکز
+                const options = {
+                    series: [1, 1, 1, 1], // 🌟 قفل کردن گرافیک قاچ‌ها روی ۴ قسمت کاملاً مساوی در رندر اولیه
+                    labels: ["USDT", "BTC", "ETH", "TRX"],
+                    colors: [ethereumColor, ethereumColor, ethereumColor, ethereumColor],
+                    chart: {
+                        type: 'donut',
+                        height: 210,
+                        background: 'transparent',
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 600,
+                            dynamicAnimation: {
+                                enabled: true,
+                                speed: 400
+                            }
+                        }
+                    },
+                    stroke: {colors: [isDarkMode ? '#1a1d21' : '#fff'], width: 2},
+                    legend: {show: false},
+                    dataLabels: {enabled: false},
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '72%',
+                                labels: {
+                                    show: true,
+                                    name: {
+                                        show: true,
+                                        fontSize: '12px',
+                                        color: '#878a99',
+                                        formatter: () => 'Total Value' // حتی هنگام هاور روی قاچ‌ها، متن روی Total Value قفل می‌ماند
+                                    },
+                                    value: {
+                                        fontSize: '16px',
+                                        fontWeight: 'bold',
+                                        color: isDarkMode ? '#f3f6f9' : '#495057',
+                                        formatter: () => '$' + totalValue.toLocaleString(undefined, {maximumFractionDigits: 2}) // حتی هنگام هاور روی قاچ‌ها، عدد روی مقدار کل قفل می‌ماند
+                                    },
+                                    total: {
+                                        show: true,
+                                        alwaysShow: true,
+                                        label: 'Total Value',
+                                        fontSize: '12px',
+                                        color: '#878a99',
+                                        formatter: () => '$' + totalValue.toLocaleString(undefined, {maximumFractionDigits: 2})
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    tooltip: {
+                        theme: isDarkMode ? 'dark' : 'light',
+                        y: {
+                            formatter: function (value, {seriesIndex}) {
+                                const coin = switcherOrder[seriesIndex];
+                                const balance = walletBalances[coin];
+                                const usdValue = valuations[coin];
+                                const dec = (coin === 'btc' || coin === 'eth') ? 6 : 2;
+
+                                return `${balance.toLocaleString(undefined, {
+                                    minimumFractionDigits: dec,
+                                    maximumFractionDigits: dec
+                                })} ${coin.toUpperCase()} (~$${usdValue.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })})`;
+                            }
+                        }
+                    }
+                };
+                portfolioDonutChart = new ApexCharts(document.querySelector("#portfolio_donut_charts"), options);
+                portfolioDonutChart.render();
+            }
+        }
+
+        async function updateDashboardStats() {
+            try {
+                const response = await fetch('/api/user-stats/');
+                const data = await response.json();
+
+                const profitEl = document.getElementById('total-profit-counter');
+                if (profitEl && data.net_profit) {
+                    const netProfit = parseFloat(data.net_profit.replace(/,/g, ''));
+                    profitEl.setAttribute('data-target', netProfit);
+                    runCounter(profitEl);
+                }
+                const winRateEl = document.getElementById('win-rate-counter');
+                if (winRateEl && data.win_rate) {
+                    winRateEl.innerText = data.win_rate.replace('%', '');
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            }
+        }
+
+        function runCounter(el) {
+            const target = +el.getAttribute('data-target');
+            const update = () => {
+                const current = +el.innerText.replace(/,/g, '');
+                const increment = target / 100;
+                if (current < target) {
+                    el.innerText = Math.ceil(current + increment).toLocaleString();
+                    setTimeout(update, 10);
+                } else {
+                    el.innerText = target.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            };
+            update();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAvailableBalanceCard();
+
+            const switcherBtn = document.getElementById('balance-switcher-btn');
+            if (switcherBtn) {
+                switcherBtn.addEventListener('click', function () {
+                    const icon = this.querySelector('i');
+                    icon.style.transform = 'rotate(-360deg)';
+                    icon.style.transition = 'transform 0.4s ease';
+                    setTimeout(() => {
+                        icon.style.transform = 'none';
+                        icon.style.transition = 'none';
+                    }, 400);
+
+                    currentBalanceIndex = (currentBalanceIndex + 1) % switcherOrder.length;
+                    updateAvailableBalanceCard();
+                });
+            }
+
+            const selector = document.getElementById('asset-selector');
+            tickerSymbols.forEach(sym => {
+                const option = document.createElement('option');
+                option.value = sym;
+                option.text = sym.replace('USDT', '') + ' / USDT';
+                selector.appendChild(option);
+            });
+
+            const savedSymbol = localStorage.getItem('market_symbol') || 'BTCUSDT';
+            const savedTimeframe = localStorage.getItem('market_timeframe') || '1H';
+
+            selector.value = savedSymbol;
+            currentSymbol = savedSymbol;
+
+            const initialCleanName = savedSymbol.replace('USDT', '').replace('/', '').trim();
+            const titleEl = document.getElementById('market-chart-title');
+            if (titleEl) titleEl.innerText = `Market Analytics (${initialCleanName})`;
+
+            // ✅ لود اولیه و فوری وضعیت پورتفولیو با کش آخرین دیتای مارکت (قبل از دریافت دیتای زنده)
+            const cachedPrices = localStorage.getItem('last_known_market_prices');
+            updatePortfolioCalculations(cachedPrices ? JSON.parse(cachedPrices) : null);
+
+            updateChart(savedTimeframe);
+            loadActivity(0, 'Today');
+            updateDashboardStats();
+
+            // واکشی دیتای زنده مارکت و رندر اتوماتیک پورتفولیو
+            fetchRealMarketData();
+            setInterval(fetchRealMarketData, 10000);
+
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    const nextPage = parseInt(this.getAttribute('data-page'));
+                    const currentLabel = this.getAttribute('data-label') || 'Today';
+                    loadActivity(nextPage, currentLabel);
+                });
+            }
+        });
+
+        // =========================================================================
+        // 🌟 ماژول جدید معاملاتی (TRADING DESK MODULE) - بدون تغییر در کدهای بالا 🌟
+        // =========================================================================
+        let liveCryptoPrices = {btc: 0, eth: 0, trx: 0};
+
+        let userLiveBalances = {
+            usdttrc20: parseFloat("{{ wallet_usdt_balance|stringformat:".6f"|default:'0.000000' }}"),
+            btc: parseFloat("{{ wallet_btc_balance|stringformat:".6f"|default:'0.000000' }}"),
+            eth: parseFloat("{{ wallet_eth_balance|stringformat:".6f"|default:'0.000000' }}"),
+            trx: parseFloat("{{ wallet_trx_balance|stringformat:".6f"|default:'0.000000' }}")
+        };
+
+        // رهگیری قیمت‌های لایو صرافی از لایه دونات پورتفولیو و تزریق مستقیم به Trading Desk
+        const originalPortfolioCalculator = updatePortfolioCalculations;
+        updatePortfolioCalculations = function (liveTickers) {
+            originalPortfolioCalculator(liveTickers);
+            if (liveTickers && Array.isArray(liveTickers)) {
+                liveTickers.forEach(t => {
+                    if (t.symbol === 'BTCUSDT') liveCryptoPrices.btc = parseFloat(t.lastPrice);
+                    if (t.symbol === 'ETHUSDT') liveCryptoPrices.eth = parseFloat(t.lastPrice);
+                    if (t.symbol === 'TRXUSDT') liveCryptoPrices.trx = parseFloat(t.lastPrice);
+                });
+                updateTradingDeskLivePrices();
+            }
+        };
+
+        function updateUiBalances() {
+            const buyAvailable = document.getElementById('buy_available_usdt');
+            if (buyAvailable && typeof userLiveBalances !== 'undefined' && userLiveBalances.usdttrc20 !== undefined) {
+
+                // فقط همین یک خط کافی است و علامت $ را پشت عدد فرمت‌شده قرار می‌دهد
+                buyAvailable.innerText = '$' + userLiveBalances.usdttrc20.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+            }
+            updateCryptoSellDisplay();
+        }
+
+        function updateCryptoSellDisplay() {
+            const sellSelect = document.getElementById('sell_crypto_select');
+            if (!sellSelect) return;
+
+            const selectedCrypto = sellSelect.value;
+            const balance = userLiveBalances[selectedCrypto] || 0;
+            const dec = (selectedCrypto === 'trx') ? 2 : 6;
+
+            const sellAvailable = document.getElementById('sell_available_crypto');
+            if (sellAvailable) {
+                sellAvailable.innerText = balance.toFixed(dec) + ' ' + selectedCrypto.toUpperCase();
+            }
+        }
+
+        function updateOrderMetadata(type) {
+            const total = parseFloat(document.getElementById(`${type}_total`).value) || 0;
+            const feeRate = 0.0005; // 0.05%
+            const fee = total * feeRate;
+
+            // فرمت‌دهی کارمزد: کاما برای هزارگان و ۴ رقم اعشار ثابت
+            const feeDisplay = document.getElementById(`${type}_fee_display`);
+            if (feeDisplay) {
+                feeDisplay.innerText = '$' + fee.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4
+                });
+            }
+
+            // فرمت‌دهی نرخ زنده: کاما برای هزارگان و ۲ رقم اعشار ثابت
+            const price = parseFloat(document.getElementById(`${type}_price`).value) || 0;
+            const ticker = document.getElementById(`${type}_asset_ticker`).innerText;
+            const rateDisplay = document.getElementById(`${type}_rate_display`);
+
+            if (rateDisplay && price > 0) {
+                rateDisplay.innerText = `1 ${ticker} ~ $${price.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
+            }
+        }
+
+        function calculateBuy(source) {
+            const priceInp = document.getElementById('buy_price');
+            const amountInp = document.getElementById('buy_amount');
+            const totalInp = document.getElementById('buy_total');
+            if (!priceInp || !amountInp || !totalInp) return;
+
+            const price = parseFloat(priceInp.value) || 0;
+            if (price === 0) return;
+
+            // محاسبات عددی خام (برای حفظ دقت)
+            if (source === 'amount') {
+                const amount = parseFloat(amountInp.value || 0);
+                totalInp.value = (amount * price).toFixed(2);
+            } else {
+                const cryptoSelect = document.getElementById('buy_crypto_select');
+                const crypto = cryptoSelect ? cryptoSelect.value : 'btc';
+                const total = parseFloat(totalInp.value || 0);
+                amountInp.value = (total / price).toFixed(crypto === 'trx' ? 2 : 6);
+            }
+
+            // به‌روزرسانی متادیتا که وظیفه فرمت‌دهی نمایشی را دارد
+            updateOrderMetadata('buy');
+        }
+
+        function calculateSell(source) {
+            const priceInp = document.getElementById('sell_price');
+            const amountInp = document.getElementById('sell_amount');
+            const totalInp = document.getElementById('sell_total');
+            if (!priceInp || !amountInp || !totalInp) return;
+
+            const price = parseFloat(priceInp.value) || 0;
+            if (price === 0) return;
+
+            if (source === 'amount') {
+                const amount = parseFloat(amountInp.value || 0);
+                totalInp.value = (amount * price).toFixed(2);
+            } else {
+                const cryptoSelect = document.getElementById('sell_crypto_select');
+                const crypto = cryptoSelect ? cryptoSelect.value : 'btc';
+                const total = parseFloat(totalInp.value || 0);
+                amountInp.value = (total / price).toFixed(crypto === 'trx' ? 2 : 6);
+            }
+            updateOrderMetadata('sell');
+        }
+
+        function updateTradingDeskLivePrices() {
+            const buySelect = document.getElementById('buy_crypto_select');
+            const sellSelect = document.getElementById('sell_crypto_select');
+            const buyPriceInp = document.getElementById('buy_price');
+            const sellPriceInp = document.getElementById('sell_price');
+
+            if (buySelect && buyPriceInp && document.activeElement !== buyPriceInp) {
+                const currentBuyCrypto = buySelect.value;
+                if (liveCryptoPrices[currentBuyCrypto]) buyPriceInp.value = liveCryptoPrices[currentBuyCrypto].toFixed(4);
+            }
+            if (sellSelect && sellPriceInp && document.activeElement !== sellPriceInp) {
+                const currentSellCrypto = sellSelect.value;
+                if (liveCryptoPrices[currentSellCrypto]) sellPriceInp.value = liveCryptoPrices[currentSellCrypto].toFixed(4);
+            }
+            updateOrderMetadata('buy');
+            updateOrderMetadata('sell');
+        }
+
+        async function submitTradeOrder(action) {
+            const type = action.toLowerCase();
+            const cryptoSelect = document.getElementById(`${type}_crypto_select`);
+            const amountInp = document.getElementById(`${type}_amount`);
+            const priceInp = document.getElementById(`${type}_price`);
+            const btn = document.getElementById(`btn_execute_${type}`);
+
+            if (!cryptoSelect || !amountInp || !priceInp || !btn) return;
+
+            const crypto = cryptoSelect.value;
+            const amount = parseFloat(amountInp.value) || 0;
+            const price = parseFloat(priceInp.value) || 0;
+
+            if (amount <= 0 || price <= 0) {
+                alert('Please enter valid trade details.');
+                return;
+            }
+
+            btn.disabled = true;
+            const originalText = btn.innerText;
+            btn.innerText = 'Processing...';
+
+            try {
+                const response = await fetch('/dashboard/api/execute-trade/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({action, crypto, amount, price})
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    alert(result.message);
+
+                    userLiveBalances.usdttrc20 = result.balances.usdttrc20;
+                    walletBalances.usdt = result.balances.usdttrc20;
+                    userLiveBalances[crypto] = result.balances[crypto];
+                    walletBalances[crypto] = result.balances[crypto];
+
+                    amountInp.value = '';
+                    const totalInp = document.getElementById(`${type}_total`);
+                    if (totalInp) totalInp.value = '';
+
+                    updateUiBalances();
+                    if (typeof updateAvailableBalanceCard === 'function') updateAvailableBalanceCard();
+
+                    const cachedPrices = localStorage.getItem('last_known_market_prices');
+                    originalPortfolioCalculator(cachedPrices ? JSON.parse(cachedPrices) : null);
+                } else {
+                    alert('خطا: ' + (result.message || 'Transaction failed.'));
+                }
+            } catch (error) {
+                console.error('Order failed:', error);
+                alert('Server connection error. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+
+        function getCsrfToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === 'csrftoken=') {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function setupTradingDeskListeners() {
+            const buyAmount = document.getElementById('buy_amount');
+            const buyTotal = document.getElementById('buy_total');
+            const sellAmount = document.getElementById('sell_amount');
+            const sellTotal = document.getElementById('sell_total');
+            const buyCryptoSelect = document.getElementById('buy_crypto_select');
+            const sellCryptoSelect = document.getElementById('sell_crypto_select');
+
+            // تابع کمکی برای پاک کردن استایل فعال دکمه‌های درصدی
+            const clearPercentActiveState = (type) => {
+                document.querySelectorAll(`.${type}-pct`).forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.blur();
+                });
+            };
+
+            // --- شنود تغییرات دستی اینپوت‌ها (اگر کاربر خودش تایپ کرد، تیک درصد پاک شود) ---
+            if (buyAmount) buyAmount.addEventListener('input', () => {
+                clearPercentActiveState('buy');
+                calculateBuy('amount');
+            });
+            if (buyTotal) buyTotal.addEventListener('input', () => {
+                clearPercentActiveState('buy');
+                calculateBuy('total');
+            });
+            if (sellAmount) sellAmount.addEventListener('input', () => {
+                clearPercentActiveState('sell');
+                calculateSell('amount');
+            });
+            if (sellTotal) sellTotal.addEventListener('input', () => {
+                clearPercentActiveState('sell');
+                calculateSell('total');
+            });
+
+            // --- ۱. مدیریت یکپارچه سوییچ ارز در بخش خرید (BUY) ---
+            if (buyCryptoSelect) {
+                buyCryptoSelect.addEventListener('change', function () {
+                    const newAsset = this.value.toUpperCase();
+
+                    // صفر و خالی کردن فیلدهای محاسباتی
+                    if (buyAmount) buyAmount.value = '';
+                    if (buyTotal) buyTotal.value = '';
+                    clearPercentActiveState('buy');
+
+                    // آپدیت تیکر انتهای فیلد مقدار
+                    const ticker = document.getElementById('buy_asset_ticker');
+                    if (ticker) ticker.innerText = newAsset;
+
+                    // مدیریت فیلد قیمت بر اساس موجود بودن قیمت زنده
+                    const buyPriceInp = document.getElementById('buy_price');
+                    if (buyPriceInp) {
+                        if (liveCryptoPrices[this.value] && liveCryptoPrices[this.value] > 0) {
+                            buyPriceInp.value = liveCryptoPrices[this.value].toFixed(4);
+                        } else {
+                            buyPriceInp.value = '';
+                            buyPriceInp.placeholder = `Loading ${newAsset}...`;
+                        }
+                    }
+
+                    // بازنشانی متادیتا و کارمزد به مقدار صفر
+                    updateOrderMetadata('buy');
+                });
+            }
+
+            // --- ۲. مدیریت یکپارچه سوییچ ارز در بخش فروش (SELL) ---
+            if (sellCryptoSelect) {
+                sellCryptoSelect.addEventListener('change', function () {
+                    const newAsset = this.value.toUpperCase();
+
+                    // صفر و خالی کردن فیلدهای محاسباتی
+                    if (sellAmount) sellAmount.value = '';
+                    if (sellTotal) sellTotal.value = '';
+                    clearPercentActiveState('sell');
+
+                    // آپدیت تیکر انتهای فیلد مقدار
+                    const ticker = document.getElementById('sell_asset_ticker');
+                    if (ticker) ticker.innerText = newAsset;
+
+                    // مدیریت فیلد قیمت فروش
+                    const sellPriceInp = document.getElementById('sell_price');
+                    if (sellPriceInp) {
+                        if (liveCryptoPrices[this.value] && liveCryptoPrices[this.value] > 0) {
+                            sellPriceInp.value = liveCryptoPrices[this.value].toFixed(4);
+                        } else {
+                            sellPriceInp.value = '';
+                            sellPriceInp.placeholder = `Loading ${newAsset}...`;
+                        }
+                    }
+
+                    // بروزرسانی کارت موجودی ارز برای فروش و متادیتا
+                    updateCryptoSellDisplay();
+                    updateOrderMetadata('sell');
+                });
+            }
+
+            // --- مدیریت دکمه‌های درصدی خرید ---
+            document.querySelectorAll('.buy-pct').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    clearPercentActiveState('buy');
+                    this.classList.add('active');
+
+                    const buyTotalInp = document.getElementById('buy_total');
+                    if (buyTotalInp) {
+                        const pct = parseFloat(this.getAttribute('data-pct'));
+                        const feeRate = 0.0005;
+
+                        const maxUsdtToAllocate = userLiveBalances.usdttrc20 * pct;
+                        const grossTotal = maxUsdtToAllocate / (1 + feeRate);
+
+                        buyTotalInp.value = grossTotal.toFixed(2);
+                        calculateBuy('total');
+                    }
+                });
+            });
+
+            // --- مدیریت دکمه‌های درصدی فروش ---
+            document.querySelectorAll('.sell-pct').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    clearPercentActiveState('sell');
+                    this.classList.add('active'); // هایلایت کردن دکمه فشرده شده
+
+                    const sellSelect = document.getElementById('sell_crypto_select');
+                    const sellAmountInp = document.getElementById('sell_amount');
+                    if (sellSelect && sellAmountInp) {
+                        const pct = parseFloat(this.getAttribute('data-pct'));
+                        const selectedCrypto = sellSelect.value;
+                        const amount = userLiveBalances[selectedCrypto] * pct;
+                        const dec = (selectedCrypto === 'trx') ? 2 : 6;
+                        sellAmountInp.value = amount.toFixed(dec);
+                        calculateSell('amount');
+                    }
+                });
+            });
+
+            // --- ثبت نهایی درخواست به بک‌اَند ---
+            const buyBtn = document.getElementById('btn_execute_buy');
+            const sellBtn = document.getElementById('btn_execute_sell');
+            if (buyBtn) buyBtn.addEventListener('click', () => submitTradeOrder('BUY'));
+            if (sellBtn) sellBtn.addEventListener('click', () => submitTradeOrder('SELL'));
+        }
+
+        // شنود امن دوم برای بارگذاری کدهای جدید فرانت به محض رندر شدن سورس HTML روی کامپوننت دسکتاپ
+        document.addEventListener("DOMContentLoaded", function () {
+            updateUiBalances();
+            setupTradingDeskListeners();
+        });
+
+    </script>
+{% endblock %}

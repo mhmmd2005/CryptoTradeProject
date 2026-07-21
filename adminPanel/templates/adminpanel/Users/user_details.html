@@ -1,0 +1,956 @@
+{% extends 'shared/layout__.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+    Admin | User Details - {{ target_user.username }}
+{% endblock %}
+
+{% block css %}
+    <style>
+        .profile-img-hover:hover {
+            transform: scale(1.02);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        /* Top Level Soft UI Main Tabs */
+        .main-nav-tabs .nav-link {
+            border: none;
+            color: #8b949e;
+            background: transparent;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            padding: 14px 24px;
+        }
+
+        .main-nav-tabs .nav-link.active {
+            color: #00f2ad !important;
+            background: rgba(0, 242, 173, 0.05) !important;
+            border-bottom: 3px solid #00f2ad !important;
+            font-weight: 600;
+        }
+
+        /* Nested Operations Menu */
+        .tree-pills .nav-link {
+            color: #8b949e;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .tree-pills .nav-link.active {
+            background-color: rgba(0, 242, 173, 0.08) !important;
+            color: #00f2ad !important;
+            font-weight: 600;
+            border-color: rgba(0, 242, 173, 0.2) !important;
+        }
+
+        .tree-pills .nav-link:hover:not(.active) {
+            color: #e6edf3;
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">User Control Center : {{ target_user.username }}</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="{% url 'admin-panel' %}">Admin</a></li>
+                                    <li class="breadcrumb-item"><a href="{% url 'user-management' %}">User
+                                        Management</a></li>
+                                    <li class="breadcrumb-item active">Details</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm mb-0" style="border-radius: 8px;">
+                            <!-- کالیبره شده با شعاع ۸ پیکسل اختصاصی شما -->
+                            <div class="card-header bg-light p-0 border-bottom-0">
+                                <!-- ⚡ مجهز به ساختار flex-nowrap و اسکرول روان افقی برای موبایل -->
+                                <ul class="nav nav-tabs main-nav-tabs rounded-top flex-nowrap" role="tablist"
+                                    style="margin-bottom: 0; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;">
+
+                                    <!-- آیتم اول با قابلیت عدم فشرده‌سازی -->
+                                    <li class="nav-item flex-shrink-0" role="presentation">
+                                        <button class="nav-link active fw-bold text-nowrap" id="main-profile-tab"
+                                                data-bs-toggle="tab" data-bs-target="#main-profile" type="button"
+                                                role="tab" aria-selected="true">
+                                            <i class="ri-user-settings-line align-middle me-1"></i> Account Details
+                                        </button>
+                                    </li>
+
+                                    <!-- آیتم دوم با قابلیت عدم فشرده‌سازی -->
+                                    <li class="nav-item flex-shrink-0" role="presentation">
+                                        <button class="nav-link fw-bold text-nowrap" id="main-vault-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#main-vault" type="button" role="tab"
+                                                aria-selected="false">
+                                            <i class="ri-folder-shield-2-line align-middle me-1"></i> User Operations
+                                            Vault
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content">
+
+                    <div class="tab-pane fade show active" id="main-profile" role="tabpanel">
+                        <div class="row g-4">
+                            <!-- ستون خلاصه هویت (سمت چپ در دسکتاپ / بالا در موبایل) -->
+                            <div class="col-12 col-lg-4">
+                                <div class="card border-0 shadow-sm" style="border-radius: 8px;">
+                                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                                        <h5 class="card-title mb-0 fw-bold text-dark" style="font-size: 1.05rem;">
+                                            Identity Summary</h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="text-center mb-4">
+                                            <div class="position-relative d-inline-block profile-img-hover mb-3">
+                                                {% if profile and profile.profile_image %}
+                                                    <img src="{{ profile.profile_image.url }}" alt="Profile"
+                                                         class="img-fluid"
+                                                         style="width: 110px; height: 110px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                                                {% else %}
+                                                    <div class="d-flex align-items-center justify-content-center bg-light shadow-sm"
+                                                         style="width: 110px; height: 110px; border-radius: 8px;">
+                                                        <i class="ri-user-line text-secondary"
+                                                           style="font-size: 42px;"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <h6 class="mb-1 fw-bold text-dark text-break"
+                                                style="font-size: 1.1rem;">{{ target_user.username }}</h6>
+                                            <p class="text-muted small mb-0 text-break">{{ target_user.email }}</p>
+                                        </div>
+
+                                        <!-- حذف کلاس small و بزرگ‌تر کردن سایز کل آیتم‌ها -->
+                                        <ul class="list-group list-group-flush" style="font-size: 0.95rem;">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent border-bottom border-light py-2.5">
+                                                <span class="text-muted">Joined Date:</span>
+                                                <span class="text-dark fw-medium text-end">{{ target_user.date_joined|date:"Y-m-d H:i" }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent border-bottom border-light py-2.5">
+                                                <span class="text-muted">Last Login:</span>
+                                                <span class="text-dark fw-medium text-end">{{ target_user.last_login|date:"Y-m-d H:i"|default:"-" }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent border-bottom border-light py-2.5">
+                                                <span class="text-muted">System Status:</span>
+                                                <!-- بزرگ‌تر کردن فونت و پدینگ بدج وضعیت سیستم -->
+                                                <span class="badge {% if target_user.is_active %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} px-3 py-1.5"
+                                                      style="border-radius: 4px; font-weight: 600; font-size: 0.9rem;">
+                                {% if target_user.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent border-0 pt-2.5">
+                                                <span class="text-muted">KYC Status:</span>
+                                                <!-- بزرگ‌تر کردن فونت و پدینگ بدج وضعیت احراز هویت -->
+                                                <span class="badge {% if profile.status == 'approved' %}bg-success-subtle text-success{% elif profile.status == 'pending' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %} px-3 py-1.5"
+                                                      style="border-radius: 4px; font-weight: 600; font-size: 0.9rem;">
+                                {{ profile.status|title|default:"Not Submitted" }}
+                            </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ستون جزئیات کامل و لوست‌ها (سمت راست در دسکتاپ) -->
+                            <div class="col-12 col-lg-8">
+                                <div class="card border-0 shadow-sm mb-4" style="border-radius: 8px;">
+                                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                                        <h5 class="card-title mb-0 fw-bold text-dark" style="font-size: 1.05rem;">
+                                            Personal & Address Details</h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="row g-3">
+                                            <!-- جدول اول جزئیات -->
+                                            <div class="col-12 col-md-6">
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-borderless align-middle mb-0 profile-data-table">
+                                                        <tbody>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2"
+                                                                style="width: 35%; font-size: 0.85rem;">First Name
+                                                            </th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.first_name|default:"-" }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2">Last Name</th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.last_name|default:"-" }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2">Phone</th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.phone_number|default:"-" }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2">Email</th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ target_user.email }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2">City</th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.city|default:"-" }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2">Country</th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.country|default:"-" }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-md-0">
+                                                            <th class="text-muted fw-medium py-2">Zip Code</th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.zipcode|default:"-" }}</td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <!-- جدول دوم جزئیات -->
+                                            <div class="col-12 col-md-6">
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-borderless align-middle mb-0 profile-data-table">
+                                                        <tbody>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2"
+                                                                style="width: 35%; font-size: 0.85rem;">Bio Status
+                                                            </th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.description|default:"-" }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2">System Date</th>
+                                                            <td class="text-dark fw-semibold text-break py-2">{{ profile.joining_date|date:"Y-m-d"|default:"-" }}</td>
+                                                        </tr>
+                                                        <tr class="border-bottom border-light">
+                                                            <th class="text-muted fw-medium py-2">Email Alerts</th>
+                                                            <td class="py-2">
+                                                                {% if profile.email_notifications_enabled %}
+                                                                    <span class="text-success fw-semibold"
+                                                                          style="font-size: 0.95rem;">Enabled</span>
+                                                                {% else %}
+                                                                    <span class="text-muted fw-medium"
+                                                                          style="font-size: 0.95rem;">Disabled</span>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                        <tr class="border-bottom-0">
+                                                            <th class="text-muted fw-medium py-2">Profile Locked</th>
+                                                            <td class="py-2">
+                                                                {% if profile.locked %}
+                                                                    <span class="text-danger fw-semibold"
+                                                                          style="font-size: 0.95rem;">Yes</span>
+                                                                {% else %}
+                                                                    <span class="text-muted fw-medium"
+                                                                          style="font-size: 0.95rem;">No</span>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- بخش تاریخچه بن با هندلینگ کامل سرریز داده -->
+                                        <div class="row mt-4 pt-2">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold mb-3 text-dark d-flex align-items-center"
+                                                    style="font-size: 0.95rem;">
+                                                    <i class="ri-error-warning-line text-danger me-2"
+                                                       style="font-size: 1.1rem;"></i> Ban History Log
+                                                </h6>
+                                                {% if ban_history %}
+                                                    <div class="table-responsive"
+                                                         style="max-height: 220px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.05); border-radius: 8px;">
+                                                        <table class="table table-sm table-hover align-middle mb-0 small">
+                                                            <thead class="bg-light"
+                                                                   style="position: sticky; top: 0; z-index: 2;">
+                                                            <tr class="text-muted">
+                                                                <th class="py-2.5 px-3" style="font-weight: 600;">Ban
+                                                                    Start Date
+                                                                </th>
+                                                                <th class="py-2.5 px-3" style="font-weight: 600;">
+                                                                    Reason
+                                                                </th>
+                                                                <th class="py-2.5 px-3" style="font-weight: 600;">
+                                                                    Unbanned Date
+                                                                </th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {% for ban in ban_history %}
+                                                                <tr class="border-bottom border-light">
+                                                                    <td class="py-2.5 px-3 text-dark fw-medium text-nowrap">{{ ban.ban_start|date:"Y-m-d H:i" }}</td>
+                                                                    <td class="py-2.5 px-3">
+                                                        <span class="ban-reason-preview text-primary text-break"
+                                                              style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;"
+                                                              data-full-reason="{{ ban.ban_reason|default:'No reason' }}">
+                                                            {{ ban.ban_reason|default:"No reason"|truncatechars:40 }}
+                                                        </span>
+                                                                    </td>
+                                                                    <td class="py-2.5 px-3 text-dark fw-medium text-nowrap">
+                                                                        {% if ban.unbanned_at %}
+                                                                            {{ ban.unbanned_at|date:"Y-m-d H:i" }}
+                                                                        {% else %}
+                                                                            <span class="badge bg-danger-subtle text-danger px-2 py-0.5"
+                                                                                  style="border-radius: 4px;">Still banned</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="text-center text-muted py-4 bg-light-subtle rounded-3"
+                                                         style="border: 1px dashed rgba(0,0,0,0.08); border-radius: 8px;">
+                                                        <i class="ri-history-line text-secondary mb-1"
+                                                           style="font-size: 1.5rem; display: inline-block;"></i>
+                                                        <p class="mt-1 mb-0 small fw-medium">No restrictions log found
+                                                            for this account.</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="main-vault" role="tabpanel">
+                        <div class="card shadow-sm" style="border-radius: 12px;">
+                            <div class="card-body p-4">
+                                <div class="row">
+
+                                    <div class="col-xl-3 col-md-4 border-end">
+                                        <div class="nav flex-column nav-pills tree-pills" role="tablist"
+                                             aria-orientation="vertical">
+                                            <button class="nav-link active text-start mb-2 py-2.5 px-3 fs-13"
+                                                    id="sub-trade-tab" data-bs-toggle="pill" data-bs-target="#sub-trade"
+                                                    type="button" role="tab">
+                                                <i class="ri-arrow-left-right-line me-2"></i> Internal Trades
+                                            </button>
+                                            <button class="nav-link text-start mb-2 py-2.5 px-3 fs-13"
+                                                    id="sub-predict-tab" data-bs-toggle="pill"
+                                                    data-bs-target="#sub-predict" type="button" role="tab">
+                                                <i class="ri-funds-line me-2"></i> Predictions
+                                            </button>
+                                            <button class="nav-link text-start mb-2 py-2.5 px-3 fs-13"
+                                                    id="sub-finance-tab" data-bs-toggle="pill"
+                                                    data-bs-target="#sub-finance" type="button" role="tab">
+                                                <i class="ri-bank-card-line me-2"></i> Cash Movements
+                                            </button>
+                                            <button class="nav-link text-start mb-2 py-2.5 px-3 fs-13 d-flex align-items-center justify-content-between"
+                                                    id="sub-tickets-tab" data-bs-toggle="pill"
+                                                    data-bs-target="#sub-tickets" type="button" role="tab">
+                                                <span><i
+                                                        class="ri-customer-service-2-line me-2"></i> Support Status</span>
+                                                <span class="badge bg-soft-info text-info rounded-pill px-2">Counter</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xl-9 col-md-8 ps-3">
+                                        <div class="tab-content text-dark">
+
+                                            <div class="tab-pane fade show active" id="sub-trade" role="tabpanel">
+                                                <h6 class="fw-bold mb-3 text-primary d-flex align-items-center justify-content-between">
+                                                    <span>Internal Instant Spot Logs</span>
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary fs-11 fw-normal">Paginated Data Stream</span>
+                                                </h6>
+
+                                                <div id="trade-table-wrapper">
+                                                    <div class="table-responsive text-start">
+                                                        {% if internal_trades %}
+                                                            <table class="table table-sm table-hover align-middle fs-13 mb-0">
+                                                                <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Pair</th>
+                                                                    <th>Type</th>
+                                                                    <th>Amount</th>
+                                                                    <th>Rate</th>
+                                                                    <th>Total Cost</th>
+                                                                    <th>Flat Fee</th>
+                                                                    <th>Timestamp</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                {% for trade in internal_trades %}
+                                                                    <tr>
+                                                                        <td class="fw-bold text-dark">
+                                                                            {% if trade.crypto_currency|lower == 'btc' %}
+                                                                                <i class="ri-bit-coin-fill text-warning me-1 fs-15"></i>
+                                                                            {% elif trade.crypto_currency|lower == 'eth' %}
+                                                                                <i class="ri-eth-fill text-primary me-1 fs-15"></i>
+                                                                            {% elif trade.crypto_currency|lower == 'trx' %}
+                                                                                <i class="ri-shield-cross-fill text-danger me-1 fs-15"></i>
+                                                                            {% else %}
+                                                                                <i class="ri-coins-fill text-info me-1 fs-15"></i>
+                                                                            {% endif %}
+                                                                            {{ trade.crypto_currency|upper }}/USDT
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if trade.trade_type == 'BUY' %}
+                                                                                <span class="badge bg-success bg-opacity-10 text-success rounded px-2 py-0.5">BUY</span>
+                                                                            {% else %}
+                                                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded px-2 py-0.5">SELL</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td class="font-monospace text-dark">{{ trade.amount|stringformat:".8f" }}</td>
+                                                                        <td class="font-monospace">
+                                                                            ${{ trade.price|intcomma }}</td>
+                                                                        <td class="font-monospace text-dark fw-semibold">
+                                                                            ${{ trade.total_cost|intcomma }}</td>
+                                                                        <td class="font-monospace text-muted">
+                                                                            ${{ trade.fee|stringformat:".4f" }}</td>
+                                                                        <td class="text-muted fs-11">{{ trade.created_at|date:"Y-m-d H:i:s" }}</td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                                </tbody>
+                                                            </table>
+
+                                                            {% if internal_trades.has_other_pages %}
+                                                                <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+                                                                    <div class="text-muted small">
+                                                                        Showing page <span
+                                                                            class="fw-semibold text-dark">{{ internal_trades.number }}</span>
+                                                                        of <span
+                                                                            class="fw-semibold text-dark">{{ internal_trades.paginator.num_pages }}</span>
+                                                                    </div>
+                                                                    <nav aria-label="Page navigation">
+                                                                        <ul class="pagination custom-pagination pagination-sm mb-0">
+                                                                            {% if internal_trades.has_previous %}
+                                                                                <li class="page-item">
+                                                                                    <a class="page-link ajax-page-link"
+                                                                                       href="?page={{ internal_trades.previous_page_number }}">Previous</a>
+                                                                                </li>
+                                                                            {% else %}
+                                                                                <li class="page-item disabled"><span
+                                                                                        class="page-link">Previous</span>
+                                                                                </li>
+                                                                            {% endif %}
+
+                                                                            {% for i in internal_trades.paginator.page_range %}
+                                                                                {% if internal_trades.number == i %}
+                                                                                    <li class="page-item active"><span
+                                                                                            class="page-link">{{ i }}</span>
+                                                                                    </li>
+                                                                                {% elif i > internal_trades.number|add:-3 and i < internal_trades.number|add:3 %}
+                                                                                    <li class="page-item"><a
+                                                                                            class="page-link ajax-page-link"
+                                                                                            href="?page={{ i }}">{{ i }}</a>
+                                                                                    </li>
+                                                                                {% endif %}
+                                                                            {% endfor %}
+
+                                                                            {% if internal_trades.has_next %}
+                                                                                <li class="page-item">
+                                                                                    <a class="page-link ajax-page-link"
+                                                                                       href="?page={{ internal_trades.next_page_number }}">Next</a>
+                                                                                </li>
+                                                                            {% else %}
+                                                                                <li class="page-item disabled"><span
+                                                                                        class="page-link">Next</span>
+                                                                                </li>
+                                                                            {% endif %}
+                                                                        </ul>
+                                                                    </nav>
+                                                                </div>
+                                                            {% endif %}
+
+                                                        {% else %}
+                                                            <div class="text-center text-muted py-5 rounded bg-light"
+                                                                 style="border: 1px dashed rgba(0,0,0,0.08);">
+                                                                <i class="ri-exchange-funds-line fs-1 text-secondary d-block mb-2"></i>
+                                                                <p class="mb-0 small fw-bold">No internal trading logs
+                                                                    discovered for this asset account.</p>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane fade" id="sub-predict" role="tabpanel">
+                                                <h6 class="fw-bold mb-3 text-primary d-flex align-items-center justify-content-between">
+                                                    <span>Active & Settled Predictions Positions</span>
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary fs-11 fw-normal">Dynamic Market Contracts</span>
+                                                </h6>
+
+                                                <div id="predict-table-wrapper">
+                                                    <div class="table-responsive text-start">
+                                                        {% if user_predictions %}
+                                                            <table class="table table-sm table-hover align-middle fs-13 mb-0">
+                                                                <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Asset / Symbol</th>
+                                                                    <th>Direction</th>
+                                                                    <th>Amount</th>
+                                                                    <th>Entry Price</th>
+                                                                    <th>Close Price</th>
+                                                                    <th>Result Status</th>
+                                                                    <th>Payout / Commission</th>
+                                                                    <th>Timestamp</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                {% for pred in user_predictions %}
+                                                                    <tr>
+                                                                        <td class="fw-bold text-dark">
+                                                                            <i class="ri-pulse-line text-info me-1 fs-14"></i>
+                                                                            {{ pred.symbol_saved|upper|default:pred.round.asset.symbol|upper }}
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if pred.direction|lower == 'up' %}
+                                                                                <span class="text-success fw-semibold"><i
+                                                                                        class="ri-arrow-up-circle-fill align-middle me-1 fs-15"></i>UP</span>
+                                                                            {% else %}
+                                                                                <span class="text-danger fw-semibold"><i
+                                                                                        class="ri-arrow-down-circle-fill align-middle me-1 fs-15"></i>DOWN</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td class="font-monospace text-dark">
+                                                                            ${{ pred.amount|intcomma }}</td>
+                                                                        <td class="font-monospace text-muted">
+                                                                            ${{ pred.price_at_entry|stringformat:".6f"|default:"-" }}</td>
+                                                                        <td class="font-monospace text-muted">
+                                                                            ${{ pred.price_at_close|stringformat:".6f"|default:"-" }}</td>
+                                                                        <td>
+                                                                            {% if pred.result == 'win' %}
+                                                                                <span class="badge bg-success bg-opacity-10 text-success rounded px-2 py-0.5 fw-bold">WIN</span>
+                                                                            {% elif pred.result == 'lose' %}
+                                                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded px-2 py-0.5 fw-bold">LOSE</span>
+                                                                            {% elif pred.result == 'pending' %}
+                                                                                <span class="badge bg-warning bg-opacity-10 text-warning rounded px-2 py-0.5">PENDING</span>
+                                                                            {% elif pred.result == 'tie' %}
+                                                                                <span class="badge bg-info bg-opacity-10 text-info rounded px-2 py-0.5">TIE</span>
+                                                                            {% else %}
+                                                                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded px-2 py-0.5">{{ pred.result|upper }}</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if pred.settled %}
+                                                                                <span class="font-monospace text-success fw-semibold">+${{ pred.payout|intcomma }}</span>
+                                                                                <div class="text-muted"
+                                                                                     style="font-size: 10px;">Fee:
+                                                                                    ${{ pred.fee_amount }}</div>
+                                                                            {% else %}
+                                                                                <span class="text-muted fs-12">-</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td class="text-muted fs-11">
+                                                                            {{ pred.created_at|date:"Y-m-d H:i:s" }}
+                                                                            <div class="text-muted fs-10 text-truncate"
+                                                                                 style="max-width: 130px;">
+                                                                                Payout: {{ pred.expected_payout_at|date:"H:i:s" }}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                                </tbody>
+                                                            </table>
+
+                                                            <!-- 🔗 پیج‌بندی هوشمند بخش پیش‌بینی‌ها -->
+                                                            {% if user_predictions.has_other_pages %}
+                                                                <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+                                                                    <div class="text-muted small">
+                                                                        Showing page <span
+                                                                            class="fw-semibold text-dark">{{ user_predictions.number }}</span>
+                                                                        of <span
+                                                                            class="fw-semibold text-dark">{{ user_predictions.paginator.num_pages }}</span>
+                                                                    </div>
+                                                                    <nav aria-label="Page navigation">
+                                                                        <ul class="pagination custom-pagination pagination-sm mb-0">
+                                                                            {% if user_predictions.has_previous %}
+                                                                                <li class="page-item">
+                                                                                    <a class="page-link ajax-predict-link"
+                                                                                       href="?predict_page={{ user_predictions.previous_page_number }}&page={{ internal_trades.number }}">Previous</a>
+                                                                                </li>
+                                                                            {% else %}
+                                                                                <li class="page-item disabled"><span
+                                                                                        class="page-link">Previous</span>
+                                                                                </li>
+                                                                            {% endif %}
+
+                                                                            {% for i in user_predictions.paginator.page_range %}
+                                                                                {% if user_predictions.number == i %}
+                                                                                    <li class="page-item active"><span
+                                                                                            class="page-link">{{ i }}</span>
+                                                                                    </li>
+                                                                                {% elif i > user_predictions.number|add:-3 and i < user_predictions.number|add:3 %}
+                                                                                    <li class="page-item">
+                                                                                        <a class="page-link ajax-predict-link"
+                                                                                           href="?predict_page={{ i }}&page={{ internal_trades.number }}">{{ i }}</a>
+                                                                                    </li>
+                                                                                {% endif %}
+                                                                            {% endfor %}
+
+                                                                            {% if user_predictions.has_next %}
+                                                                                <li class="page-item">
+                                                                                    <a class="page-link ajax-predict-link"
+                                                                                       href="?predict_page={{ user_predictions.next_page_number }}&page={{ internal_trades.number }}">Next</a>
+                                                                                </li>
+                                                                            {% else %}
+                                                                                <li class="page-item disabled"><span
+                                                                                        class="page-link">Next</span>
+                                                                                </li>
+                                                                            {% endif %}
+                                                                        </ul>
+                                                                    </nav>
+                                                                </div>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <div class="text-center text-muted py-5 rounded bg-light"
+                                                                 style="border: 1px dashed rgba(0,0,0,0.08);">
+                                                                <i class="ri-funds-line fs-1 text-secondary d-block mb-2"></i>
+                                                                <p class="mb-0 small fw-bold">No predictions activity
+                                                                    logs recorded for this account.</p>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane fade" id="sub-finance" role="tabpanel">
+                                                <h6 class="fw-bold mb-3 text-primary d-flex align-items-center justify-content-between">
+                                                    <span>Deposits & Withdrawals Financial Ledger</span>
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary fs-11 fw-normal">Gateway Real-time Audit</span>
+                                                </h6>
+
+                                                <div id="finance-table-wrapper">
+                                                    <div class="table-responsive text-start">
+                                                        {% if wallet_transactions %}
+                                                            <table class="table table-sm table-hover align-middle fs-13 mb-0">
+                                                                <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Type</th>
+                                                                    <th>Asset / Net</th>
+                                                                    <th>Amount</th>
+                                                                    <th>Tx Hash</th>
+                                                                    <th>Gateway Status</th>
+                                                                    <th>Timestamp</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                {% for tx in wallet_transactions %}
+                                                                    <tr>
+                                                                        <td>
+                                                                            {% if tx.type == 'deposit' %}
+                                                                                <span class="badge bg-success bg-opacity-10 text-success rounded px-2 py-0.5 fw-semibold">
+                                        <i class="ri-arrow-left-down-line align-middle me-0.5"></i> DEPOSIT
+                                    </span>
+                                                                            {% else %}
+                                                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded px-2 py-0.5 fw-semibold">
+                                        <i class="ri-arrow-right-up-line align-middle me-0.5"></i> WITHDRAW
+                                    </span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>
+                                                                            <span class="fw-bold text-dark">{{ tx.wallet.currency_upper }}</span>
+                                                                            <span class="text-muted d-block"
+                                                                                  style="font-size: 10px;">{{ tx.wallet.network_name }}</span>
+                                                                        </td>
+                                                                        <td class="font-monospace text-dark fw-semibold">
+                                                                            {% if tx.type == 'deposit' %}+{% else %}
+                                                                                -{% endif %}{{ tx.amount|stringformat:".6f" }}
+                                                                        </td>
+                                                                        <td class="font-monospace">
+                                                                            {% if tx.tx_hash %}
+                                                                                <span class="text-secondary small"
+                                                                                      title="{{ tx.tx_hash }}">
+                                        {{ tx.tx_hash|truncatechars:15 }}
+                                    </span>
+                                                                                <a href="#" class="text-primary ms-1"
+                                                                                   onclick="navigator.clipboard.writeText('{{ tx.tx_hash }}'); return false;">
+                                                                                    <i class="ri-file-copy-line fs-11"
+                                                                                       title="Copy Hash"></i>
+                                                                                </a>
+                                                                            {% else %}
+                                                                                <span class="text-muted">-</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if tx.status == 'success' %}
+                                                                                <span class="badge bg-success text-white rounded-pill px-2 py-0.5"
+                                                                                      style="font-size: 10px;">Success</span>
+                                                                            {% elif tx.status == 'pending' %}
+                                                                                <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5"
+                                                                                      style="font-size: 10px;">Pending</span>
+                                                                            {% else %}
+                                                                                <span class="badge bg-danger text-white rounded-pill px-2 py-0.5"
+                                                                                      style="font-size: 10px;">Failed</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td class="text-muted fs-11">
+                                                                            {{ tx.timestamp|date:"Y-m-d H:i:s" }}
+                                                                        </td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                                </tbody>
+                                                            </table>
+
+                                                            {% if wallet_transactions.has_other_pages %}
+                                                                <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+                                                                    <div class="text-muted small">
+                                                                        Showing page <span
+                                                                            class="fw-semibold text-dark">{{ wallet_transactions.number }}</span>
+                                                                        of <span
+                                                                            class="fw-semibold text-dark">{{ wallet_transactions.paginator.num_pages }}</span>
+                                                                    </div>
+                                                                    <nav aria-label="Page navigation">
+                                                                        <ul class="pagination custom-pagination pagination-sm mb-0">
+                                                                            {% if wallet_transactions.has_previous %}
+                                                                                <li class="page-item">
+                                                                                    <a class="page-link ajax-finance-link"
+                                                                                       href="?finance_page={{ wallet_transactions.previous_page_number }}&page={{ internal_trades.number }}&predict_page={{ user_predictions.number }}">Previous</a>
+                                                                                </li>
+                                                                            {% else %}
+                                                                                <li class="page-item disabled"><span
+                                                                                        class="page-link">Previous</span>
+                                                                                </li>
+                                                                            {% endif %}
+
+                                                                            {% for i in wallet_transactions.paginator.page_range %}
+                                                                                {% if wallet_transactions.number == i %}
+                                                                                    <li class="page-item active"><span
+                                                                                            class="page-link">{{ i }}</span>
+                                                                                    </li>
+                                                                                {% elif i > wallet_transactions.number|add:-3 and i < wallet_transactions.number|add:3 %}
+                                                                                    <li class="page-item">
+                                                                                        <a class="page-link ajax-finance-link"
+                                                                                           href="?finance_page={{ i }}&page={{ internal_trades.number }}&predict_page={{ user_predictions.number }}">{{ i }}</a>
+                                                                                    </li>
+                                                                                {% endif %}
+                                                                            {% endfor %}
+
+                                                                            {% if wallet_transactions.has_next %}
+                                                                                <li class="page-item">
+                                                                                    <a class="page-link ajax-finance-link"
+                                                                                       href="?finance_page={{ wallet_transactions.next_page_number }}&page={{ internal_trades.number }}&predict_page={{ user_predictions.number }}">Next</a>
+                                                                                </li>
+                                                                            {% else %}
+                                                                                <li class="page-item disabled"><span
+                                                                                        class="page-link">Next</span>
+                                                                                </li>
+                                                                            {% endif %}
+                                                                        </ul>
+                                                                    </nav>
+                                                                </div>
+                                                            {% endif %}
+
+                                                        {% else %}
+                                                            <div class="text-center text-muted py-5 rounded bg-light"
+                                                                 style="border: 1px dashed rgba(0,0,0,0.08);">
+                                                                <i class="ri-bank-card-line fs-1 text-secondary d-block mb-2"></i>
+                                                                <p class="mb-0 small fw-bold">No deposit or withdrawal
+                                                                    records identified for this wallet matrix.</p>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane fade" id="sub-tickets" role="tabpanel">
+                                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                                    <h6 class="fw-bold mb-0 text-dark">Support Communication
+                                                        Summary</h6>
+                                                </div>
+
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="p-4 bg-light rounded-3 text-center border border-light-subtle h-100">
+                                                            <span class="text-muted d-block small fs-12 text-uppercase fw-bold">Tickets Needing Response</span>
+                                                            <h2 class="fw-bold my-2 {% if open_tickets_count > 0 %}text-danger animate-pulse{% else %}text-success{% endif %}">
+                                                                {{ open_tickets_count }}
+                                                            </h2>
+                                                            <span class="text-muted small fs-11">Requires immediate resolution actions</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="p-4 bg-light rounded-3 text-center border border-light-subtle h-100">
+                                                            <span class="text-muted d-block small fs-12 text-uppercase fw-bold">Answered Tickets</span>
+                                                            <h2 class="fw-bold my-2 text-success">
+                                                                {{ answered_tickets_count }}
+                                                            </h2>
+                                                            <span class="text-muted small fs-11">Successfully resolved history</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row text-start mt-4" style="margin-bottom: 20px;">
+                    <div class="col-12">
+                        <a href="{% url 'user-management' %}" class="btn btn-secondary"><i
+                                class="ri-arrow-left-line me-1"></i> Back</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="modal fade" id="fullReasonModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Ban Reason (Full)</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="fullReasonText" style="white-space: pre-wrap; word-break: break-word;"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="profileImageModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-transparent border-0">
+                    <div class="modal-body text-center p-0">
+                        <img src="" id="modalProfileImage" alt="Profile Large" class="img-fluid rounded-3 shadow-lg"
+                             style="max-height: 80vh;">
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer"
+                style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-12 text-center text-sm-start">
+                        <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                             style="gap: 6px; line-height: 1;">
+                            <span>&copy;</span>
+                            <span id="footer-year" class="fw-medium"></span>
+                            <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                            <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                            <span>All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+
+{% block js %}
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+    <script>
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.forEach(function (el) {
+            new bootstrap.Tooltip(el)
+        })
+
+        document.querySelectorAll('.ban-reason-preview').forEach(el => {
+            el.addEventListener('click', function () {
+                const fullReason = this.getAttribute('data-full-reason');
+                document.getElementById('fullReasonText').innerText = fullReason;
+                const modal = new bootstrap.Modal(document.getElementById('fullReasonModal'));
+                modal.show();
+            });
+        });
+    </script>
+    <script>
+        const profileImg = document.querySelector('.profile-img-hover img');
+        const modalImg = document.getElementById('modalProfileImage');
+        const modal = new bootstrap.Modal(document.getElementById('profileImageModal'));
+
+        if (profileImg && profileImg.src && !profileImg.src.includes('avatar-default.jpg')) {
+            profileImg.style.cursor = 'pointer';
+            profileImg.addEventListener('click', function () {
+                modalImg.src = this.src;
+                modal.show();
+            });
+        }
+    </script>
+    <script>
+        // 🧠 موتور هوشمند، متمرکز و یکپارچه پیج‌بندی بدون ریلود (Universal AJAX Interceptor)
+        // مجهز به سیستم سوییچینگ خودکار کانال‌های ماتریکس ادمین‌پنل
+        document.addEventListener('click', function (e) {
+            // ردیابی هوشمند کلیک روی انواع لینک‌های پجینیشن آژاکس در سراسر دایرکتوری پنل
+            const link = e.target.closest('.ajax-page-link, .ajax-predict-link, .ajax-finance-link, .ajax-open-ticket-link, .ajax-answered-ticket-link');
+            if (!link) return;
+
+            e.preventDefault(); // مهار رفرش پیش‌فرض مرورگر
+
+            const targetUrl = link.getAttribute('href');
+            if (!targetUrl || targetUrl === '#') return;
+
+            // نقشه‌برداری داینامیک کلاس‌ها به کانتینرهای هدف دیتابیس
+            let wrapperId = '';
+            if (link.classList.contains('ajax-page-link')) wrapperId = 'trade-table-wrapper';
+            else if (link.classList.contains('ajax-predict-link')) wrapperId = 'predict-table-wrapper';
+            else if (link.classList.contains('ajax-finance-link')) wrapperId = 'finance-table-wrapper';
+            else if (link.classList.contains('ajax-open-ticket-link')) wrapperId = 'open-tickets-table-wrapper';
+            else if (link.classList.contains('ajax-answered-ticket-link')) wrapperId = 'answered-tickets-table-wrapper';
+
+            if (!wrapperId) return;
+
+            const tableWrapper = document.getElementById(wrapperId);
+            if (tableWrapper) tableWrapper.style.opacity = '0.5'; // افکت بصری لودینگ ملایم (Soft UI)
+
+            // شلیک درخواست پس‌زمینه به زیرساخت جنگو
+            fetch(targetUrl, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newTableWrapper = doc.getElementById(wrapperId);
+
+                    if (newTableWrapper && tableWrapper) {
+                        // اسواپ رندرینگ بسیار سریع و بدون ریلود کلیک
+                        tableWrapper.innerHTML = newTableWrapper.innerHTML;
+                        tableWrapper.style.opacity = '1';
+                    }
+                })
+                .catch(err => {
+                    console.error(`Pagination Critical Error [${wrapperId}]:`, err);
+                    if (tableWrapper) tableWrapper.style.opacity = '1';
+                });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,392 @@
+{% extends "shared/layout__.html" %}
+{% load static %}
+
+{% block title %}
+    Admin | Start Round
+{% endblock %}
+
+{% block css %}
+    <style>
+        .timeframe-wrapper {
+            display: flex;
+            align-items: center;
+            background: #2a2f34 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px !important;
+            height: 44px; /* کمی بلندتر برای دسترسی بهتر ادمین */
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .timeframe-wrapper input {
+            border: none !important;
+            background: transparent !important;
+            color: #ffffff !important;
+            width: 50% !important; /* نسبت ۵۰-۵۰ برای فضای بیشتر دراپ‌داون */
+            height: 100% !important;
+            padding: 0 15px !important;
+            font-size: 0.95rem;
+            outline: none !important;
+        }
+
+        .divider-line {
+            width: 1px;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* دراپ‌داون بزرگ‌تر با فلش اصلاح شده */
+        .timeframe-wrapper select {
+            border: none !important;
+            background: transparent !important;
+            color: #ffffff !important; /* متن روشن‌تر */
+            width: 50% !important;
+            height: 100% !important;
+            padding: 0 30px 0 12px !important; /* پدینگ بیشتر برای فلش */
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+
+            /* فلش با فرمت آیکون متریال */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23adb5bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 10px center !important;
+            background-size: 14px !important;
+        }
+
+        /* استایل گزینه‌های منو */
+        .timeframe-wrapper select option {
+            background-color: #212529 !important;
+            color: #fff !important;
+        }
+
+        .timeframe-wrapper:focus-within {
+            border-color: #4b38b3 !important;
+            background: #32383e !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="page-content">
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-lg-11 col-xl-10 ms-auto me-lg-5">
+
+                    <h4 class="mb-4 text-uppercase fw-bold text-primary" style="letter-spacing: 1px;">Prediction
+                        Rounds</h4>
+
+                    <div class="card shadow-sm border-0 mb-5 custom-rounded-card">
+                        <div class="card-header bg-primary-subtle border-0 py-3 custom-rounded-header">
+                            <h5 class="card-title mb-0 text-primary fw-bold">
+                                <i class="ri-rocket-fill me-2"></i>Create New Round
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" action="{% url 'admin-round-create' %}" novalidate>
+                                {% csrf_token %}
+
+                                {% if form.errors %}
+                                    <div class="alert alert-danger border-0 rounded-2 shadow-sm mb-4">
+                                        <ul class="mb-0">
+                                            {% if form.non_field_errors %}
+                                                {% for error in form.non_field_errors %}
+                                                    <li><i class="ri-error-warning-fill"></i> {{ error }}</li>
+                                                {% endfor %}
+                                            {% endif %}
+
+                                            {% for field, errors in form.errors.items %}
+                                                {% if field != '__all__' %}
+                                                    {% for error in errors %}
+                                                        <li><b>{{ field|title }}:</b> {{ error }}</li>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <label class="form-label fw-bold {% if form.assets.errors %}text-danger{% endif %}">Assets
+                                            Selection *</label>
+                                        <div class="dropdown">
+                                            <button class="btn btn-dark-subtle border-0 w-100 text-start d-flex justify-content-between align-items-center custom-input-style shadow-sm {% if form.assets.errors %}border border-danger{% endif %}"
+                                                    type="button" id="dropdownAssets" data-bs-toggle="dropdown"
+                                                    aria-expanded="false">
+                                                <span>Select Assets</span>
+                                                <i class="ri-arrow-down-s-line"></i>
+                                            </button>
+                                            <ul class="dropdown-menu p-3 shadow-lg w-100 custom-dropdown-bg border-0 rounded-2"
+                                                style="max-height: 250px; overflow-y: auto;">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" id="all-assets" class="form-check-input">
+                                                    <label class="form-check-label fw-bold" for="all-assets">All
+                                                        Assets</label>
+                                                </div>
+                                                <div class="dropdown-divider"></div>
+                                                {% for asset in form.assets.field.queryset %}
+                                                    <div class="form-check mb-1">
+                                                        <input type="checkbox" class="form-check-input asset-checkbox"
+                                                               name="assets"
+                                                               value="{{ asset.id }}" id="asset-{{ asset.id }}"
+                                                        >
+                                                        <label class="form-check-label" for="asset-{{ asset.id }}">
+                                                            {{ asset.symbol }} - {{ asset.name }}
+                                                        </label>
+                                                    </div>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-6">
+                                        <label class="form-label fw-bold {% if form.title.errors %}text-danger{% endif %}">Round
+                                            Title *</label>
+                                        <div class="round-form-input shadow-sm">
+                                            {{ form.title }}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6">
+                                        <label class="form-label fw-medium opacity-75 small">Min Trade Limit *</label>
+                                        <div class="round-form-input shadow-sm">{{ form.min_bet_amount }}</div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <label class="form-label fw-medium opacity-75 small">Max Trade Limit *</label>
+                                        <div class="round-form-input shadow-sm">{{ form.max_bet_amount }}</div>
+                                    </div>
+
+                                    <div class="col-lg-4">
+                                        <label class="form-label fw-medium text-danger small">Admin Fee (%) *</label>
+                                        <div class="round-form-input shadow-sm">
+                                            {{ form.admin_fee_percent }}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold opacity-50 small text-uppercase mb-3 text-white-50">Timeframes
+                                            Configuration</label>
+                                        <div class="row g-2">
+                                            {% for i in "1234"|make_list %}
+                                                <div class="col-6 col-md-3">
+                                                    <div class="timeframe-wrapper shadow-sm">
+                                                        {% if i == "1" %}
+                                                            {{ form.tf1_value }}
+                                                            <span class="divider-line"></span>
+                                                            {{ form.tf1_unit }}
+                                                        {% elif i == "2" %}
+                                                            {{ form.tf2_value }}
+                                                            <span class="divider-line"></span>
+                                                            {{ form.tf2_unit }}
+                                                        {% elif i == "3" %}
+                                                            {{ form.tf3_value }}
+                                                            <span class="divider-line"></span>
+                                                            {{ form.tf3_unit }}
+                                                        {% elif i == "4" %}
+                                                            {{ form.tf4_value }}
+                                                            <span class="divider-line"></span>
+                                                            {{ form.tf4_unit }}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 text-end">
+                                        <button type="submit"
+                                                class="btn btn-primary btn-lg px-5 py-2 mt-2 w-sm-100 rounded-2 shadow">
+                                            Start Round <i class="ri-send-plane-fill ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0 custom-rounded-card">
+                        <div class="card-header border-bottom-dashed py-3">
+                            <h5 class="card-title mb-0">Existing Rounds</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive custom-rounded-table">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">ID</th>
+                                        <th>Asset</th>
+                                        <th>Title</th>
+                                        <th>Timing</th>
+                                        <th>Status</th>
+                                        <th>Prices</th>
+                                        <th class="text-center pe-4">Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for round in rounds %}
+                                        <tr>
+                                            <td class="ps-4 fw-medium text-muted">#{{ round.id }}</td>
+                                            <td><span
+                                                    class="badge bg-primary-subtle text-primary rounded-1 px-3">{{ round.asset.symbol }}</span>
+                                            </td>
+                                            <td class="fw-bold">{{ round.title }}</td>
+                                            <td class="small text-muted">
+                                                <i class="ri-time-line text-success me-1"></i>{{ round.start_at|date:"H:i" }}<br>
+                                                <i class="ri-flag-2-line text-danger me-1"></i>{{ round.end_at|date:"H:i" }}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if round.status == 'active' %}bg-success{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-1">
+                                                    {{ round.status|upper }}
+                                                </span>
+                                            </td>
+                                            <td class="small fw-medium">{{ round.price_open }}
+                                                / {{ round.price_close }}</td>
+                                            <td class="text-center pe-4">
+                                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                                    <a href="{% url 'admin-round-update' round.id %}"
+                                                       class="btn btn-sm btn-soft-primary d-flex align-items-center"
+                                                       style="border-radius: 6px; padding: 5px 12px;">
+                                                        <i class="ri-edit-2-line me-1"></i> Edit
+                                                    </a>
+
+                                                    <form action="{% url 'admin-round-delete' round.id %}" method="post"
+                                                          onsubmit="return confirm('Master, are you sure you want to wipe this round from the database?');"
+                                                          class="m-0">
+                                                        {% csrf_token %}
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-soft-danger d-flex align-items-center"
+                                                                style="border-radius: 6px; padding: 5px 12px;">
+                                                            <i class="ri-delete-bin-line me-1"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer" style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 text-center text-sm-start">
+                    <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                         style="gap: 6px; line-height: 1;">
+                        <span>&copy;</span>
+                        <span id="footer-year" class="fw-medium"></span>
+                        <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                        <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                        <span>All rights reserved.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <style>
+        :root {
+            --input-bg: var(--vz-input-bg, #fff);
+            --input-border: var(--vz-input-border, #ced4da);
+            --input-color: var(--vz-body-color, #212529);
+            --card-radius: 8px; /* شعاع متعادل: نه دایره، نه تیز */
+            --input-radius: 6px; /* شعاع داخلی برای فیلدها */
+        }
+
+        .custom-rounded-card {
+            border-radius: var(--card-radius) !important;
+            overflow: hidden;
+        }
+
+        .custom-rounded-header {
+            border-radius: var(--card-radius) var(--card-radius) 0 0 !important;
+        }
+
+        .round-form-input input,
+        .round-form-input select,
+        .timeframe-group input,
+        .timeframe-group select,
+        .custom-input-style {
+            display: block;
+            width: 100% !important;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.875rem;
+            color: var(--input-color) !important;
+            background-color: var(--input-bg) !important;
+            border: 1px solid var(--input-border) !important;
+            border-radius: var(--input-radius) !important;
+            transition: all 0.3s ease;
+        }
+
+        .timeframe-group input {
+            width: 55% !important;
+            border-radius: var(--input-radius) 0 0 var(--input-radius) !important;
+        }
+
+        .timeframe-group select {
+            width: 45% !important;
+            border-radius: 0 var(--input-radius) var(--input-radius) 0 !important;
+            border-left: 0 !important;
+        }
+
+        /* تغییر دکمه از حالت کپسولی به مستطیلی نرم */
+        .rounded-2 {
+            border-radius: var(--input-radius) !important;
+        }
+
+        .rounded-1 {
+            border-radius: 4px !important;
+        }
+
+        .custom-input-style:focus, .round-form-input input:focus {
+            border-color: #405189 !important;
+            box-shadow: 0 0 0 0.15rem rgba(64, 81, 137, 0.1) !important;
+        }
+
+        @media (min-width: 992px) {
+            .page-content {
+                padding-top: 80px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block js %}
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+    <script>
+        // وقتی All Assets زده شد، همه چک‌باکس‌های ارزها هم انتخاب شوند
+        document.getElementById("all-assets").addEventListener("change", function () {
+            const checkboxes = document.querySelectorAll(".asset-checkbox");
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // اگر همه تکی‌ها انتخاب شوند، All هم اتوماتیک تیک بخورد
+        const assetCheckboxes = document.querySelectorAll(".asset-checkbox");
+        assetCheckboxes.forEach(cb => {
+            cb.addEventListener("change", function () {
+                const allCb = document.getElementById("all-assets");
+                allCb.checked = [...assetCheckboxes].every(chk => chk.checked);
+            });
+        });
+    </script>
+{% endblock %}

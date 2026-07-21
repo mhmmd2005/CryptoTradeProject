@@ -1,0 +1,122 @@
+<div class="modal-header bg-soft-info p-3">
+    <h5 class="modal-title" id="adminLogModalLabel">Admin Activity Logs</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="close-modal"></button>
+</div>
+<div class="modal-body p-0">
+    <div class="table-responsive">
+        <table class="table table-hover table-nowrap mb-0">
+            <thead class="table-light">
+            <tr>
+                <th scope="col">Administrator</th>
+                <th scope="col">Action</th>
+                <th scope="col">Details</th>
+                <th scope="col">IP Address</th>
+                <th scope="col">Date & Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1 fw-semibold">{{ log.admin.username|default:"System" }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if log.action == 'DELETE' %}
+                            <span class="badge badge-soft-danger text-uppercase">{{ log.get_action_display }}</span>
+                        {% elif log.action == 'LOGIN' %}
+                            <span class="badge badge-soft-success text-uppercase">{{ log.get_action_display }}</span>
+                        {% elif log.action == 'UPDATE' %}
+                            <span class="badge badge-soft-warning text-uppercase">{{ log.get_action_display }}</span>
+                        {% else %}
+                            <span class="badge badge-soft-info text-uppercase">{{ log.get_action_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="text-muted text-wrap" style="max-width: 250px; display: block;">
+                            {{ log.description }}
+                        </span>
+                    </td>
+                    <td><code>{{ log.ip_address }}</code></td>
+                    <td class="text-muted">{{ log.created_at|date:"d M, Y H:i" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center p-5">
+                        <div class="avatar-md mx-auto mb-4">
+                            <div class="avatar-title bg-light text-primary rounded-circle fs-24">
+                                <i class="ri-search-line"></i>
+                            </div>
+                        </div>
+                        <h5>No activity logs found!</h5>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal-footer p-3 d-flex justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" id="mainDownloadBtn"
+                class="btn btn-primary btn-label waves-effect waves-light shadow-none"
+                onclick="handleDownload()">
+            <i class="ri-download-2-line label-icon align-middle fs-16 me-2"></i>
+            Download as <span id="selectedFormatText">CSV</span>
+        </button>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary dropdown-toggle shadow-none"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                Change Format
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" href="javascript:void(0);"
+                       onclick="setFormat('csv', 'CSV', 'ri-file-excel-2-line text-success')">
+                        <i class="ri-file-excel-2-line align-bottom me-2 text-success"></i> Excel (CSV)
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="javascript:void(0);"
+                       onclick="setFormat('json', 'JSON', 'ri-code-s-slash-line text-warning')">
+                        <i class="ri-code-s-slash-line align-bottom me-2 text-warning"></i> JSON File
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-light shadow-none" data-bs-dismiss="modal">Close</button>
+</div>
+
+<input type="hidden" id="selectedFormat" value="csv">
+
+<script>
+    function setFormat(format, text, iconClass) {
+        // ۱. ذخیره فرمت
+        document.getElementById('selectedFormat').value = format;
+
+        // ۲. آپدیت متن دکمه
+        document.getElementById('selectedFormatText').innerText = text;
+
+        // ۳. آپدیت آیکون دکمه اصلی
+        const iconTag = document.querySelector('#mainDownloadBtn i');
+        iconTag.className = iconClass + ' label-icon align-middle fs-16 me-2';
+    }
+
+    function handleDownload() {
+        const format = document.getElementById('selectedFormat').value;
+        const baseUrl = "{% url 'admin-logs-list' %}";
+        const downloadUrl = `${baseUrl}?export=${format}`;
+
+        // استفاده از لینک مجازی برای اجبار به دانلود واقعی توسط مرورگر
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.setAttribute('download', '');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>

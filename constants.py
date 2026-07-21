@@ -1,0 +1,1 @@
+TRADING_ENTRY_WINDOW = 20  # seconds (golden entry window)

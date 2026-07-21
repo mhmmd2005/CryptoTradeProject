@@ -1,0 +1,1667 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+{% load tz %}
+{% load humanize %}
+{% block css %}
+    <style>
+        /* تثبیت هش برای عدم تغییر در هاور - نسخه تطبیقی */
+        .static-hash {
+            color: #212529 !important;
+            background-color: rgba(0, 0, 0, 0.05) !important;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        /* حالت تم دارک: سفید */
+        [data-layout-mode="dark"] .static-hash {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgb(67, 87, 151) !important;
+        }
+
+        /* استایل مخصوص Network Hash (سبز ملایم) */
+        .hash-network-success {
+
+        }
+
+        .static-hash:hover {
+            cursor: text;
+        }
+
+        /* مابقی استایل‌های شما بدون تغییر */
+        .method-container {
+            display: inline-flex;
+            align-items: center;
+            background: transparent !important;
+            border: none !important;
+        }
+
+        #customerTable thead th {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            white-space: nowrap;
+        }
+
+        #customerTable tbody td {
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+
+        #customerTable th:last-child,
+        #customerTable td:last-child {
+            text-align: left !important;
+            padding-left: 40px !important;
+            padding-right: 50px !important;
+        }
+
+        .status .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            text-align: center;
+        }
+
+        #customerTable tbody tr:hover {
+            background-color: rgba(var(--vz-primary-rgb), 0.01) !important;
+        }
+    </style>
+    <style>
+        body.light-mode .text-muted {
+            color: #000 !important; /* مطمئن می‌شویم override شود */
+        }
+
+        .qr-box {
+            display: inline-block;
+            padding: 12px;
+            border: 2px solid #010204; /* آبی مثل Bootstrap */
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease;
+        }
+
+        .btn-close-black {
+            filter: invert(1);
+            opacity: 0.8;
+        }
+
+        .btn-close-black:hover {
+            opacity: 1;
+        }
+
+        button:active i.ri-refresh-line {
+            display: inline-block;
+            animation: spin 0.5s linear;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .cursor-help:hover {
+            opacity: 0.8;
+        }
+
+        /* استایل تولتیپ تیره که قبلاً درخواست دادید */
+        .tooltip-inner {
+            background-color: #1a1d21 !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none; /* باعث می‌شود ماوس روی خودِ تول‌تیپ گیر نکند */
+            transition: opacity 0.15s ease-in-out;
+        }
+
+        /* مینی‌سوییچر ردیفی و صعودی (Dropup) با اصول Soft UI */
+        .soft-ui-dropdown {
+            /* حذف حالت نمایش اجباری در حالت عادی تا بوت‌استرپ بتواند آن را مخفی کند */
+            gap: 4px !important;
+            padding: 4px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.08) !important; /* سایه معکوس به سمت بالا */
+            border: 1px solid rgba(0, 0, 0, 0.03) !important;
+            min-width: auto !important; /* حذف محدودیت عرض پیش‌فرض */
+        }
+
+        /* 🎯 فیکس اصلی: فعال شدن چیدمان فلکس و انیمیشن فقط هنگام باز شدن (کلاس show) */
+        .soft-ui-dropdown.show {
+            display: flex !important;
+            flex-direction: row !important; /* چیدمان ردیفی کنار هم */
+            transform-origin: bottom center;
+            animation: softDropupShow 0.2s cubic-bezier(0.3, 0.8, 0.4, 1) forwards;
+        }
+
+        /* استایل فشرده و مدرن برای اسم ارزها */
+        .soft-ui-dropdown .dropdown-item {
+            border-radius: 6px !important;
+            padding: 6px 10px !important;
+            font-size: 11px !important;
+            font-weight: 700;
+
+            text-align: center;
+            transition: all 0.15s ease-in-out;
+        }
+
+        /* حالت هاور موش و لمس */
+        .soft-ui-dropdown .dropdown-item:hover {
+            background-color: #f3f4f6 !important;
+            color: #212529 !important;
+        }
+
+        /* وضعیت ارز فعال */
+        .soft-ui-dropdown .dropdown-item.active {
+            background-color: rgba(64, 81, 137, 0.1) !important;
+        {#color: #405189 !important;#}
+        }
+
+        /* انیمیشن ورود نرم از پایین به بالا */
+        @keyframes softDropupShow {
+            from {
+                opacity: 0;
+                transform: translateY(6px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+    <style>
+        .chart-currency-container {
+            padding: 3px;
+            border-radius: 8px;
+        }
+
+        .chart-currency-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #bdb9b9;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* 🛠️ کالیبراسیون هوور: اورراید کردن بوت‌استرپ جهت جلوگیری از سیاه شدن متن */
+        .chart-currency-btn:hover:not(.active),
+        .chart-currency-btn:focus:not(.active) {
+            color: #ffffff !important; /* خاکستری ملایم دشبورد به جای سیاه خشن */
+            border-color: transparent !important;
+        }
+
+        /* کالیبراسیون هویت رنگی ارزها در حالت فعال */
+        .chart-currency-btn.active[data-currency="usdttrc20"] {
+            color: #c7d1cf !important;
+            border-color: rgba(0, 189, 157, 0.15) !important;
+        }
+
+        .chart-currency-btn.active[data-currency="btc"] {
+            background: rgba(240, 185, 11, 0.12) !important; /* 🛠️ اصلاح تایپو عدد 11 */
+            color: #ff9f43 !important;
+            border-color: rgba(240, 185, 11, 0.2) !important;
+        }
+
+        .chart-currency-btn.active[data-currency="eth"] {
+            background: rgba(41, 156, 219, 0.1) !important;
+            color: #299cdb !important;
+            border-color: rgba(41, 156, 219, 0.15) !important;
+        }
+
+        .chart-currency-btn.active[data-currency="trx"] {
+            background: rgba(240, 101, 72, 0.1) !important;
+            color: #f06548 !important;
+            border-color: rgba(240, 101, 72, 0.15) !important;
+        }
+    </style>
+    <link href="{% static 'assets/libs/swiper/swiper-bundle.min.css' %}" rel="stylesheet"/>
+{% endblock %}
+{% block title %}
+    My Wallet
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">My Wallet</h4>
+
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    {% for item in breadcrumb %}
+                                        {% if item.url %}
+                                            <li class="breadcrumb-item"><a>{{ item.title }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="breadcrumb-item active">{{ item.title }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ol>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- end page title -->
+
+                <div class="row">
+                    <input type="hidden" id="dashboard-active-currency" value="usdttrc20">
+
+                    <div class="col-xl-3 col-sm-6 mb-4">
+                        <div class="card card-animate border-0 shadow-sm" style="border-radius: 8px;">
+                            <div class="card-body">
+                                <p class="text-uppercase fw-bold text-muted mb-3 fs-11">Total Deposited</p>
+
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h4 class="fs-22 fw-bold ff-secondary mb-0 text-success d-flex align-items-center gap-1">
+                                            <span id="wallet-deposits">{{ stats.total_deposits|floatformat:2 }}</span>
+                                            <small class="fs-12 text-muted fw-semibold currency-ticker">USDT</small>
+                                        </h4>
+
+                                        <div class="dropup d-inline-block">
+                                            <button class="btn btn-sm btn-icon btn-soft-primary rounded-circle"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    data-bs-offset="0,6"
+                                                    aria-expanded="false"
+                                                    style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;"
+                                                    title="Switch Currency">
+                                                <i class="ri-exchange-line fs-12"></i>
+                                            </button>
+
+                                            <ul class="dropdown-menu soft-ui-dropdown border-0">
+                                                <li><a class="dropdown-item switch-currency-item active" href="#"
+                                                       data-currency="usdttrc20">USDT</a></li>
+                                                <li><a class="dropdown-item switch-currency-item" href="#"
+                                                       data-currency="btc">BTC</a></li>
+                                                <li><a class="dropdown-item switch-currency-item" href="#"
+                                                       data-currency="eth">ETH</a></li>
+                                                <li><a class="dropdown-item switch-currency-item" href="#"
+                                                       data-currency="trx">TRX</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="avatar-sm flex-shrink-0">
+                                        <span class="avatar-title bg-soft-success rounded-circle fs-3"><i
+                                                class="ri-refund-2-line text-success"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-sm-6 mb-4">
+                        <div class="card card-animate border-0 shadow-sm" style="border-radius: 8px;">
+                            <div class="card-body">
+                                <p class="text-uppercase fw-bold text-muted mb-3 fs-11">Total Withdrawn</p>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h4 class="fs-22 fw-bold ff-secondary mb-0 text-danger">
+                                        <span id="wallet-withdrawals">{{ stats.total_withdraws|floatformat:2 }}</span>
+                                        <small class="fs-12 text-muted fw-semibold currency-ticker">USDT</small>
+                                    </h4>
+                                    <div class="avatar-sm flex-shrink-0">
+                                        <span class="avatar-title bg-soft-danger rounded-circle fs-3"><i
+                                                class="ri-external-link-line text-danger"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-sm-6 mb-4">
+                        <div class="card card-animate border-0 shadow-sm" style="border-radius: 8px;">
+                            <div class="card-body">
+                                <p class="text-uppercase fw-bold text-muted mb-3 fs-11">Net Capital Flow</p>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h4 class="fs-22 fw-bold ff-secondary mb-0 text-success" id="net-flow-container">
+                                        <span id="wallet-net-flow">{{ stats.net_flow|floatformat:2 }}</span>
+                                        <small class="fs-12 text-muted fw-semibold currency-ticker">USDT</small>
+                                    </h4>
+                                    <div class="avatar-sm flex-shrink-0">
+                                        <span class="avatar-title bg-soft-success text-success rounded-circle fs-3"
+                                              id="net-flow-icon"><i class="ri-safe-2-line"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-sm-6 mb-4">
+                        <div class="card card-animate border-0 shadow-sm" style="border-radius: 8px;">
+                            <div class="card-body">
+                                <p class="text-uppercase fw-bold text-muted mb-3 fs-11">Account Turnover</p>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h4 class="fs-22 fw-bold ff-secondary mb-0 text-info">
+                                        <span id="wallet-volume">{{ stats.wallet_volume|floatformat:2 }}</span>
+                                        <small class="fs-12 text-muted fw-semibold currency-ticker">USDT</small>
+                                    </h4>
+                                    <div class="avatar-sm flex-shrink-0">
+                                        <span class="avatar-title bg-soft-info rounded-circle fs-3"><i
+                                                class="ri-line-chart-line text-info"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end row-->
+
+                <div class="row">
+                    <div class="col-xxl-9">
+                        <div class="card card-height-100">
+                            <div class="card-header border-bottom-dashed d-flex align-items-center">
+                                <h4 class="card-title mb-0 flex-grow-1">Portfolio Real-time Monitor</h4>
+                                <div class="flex-shrink-0 d-flex gap-2">
+                                </div>
+                            </div>
+
+                            <div class="card-body p-0">
+                                <div class="row g-0 align-items-stretch">
+                                    <div class="col-lg-5 border-end-dashed p-4">
+                                        <!-- 🛠️ حفظ دقیق ساختار قبلی: دو ستون چپ و راست با خط جداکننده عمودی -->
+                                        <div class="d-flex align-items-stretch justify-content-center mb-4">
+
+                                            <div class="flex-grow-1 text-center px-1">
+                                                <p class="text-muted text-uppercase fw-semibold ls-1 fs-11 mb-2">Total
+                                                    Balance</p>
+                                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                                    {% for w in request.user.crypto_wallets.all %}
+                                                        <div class="text-center px-1 py-0.5 bg-light-subtle rounded"
+                                                             style="min-width: 52px; border-radius: 6px !important;">
+                <span class="text-muted fw-bold d-block mb-0"
+                      style="font-size: 9px; line-height: 1;">{{ w.currency_upper }}</span>
+                                                            <span class="fw-bold text-dark fs-12">
+                    {% if w.currency == 'btc' or w.currency == 'eth' %}
+                        {{ w.balance|floatformat:"-6"|intcomma }}
+                    {% else %}
+                        {{ w.balance|floatformat:"-2"|intcomma }}
+                    {% endif %}
+                </span>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+
+                                            <div class="border-start border-light-subtle align-self-center mx-2"
+                                                 style="height: 45px; opacity: 0.6;"></div>
+
+                                            <div class="flex-grow-1 text-center px-1">
+                                                <p class="text-muted text-uppercase fw-semibold ls-1 fs-11 mb-2">
+                                                    Reserved</p>
+                                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                                    {% for w in request.user.crypto_wallets.all %}
+                                                        <div class="text-center px-1 py-0.5 bg-light-subtle rounded"
+                                                             style="min-width: 52px; border-radius: 6px !important;">
+                <span class="text-muted fw-bold d-block mb-0"
+                      style="font-size: 9px; line-height: 1;">{{ w.currency_upper }}</span>
+                                                            <span class="fw-bold text-warning fs-12">
+                    {% if w.currency == 'btc' or w.currency == 'eth' %}
+                        {{ w.frozen_balance|floatformat:"-6"|intcomma }}
+                    {% else %}
+                        {{ w.frozen_balance|floatformat:"-2"|intcomma }}
+                    {% endif %}
+                </span>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- 🛡️ لایه هوشمند پایین کارت (Wallet Intelligence) بدون تغییر در پایداری فرمت قبلی -->
+                                        <div class="mt-4">
+                                            <div class="p-3 bg-light border-0"
+                                                 style="border-radius: 8px !important; background: rgba(var(--vz-primary-rgb), 0.03) !important;">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <i class="ri-shield-check-line fs-18 text-primary me-2"></i>
+                                                    <span class="small text-primary fw-bold text-uppercase">Wallet Intelligence</span>
+                                                </div>
+
+                                                <div class="row g-2">
+                                                    <div class="col-4 border-end border-light">
+                                                        <div class="text-center">
+                                                            <p class="text-muted fs-10 mb-1 text-uppercase ls-1 fw-bold">
+                                                                Security</p>
+                                                            <div class="d-flex flex-column align-items-center">
+                                                                {% with is_kyc=user.profile.status is_2fa=user.two_factor.is_enabled %}
+                                                                    <div class="cursor-help" data-bs-toggle="tooltip"
+                                                                         data-bs-placement="top" data-bs-html="true"
+                                                                         title="<div class='text-start p-1'>
+                                                                            <div class='mb-1'><i class='ri-fingerprint-line {% if is_kyc == 'approved' %}text-success{% else %}text-danger{% endif %} me-1'></i> KYC: {% if is_kyc == 'approved' %}Verified{% else %}Not Verified{% endif %}</div>
+                                                                            <div><i class='ri-shield-keyhole-line {% if is_2fa %}text-success{% else %}text-danger{% endif %} me-1'></i> 2FA: {% if is_2fa %}Enabled{% else %}Disabled{% endif %}</div>
+                                                                         </div>">
+
+                                                                        {% if is_kyc == 'approved' and is_2fa %}
+                                                                            <div class="text-success fw-bold fs-12 d-flex align-items-center">
+                                                                                <i class="ri-shield-check-fill me-1 fs-14"></i>High
+                                                                            </div>
+                                                                        {% elif is_kyc == 'approved' or is_2fa %}
+                                                                            <div class="text-warning fw-bold fs-12 d-flex align-items-center">
+                                                                                <i class="ri-shield-user-line me-1 fs-14"></i>Medium
+                                                                            </div>
+                                                                        {% else %}
+                                                                            <div class="text-danger fw-bold fs-12 d-flex align-items-center">
+                                                                                <i class="ri-shield-flash-line me-1 fs-14"></i>Low
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endwith %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-4 border-end border-light">
+                                                        <div class="text-center">
+                                                            <p class="text-muted fs-10 mb-1 text-uppercase">Wallet
+                                                                Type</p>
+                                                            <h6 class="fs-12 mb-0 fw-bold text-dark">
+                                                                <i class="ri-wallet-3-line text-primary me-1"></i>Personal
+                                                            </h6>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-4">
+                                                        <div class="text-center">
+                                                            <p class="text-muted fs-10 mb-1 text-uppercase">Active
+                                                                Asset</p>
+                                                            <h6 class="fs-12 mb-0 fw-bold text-primary">
+                                                                {{ wallet.currency_upper }}
+                                                            </h6>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mt-3 pt-2 border-top border-light-subtle">
+                                                    <p class="small text-muted mb-0"
+                                                       style="line-height: 1.4; font-size: 11.5px;">
+                                                        <span id="wallet-status-text">
+                                                            {% if wallet.frozen_balance > 0 %}
+                                                                <i class="ri-time-line text-warning me-1"></i>
+                                                                Pending action detected on
+                                                                <span class="text-dark fw-medium">{{ wallet.currency_upper }}</span>
+                                                                .
+                                                            {% else %}
+                                                                <i class="ri-check-double-line text-success me-1"></i>
+                                                                All networks operational & active.
+                                                            {% endif %}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-7 p-4"
+                                         style="background: rgba(var(--vz-light-rgb), 0.3); border-radius: 8px;">
+                                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+                                            <div>
+                                                <h6 class="text-muted text-uppercase fw-semibold mb-1 fs-12"
+                                                    style="letter-spacing: 0.5px;">
+                                                    7-Day Cash Flow
+                                                </h6>
+                                                <p class="text-muted small mb-0">Track your recent deposits and
+                                                    withdrawals</p>
+                                            </div>
+
+                                            <div class="d-flex align-items-center gap-1 chart-currency-container shadow-sm">
+                                                <button type="button" class="btn btn-sm chart-currency-btn active"
+                                                        data-currency="usdttrc20">USDT
+                                                </button>
+                                                <button type="button" class="btn btn-sm chart-currency-btn"
+                                                        data-currency="btc">BTC
+                                                </button>
+                                                <button type="button" class="btn btn-sm chart-currency-btn"
+                                                        data-currency="eth">ETH
+                                                </button>
+                                                <button type="button" class="btn btn-sm chart-currency-btn"
+                                                        data-currency="trx">TRX
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end gap-2 mb-2">
+        <span class="badge bg-success-subtle text-success px-2 py-1 shadow-sm"
+              style="border-radius: 6px; font-weight: 500; font-size: 10px;">
+            <i class="ri-arrow-left-down-line align-middle me-1"></i> Inflow (Added)
+        </span>
+                                            <span class="badge bg-danger-subtle text-danger px-2 py-1 shadow-sm"
+                                                  style="border-radius: 6px; font-weight: 500; font-size: 10px;">
+            <i class="ri-arrow-right-up-line align-middle me-1"></i> Outflow (Spent)
+        </span>
+                                        </div>
+
+                                        <div id="daily_cashflow_chart" style="height: 250px; width: 100%;"
+                                             class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end col-->
+                    <div class="col-xxl-3">
+                        <div class="card card-height-100">
+                            <div class="card-header">
+                                <ul class="nav nav-tabs-custom rounded card-header-tabs nav-justified border-bottom-0 mx-n3"
+                                    role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#cryptoDeposit"
+                                           role="tab">
+                                            Deposit
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#cryptoWithdraw" role="tab">
+                                            Withdraw
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="tab-content text-muted">
+
+                                    <div class="tab-pane active" id="cryptoDeposit" role="tabpanel">
+                                        <div class="p-3">
+
+                                            <div class="currency-selector-deposit d-flex gap-2 mb-3 overflow-x-auto pb-1"
+                                                 style="border-radius: 8px;">
+                                                <button type="button"
+                                                        class="btn btn-soft-primary btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn active"
+                                                        data-currency="usdttrc20" data-target="deposit">
+                                                    <i class="ri-money-dollar-circle-fill me-1 fs-15"></i> USDT
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-soft-light btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn"
+                                                        data-currency="btc" data-target="deposit">
+                                                    <i class="ri-bitcoin-fill me-1 fs-15"></i> BTC
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-soft-light btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn"
+                                                        data-currency="eth" data-target="deposit">
+                                                    <i class="ri-coin-fill me-1 fs-15"></i> ETH
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-soft-light btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn"
+                                                        data-currency="trx" data-target="deposit">
+                                                    <i class="ri-water-flash-fill me-1 fs-15"></i> TRX
+                                                </button>
+                                            </div>
+
+                                            <div class="text-center mb-3">
+                                                <p id="countdown" class="text-danger fw-bold d-none"></p>
+
+                                                <div id="qrcode" class="qr-box d-none"></div>
+
+                                                <p id="wallet-address" class="text-break mt-2 d-none"></p>
+
+                                                <div class="text-center mt-2">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm d-none"
+                                                            id="copy-btn" disabled>
+                                                        Copy Address
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <form method="post" action="{% url 'create-deposit' %}"
+                                                  id="main-deposit-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="currency" id="hidden-deposit-currency"
+                                                       value="{{ selected_currency|default:'usdttrc20' }}">
+                                                <div class="mb-3">
+                                                    <div class="input-group">
+                                                        <label class="input-group-text bg-light" for="amount_deposit">Amount</label>
+                                                        <input type="number" class="form-control" id="amount_deposit"
+                                                               name="amount"
+                                                               step="0.01" min="0.01" placeholder="0.00" required>
+                                                        <span class="input-group-text bg-light fw-semibold deposit-currency-label">USDT</span>
+                                                    </div>
+                                                    <div class="form-text text-end mt-1">
+                                                        <span class="fw-medium text-muted" id="deposit_preview">Amount: 0.00 USDT</span>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-3 pt-2">
+                                                    <button id="confirm-btn" type="submit"
+                                                            class="btn btn-success w-100">Confirm
+                                                        Deposit
+                                                    </button>
+                                                </div>
+                                            </form>
+                                            <div class="text-center" id="deposit-status"></div>
+                                            <div id="cancel-zone" class="text-center mt-3 d-none">
+                                                <hr>
+                                                <p class="text-muted small">Need a change?</p>
+                                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                                        onclick="cancelCurrentTransaction()">
+                                                    Cancel and Start New
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="cryptoWithdraw" role="tabpanel">
+                                        <div class="p-3">
+
+                                            <div class="currency-selector-withdraw d-flex gap-2 mb-3 overflow-x-auto pb-1"
+                                                 style="border-radius: 8px;">
+                                                <button type="button"
+                                                        class="btn btn-soft-primary btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn active"
+                                                        data-currency="usdttrc20" data-target="withdraw">
+                                                    <i class="ri-money-dollar-circle-fill me-1 fs-15"></i> USDT
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-soft-light btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn"
+                                                        data-currency="btc" data-target="withdraw">
+                                                    <i class="ri-bitcoin-fill me-1 fs-15"></i> BTC
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-soft-light btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn"
+                                                        data-currency="eth" data-target="withdraw">
+                                                    <i class="ri-coin-fill me-1 fs-15"></i> ETH
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-soft-light btn-sm flex-fill d-flex align-items-center justify-content-center py-2 dynamic-currency-btn"
+                                                        data-currency="trx" data-target="withdraw">
+                                                    <i class="ri-water-flash-fill me-1 fs-15"></i> TRX
+                                                </button>
+                                            </div>
+
+                                            <form method="post" id="main-withdraw-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="withdraw">
+                                                <input type="hidden" name="currency" id="hidden-withdraw-currency"
+                                                       value="{{ selected_currency|default:'usdttrc20' }}">
+                                                <div class="input-group mb-3">
+                                                    <label class="input-group-text"
+                                                           for="withdraw_address">Recipient</label>
+                                                    <input type="text" class="form-control" id="withdraw_address"
+                                                           name="address"
+                                                           value="{{ withdraw_form.initial.address|default:'' }}"
+                                                           placeholder="Enter wallet address">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <div class="input-group">
+                                                        <label class="input-group-text bg-light" for="amount_withdraw">Amount</label>
+                                                        <input type="number" class="form-control" id="amount_withdraw"
+                                                               name="amount"
+                                                               step="0.01" min="0.01" placeholder="0.00">
+                                                        <span class="input-group-text bg-light fw-semibold withdraw-currency-label">USDT</span>
+                                                    </div>
+                                                    <div id="withdraw-info" class="mt-2 p-2 rounded small border"
+                                                         style="display: none;">
+                                                        <i id="info-icon" class="ri-information-line me-1"></i>
+                                                        <span id="withdraw-hint"></span>
+                                                    </div>
+                                                    <div class="mt-2 border-top pt-2">
+                                                        <div class="d-flex justify-content-between text-muted small">
+                                                            <span>Fee:</span>
+                                                            <span id="calculated-fee">0.00</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between fw-bold mt-1">
+                                                            <span>Total Deduction:</span>
+                                                            <span id="total-deduction">0.00</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-text text-end mt-1">
+                                                        <span class="fw-medium text-muted" id="withdraw_preview">Amount: 0.00 USDT</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mt-3 pt-2">
+                                                    <button type="submit" class="btn btn-primary w-100"> Confirm
+                                                        Withdraw
+                                                    </button>
+                                                </div>
+                                                {% if messages %}
+                                                    <div class="messages-container mt-4">
+                                                        {% for message in messages %}
+                                                            {% if "withdraw" in message.tags %}
+                                                                <div class="alert {% if 'error' in message.tags or 'danger' in message.tags or 'alert' in message.tags %}alert-danger bg-danger-subtle text-danger{% elif 'success' in message.tags %}alert-success bg-success-subtle text-success{% else %}alert-warning bg-warning-subtle text-warning{% endif %} alert-dismissible fade show border-0 shadow-sm mb-3"
+                                                                     role="alert"
+                                                                     style="border-radius: 8px; border-left: 4px solid currentColor !important;">
+
+                                                                    <div class="d-flex align-items-start">
+                                                                        <div class="flex-shrink-0 mt-1">
+                                                                            {% if 'success' in message.tags %}
+                                                                                <i class="ri-checkbox-circle-fill fs-20"></i>
+                                                                            {% else %}
+                                                                                <i class="ri-error-warning-fill fs-20"></i>
+                                                                            {% endif %}
+                                                                        </div>
+
+                                                                        <div class="flex-grow-1 ms-3">
+                                                                            <div class="message-content small fw-medium"
+                                                                                 style="line-height: 1.6; letter-spacing: 0.3px;">
+                                                                                {{ message|linebreaksbr }}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <button type="button"
+                                                                                class="btn-close shadow-none"
+                                                                                data-bs-dismiss="alert"
+                                                                                aria-label="Close"
+                                                                                style="padding: 1.2rem;"></button>
+                                                                    </div>
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end col-->
+                </div>
+                <!--end row-->
+
+                <div class="card border-0 shadow-sm" id="contactList" style="border-radius: 15px;">
+                    <div class="card-header border-bottom-dashed py-3 bg-transparent">
+                        <div class="d-flex align-items-center">
+                            <h5 class="card-title mb-0 flex-grow-1 fw-bold">
+                                <i class="ri-exchange-funds-line me-1 text-primary align-middle"></i> Activity Ledger
+                            </h5>
+                            <div class="flex-shrink-0">
+                                <div class="badge bg-soft-primary text-primary px-3 rounded-pill">Live Monitoring</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-nowrap mb-0" id="customerTable">
+                                <thead class="bg-light bg-opacity-50">
+                                <tr class="text-uppercase fs-11 fw-bold ls-1 text-muted">
+                                    <th class="ps-4" style="width: 5%;">#</th>
+                                    <th style="width: 15%;">Timestamp</th>
+                                    <th style="width: 18%;">Internal ID</th>
+                                    <th style="width: 20%;">Processed At</th>
+                                    <th style="width: 12%;">Asset / Net</th>
+                                    <th style="width: 10%;">Method</th>
+                                    <th style="width: 10%;">Volume</th>
+                                    <th class="text-end" style="width: 10%;">Status</th>
+                                </tr>
+                                </thead>
+                                <tbody class="list">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!--end card-->
+
+            </div>
+            <!-- container-fluid -->
+        </div>
+        <!-- End Page-content -->
+
+        <footer class="footer"
+                style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-12 text-center text-sm-start">
+                        <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                             style="gap: 6px; line-height: 1;">
+                            <span>&copy;</span>
+                            <span id="footer-year" class="fw-medium"></span>
+                            <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                            <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                            <span>All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+    <script>
+        const currencyConfigs = {{ currency_configs_json|safe }};
+    </script>
+
+    <script>
+        let activeRequest = null;
+
+        function getStatusBadge(status) {
+            const badges = {
+                'success': '<span class="badge bg-soft-success text-success px-3 py-1 rounded-pill"><i class="ri-checkbox-circle-fill me-1"></i>Success</span>',
+                'failed': '<span class="badge bg-soft-danger text-danger px-3 py-1 rounded-pill"><i class="ri-close-circle-fill me-1"></i>Failed</span>',
+                'pending': '<span class="badge bg-soft-warning text-warning px-3 py-1 rounded-pill"><i class="ri-time-fill me-1"></i>Pending</span>'
+            };
+            return badges[status] || `<span class="badge bg-soft-secondary text-secondary px-3 py-1 rounded-pill">${status}</span>`;
+        }
+
+        function spinnerHtml() {
+            return '<div class="spinner-grow spinner-grow-sm text-primary" role="status"></div>';
+        }
+
+        function renderRow(tx, index) {
+            const currencyTicker = tx.asset_name || 'USDT';
+            const decimalDigits = (currencyTicker === 'BTC' || currencyTicker === 'ETH') ? 6 : 2;
+
+            const formattedAmount = parseFloat(tx.amount).toLocaleString('en-US', {
+                minimumFractionDigits: decimalDigits,
+                maximumFractionDigits: decimalDigits
+            });
+
+            const amountHtml = tx.type === 'deposit'
+                ? `<span class="fw-bold text-success fs-14">+${formattedAmount} <small class="fs-10 text-muted">${currencyTicker}</small></span>`
+                : `<span class="fw-bold text-danger fs-14">-${formattedAmount} <small class="fs-10 text-muted">${currencyTicker}</small></span>`;
+
+            let dateTimeHtml = '';
+            if (tx.type === 'withdraw') {
+                if (tx.processed_at_date && tx.processed_at_time) {
+                    dateTimeHtml = `<div class="fs-12 fw-medium text-dark">${tx.processed_at_date}</div>
+                    <div class="fs-10 text-muted">${tx.processed_at_time}</div>`;
+                } else if (tx.status === 'pending') {
+                    dateTimeHtml = `<span class="text-muted fs-11 fw-light"><i class="ri-time-line align-middle me-1"></i>Pending...</span>`;
+                } else {
+                    dateTimeHtml = `<span class="text-muted fs-11">--</span>`;
+                }
+            } else {
+                dateTimeHtml = `<span class="text-muted fs-11">Internal Deposit</span>`;
+            }
+
+            return `
+<tr data-id="${tx.id}" data-status="${tx.status}">
+    <td class="ps-4 text-muted fs-12">${index}</td>
+    <td>
+        <div class="d-flex flex-column">
+            <span class="fw-medium text-dark">${tx.timestamp}</span>
+            <span class="text-muted fs-10">UTC</span>
+        </div>
+    </td>
+    <td><code class="static-hash">${tx.tx_hash}</code></td>
+    <td>${dateTimeHtml}</td>
+    <td>
+        <div class="d-flex flex-column">
+            <span class="fw-bold text-dark fs-12">${tx.asset_name || 'USDT'}</span>
+            <span class="text-muted fs-10 text-uppercase">${tx.network || 'TRC20'}</span>
+        </div>
+    </td>
+    <td>
+        <div class="method-container ${tx.type === 'deposit' ? 'text-success' : 'text-danger'}">
+            <i class="${tx.type === 'deposit' ? 'ri-arrow-left-down-line' : 'ri-arrow-right-up-line'} fs-16 me-1"></i>
+            <span class="fw-bold fs-12 text-uppercase ls-1">${tx.type}</span>
+        </div>
+    </td>
+    <td>${amountHtml}</td>
+    <td class="status text-end">${getStatusBadge(tx.status)}</td>
+</tr>`;
+        }
+
+        function updateTable(transactions) {
+            const tbody = $("#customerTable tbody");
+            const existingRows = {};
+
+            tbody.find('tr').each(function () {
+                const id = $(this).data('id');
+                existingRows[id] = $(this).data('status');
+            });
+
+            tbody.empty();
+
+            if (!transactions || transactions.length === 0) {
+                tbody.append('<tr><td colspan="8" class="text-center text-muted py-5">No activity recorded yet.</td></tr>');
+                return;
+            }
+
+            transactions.forEach((tx, index) => {
+                const prevStatus = existingRows[tx.id];
+                const $row = $(renderRow(tx, index + 1));
+
+                if (prevStatus === 'pending' && tx.status !== 'pending') {
+                    const statusCell = $row.find('.status');
+                    statusCell.html(spinnerHtml());
+                    setTimeout(() => {
+                        statusCell.fadeOut(200, function () {
+                            $(this).html(getStatusBadge(tx.status)).fadeIn(200);
+                        });
+                    }, 800);
+                }
+                tbody.append($row);
+            });
+        }
+
+        function fetchTransactions() {
+            if (activeRequest) {
+                activeRequest.abort();
+            }
+            activeRequest = $.ajax({
+                url: "{% url 'latest_transactions' %}",
+                method: "GET",
+                success: function (response) {
+                    if (response.last_six_transactions) {
+                        updateTable(response.last_six_transactions);
+                    }
+                }
+            });
+        }
+
+        fetchTransactions();
+        setInterval(fetchTransactions, 10000);
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmBtn = document.getElementById("confirm-btn");
+            const amountInput = document.getElementById("amount_deposit");
+            const qrEl = document.getElementById("qrcode");
+            const walletAddressEl = document.getElementById("wallet-address");
+            const copyBtn = document.getElementById("copy-btn");
+            const countdownEl = document.getElementById("countdown");
+            const statusDiv = document.getElementById("deposit-status");
+            const cancelZone = document.getElementById("cancel-zone");
+            const depositForm = document.getElementById("main-deposit-form");
+
+            let timerInterval;
+            let pollingInterval;
+
+            const getSelectedCurrency = (type = 'deposit') => {
+                const currencyInput = document.getElementById(`hidden-${type}-currency`);
+                return currencyInput ? currencyInput.value : 'usdttrc20';
+            };
+
+            const getActiveCurrencyTicker = (type = 'deposit') => {
+                const activeBtn = document.querySelector(`.currency-selector-${type} .dynamic-currency-btn.active`);
+                return activeBtn ? activeBtn.textContent.trim() : 'USDT';
+            };
+
+            window.resetForm = function () {
+                if (amountInput) amountInput.value = "";
+
+                const depositPreview = document.getElementById("deposit_preview");
+                if (depositPreview) {
+                    depositPreview.innerText = `Amount: 0.00 ${getActiveCurrencyTicker('deposit')}`;
+                    depositPreview.classList.remove('text-primary');
+                    depositPreview.classList.add('text-muted');
+                }
+
+                const elementsToHide = [qrEl, walletAddressEl, countdownEl, copyBtn, cancelZone, statusDiv].filter(el => el !== null);
+
+                $(elementsToHide).animate({opacity: 0}, 300, function () {
+                    elementsToHide.forEach(el => el.classList.add("d-none"));
+                    $(elementsToHide).css("opacity", "");
+
+                    if (qrEl) qrEl.innerHTML = "";
+                    if (walletAddressEl) walletAddressEl.textContent = "";
+                    if (countdownEl) countdownEl.textContent = "";
+                    if (statusDiv) statusDiv.innerHTML = "";
+
+                    if (depositForm) {
+                        depositForm.classList.remove("d-none");
+                        $(depositForm).css("opacity", 0).animate({opacity: 1}, 350);
+                    }
+                });
+
+                if (copyBtn) copyBtn.disabled = false;
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = "Confirm Deposit";
+                }
+                clearInterval(pollingInterval);
+                clearInterval(timerInterval);
+            };
+
+            const startTimer = (seconds) => {
+                clearInterval(timerInterval);
+                let timeLeft = seconds;
+                timerInterval = setInterval(() => {
+                    const m = Math.floor(timeLeft / 60);
+                    const s = timeLeft % 60;
+                    countdownEl.textContent = `⏳ Time left: ${m}:${s.toString().padStart(2, '0')}`;
+                    timeLeft--;
+
+                    if (timeLeft < 0) {
+                        clearInterval(timerInterval);
+                        clearInterval(pollingInterval);
+
+                        countdownEl.textContent = "❌ Payment time expired";
+                        if (statusDiv) statusDiv.innerHTML = `<span class="fw-bold text-danger">❌ Transaction expired.</span>`;
+                        if (qrEl) qrEl.classList.add("opacity-50");
+                        if (copyBtn) copyBtn.disabled = true;
+
+                        setTimeout(() => {
+                            resetForm();
+                        }, 3000);
+                    }
+                }, 1000);
+            };
+
+            const startCheckingDeposit = (paymentId) => {
+                if (!paymentId) return;
+                if (pollingInterval) clearInterval(pollingInterval);
+                pollingInterval = setInterval(() => {
+                    fetch("{% url 'get-payment-status' %}?payment_id=" + paymentId)
+                        .then(res => res.json())
+                        .then(data => {
+                            let color = data.status === "success" ? "text-success" : data.status === "failed" ? "text-danger" : "text-warning";
+                            if (statusDiv) statusDiv.innerHTML = `<span class="fw-bold ${color}">${data.user_message}</span>`;
+
+                            if (data.status === "success") {
+                                clearInterval(pollingInterval);
+                                clearInterval(timerInterval);
+
+                                if (typeof refreshWalletStats === 'function') refreshWalletStats();
+                                if (typeof fetchTransactions === 'function') fetchTransactions();
+
+                                setTimeout(() => {
+                                    alert("✅ Deposit confirmed successfully");
+                                    resetForm();
+                                }, 500);
+                            } else if (data.status === "failed" || data.status === "expired") {
+                                clearInterval(pollingInterval);
+                                clearInterval(timerInterval);
+                                setTimeout(() => {
+                                    resetForm();
+                                }, 3000);
+                            }
+                        });
+                }, 5000);
+            };
+
+            window.showDeposit = function (data) {
+                if (depositForm) {
+                    $(depositForm).animate({opacity: 0}, 250, function () {
+                        depositForm.classList.add("d-none");
+                        $(depositForm).css("opacity", "");
+
+                        const elementsToShow = [qrEl, walletAddressEl, countdownEl, copyBtn, cancelZone].filter(el => el !== null);
+                        elementsToShow.forEach(el => el.classList.remove("d-none"));
+
+                        walletAddressEl.textContent = `Send ${data.amount} to: ${data.wallet_address}`;
+                        qrEl.innerHTML = "";
+                        new QRCode(qrEl, {
+                            text: data.wallet_address,
+                            width: 152, height: 152,
+                            colorDark: "#000", colorLight: "#fff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+
+                        copyBtn.onclick = () => {
+                            navigator.clipboard.writeText(data.wallet_address).then(() => {
+                                const originalText = copyBtn.textContent;
+                                copyBtn.textContent = "Copied!";
+                                setTimeout(() => copyBtn.textContent = originalText, 2000);
+                            });
+                        };
+
+                        const now = Math.floor(Date.now() / 1000);
+                        const remaining = data.expires_at ? Math.max(data.expires_at - now, 0) : 600;
+
+                        startTimer(remaining);
+                        confirmBtn.disabled = true;
+                        startCheckingDeposit(data.payment_id);
+
+                        $(elementsToShow).css("opacity", 0).animate({opacity: 1}, 350);
+                    });
+                }
+            };
+
+            {% if pending_wallet_address %}
+                showDeposit({
+                    wallet_address: "{{ pending_wallet_address }}",
+                    amount: "{{ pending_amount }}",
+                    payment_id: "{{ pending_payment_id }}",
+                    expires_at: {{ pending_expires_at }}
+                });
+            {% else %}
+                fetch("{% url 'create-deposit' %}?check_pending=1&currency=" + getSelectedCurrency('deposit'))
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.wallet_address) showDeposit(data);
+                    });
+            {% endif %}
+
+            if (confirmBtn) {
+                confirmBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const amount = amountInput.value.trim();
+                    if (!amount || amount <= 0) return alert("Please enter a valid amount.");
+
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = "Creating...";
+
+                    fetch("{% url 'create-deposit' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: `amount=${amount}&currency=${getSelectedCurrency('deposit')}`
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            confirmBtn.disabled = false;
+                            confirmBtn.textContent = "Confirm Deposit";
+                            if (data.wallet_address) showDeposit(data);
+                            else alert("❌ " + (data.error || "Error"));
+                        });
+                });
+            }
+
+            window.cancelCurrentTransaction = function () {
+                if (!confirm("Are you sure you want to cancel the current transaction?")) return;
+
+                fetch("{% url 'create-deposit' %}?currency=" + getSelectedCurrency('deposit'), {
+                    method: "PATCH",
+                    headers: {"X-CSRFToken": "{{ csrf_token }}"}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === "cancelled") {
+                            if (statusDiv) statusDiv.innerHTML = `<span class="fw-bold text-danger">❌ Cancelled by user.</span>`;
+                            clearInterval(pollingInterval);
+                            clearInterval(timerInterval);
+                            setTimeout(() => {
+                                resetForm();
+                            }, 3000);
+                        } else {
+                            alert("Error: Could not cancel the transaction.");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Cancel Error:", err);
+                        alert("Connection error. Please try again.");
+                    });
+            };
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // ۱. توابع و متغیرهای امنیتی (CSRF)
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            // ۲. پارس کردن تنظیمات (فقط یک بار در زمان لود)
+            const currencyConfigs = JSON.parse('{{ currency_configs_json|safe }}');
+
+            // ۳. انتخاب المنت‌ها
+            const amountInput = document.getElementById('amount_withdraw');
+            const infoBox = document.getElementById('withdraw-info');
+            const hint = document.getElementById('withdraw-hint');
+            const hiddenInput = document.getElementById('hidden-withdraw-currency');
+            const feeDisplay = document.getElementById('calculated-fee');
+            const totalDisplay = document.getElementById('total-deduction');
+
+            // تابع محاسبه کارمزد
+            function calculateFee(amount, currencyCode) {
+                const config = currencyConfigs[currencyCode];
+                if (!config || !config.fee_structure) return 0;
+                const fees = config.fee_structure;
+                const amountNum = parseFloat(amount);
+                const tiers = Object.keys(fees).filter(k => k !== 'default').map(Number).sort((a, b) => a - b);
+                for (let tier of tiers) {
+                    if (amountNum <= tier) return parseFloat(fees[tier.toString()]);
+                }
+                return parseFloat(fees['default'] || 5.0);
+            }
+
+            // تابع به‌روزرسانی هینت‌های امنیتی
+            function updateSecurityHint(amount, currencyCode) {
+                const config = currencyConfigs[currencyCode];
+                const activeBtn = document.querySelector('.currency-selector-withdraw .dynamic-currency-btn.active');
+                const ticker = activeBtn ? activeBtn.textContent.trim() : 'USDT';
+
+                const isKyc =
+                    {% if user.profile.status == 'approved' or user.profile.approval_status.status == 'approved' %}
+                        true{% else %}false{% endif %};
+                const is2fa = {{ user.two_factor.is_enabled|yesno:'true,false' }};
+
+                if (amount <= 0) {
+                    infoBox.style.display = 'none';
+                    return;
+                }
+                infoBox.style.display = 'block';
+
+                if (!config) return;
+
+                if (!config.allow_auto_withdraw) {
+                    infoBox.className = "mt-2 p-2 rounded small border bg-primary-subtle text-primary border-primary-subtle";
+                    hint.innerHTML = `<i class="ri-shield-user-line me-1"></i><b>High Security Asset:</b> All ${ticker} withdrawals require manual admin review.`;
+                } else {
+                    if (amount < config.auto_withdraw_limit) {
+                        infoBox.className = "mt-2 p-2 rounded small border bg-success-subtle text-success border-success-subtle";
+                        hint.innerHTML = `<b>Instant Approval:</b> Processed automatically.`;
+                    } else if (amount <= config.admin_review_limit) {
+                        if (isKyc && is2fa) {
+                            infoBox.className = "mt-2 p-2 rounded small border bg-success-subtle text-success border-success-subtle";
+                            hint.innerHTML = `<b>Auto-Approval Enabled:</b> KYC & 2FA verified.`;
+                        } else {
+                            infoBox.className = "mt-2 p-2 rounded small border bg-warning-subtle text-warning border-warning-subtle";
+                            hint.innerHTML = `<b>Pending Review:</b> Please complete KYC & 2FA, otherwise admin review is required.`;
+                        }
+                    } else {
+                        infoBox.className = "mt-2 p-2 rounded small border bg-primary-subtle text-primary border-primary-subtle";
+                        hint.innerHTML = `<b>High-Value:</b> Requires manual admin review.`;
+                    }
+                }
+            }
+
+            // ۴. لاجیک اصلی ایونت Input
+            if (amountInput) {
+                amountInput.addEventListener('input', function () {
+                    const amount = parseFloat(this.value) || 0;
+                    const currency = hiddenInput ? hiddenInput.value : 'usdttrc20';
+
+                    updateSecurityHint(amount, currency);
+
+                    if (amount > 0) {
+                        const fee = calculateFee(amount, currency);
+                        const total = amount + fee;
+                        feeDisplay.textContent = `${fee.toFixed(4)} ${currency.toUpperCase().replace('TRC20', '')}`;
+                        totalDisplay.textContent = `${total.toFixed(4)} ${currency.toUpperCase().replace('TRC20', '')}`;
+                    }
+                });
+            }
+
+            // مدیریت تب‌ها
+            const tabLinks = document.querySelectorAll('[data-bs-toggle="tab"]');
+            tabLinks.forEach(tab => {
+                tab.addEventListener("shown.bs.tab", (e) => localStorage.setItem("activeTab", e.target.getAttribute("href")));
+            });
+            const activeTab = localStorage.getItem("activeTab");
+            if (activeTab) {
+                const triggerEl = document.querySelector(`[href="${activeTab}"]`);
+                if (triggerEl) new bootstrap.Tab(triggerEl).show();
+            }
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const formatCurrency = (val, ticker) => {
+                if (val === "" || isNaN(val)) return "0.00";
+                const decimals = (ticker === 'BTC' || ticker === 'ETH') ? 6 : 2;
+                return parseFloat(val).toLocaleString('en-US', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                });
+            };
+
+            const updatePreview = (input, preview, colorClass, type) => {
+                const val = input.value;
+                const activeBtn = document.querySelector(`.currency-selector-${type} .dynamic-currency-btn.active`);
+                const ticker = activeBtn ? activeBtn.textContent.trim() : 'USDT';
+
+                preview.innerText = `Amount: ${formatCurrency(val, ticker)} ${ticker}`;
+
+                if (val === "" || parseFloat(val) === 0) {
+                    preview.classList.remove('text-primary', 'text-danger');
+                    preview.classList.add('text-muted');
+                } else {
+                    preview.classList.remove('text-muted');
+                    preview.classList.add(colorClass);
+                }
+            };
+
+            const depositInput = document.getElementById('amount_deposit');
+            const depositPreview = document.getElementById('deposit_preview');
+            if (depositInput && depositPreview) {
+                depositInput.addEventListener('input', () => updatePreview(depositInput, depositPreview, 'text-primary', 'deposit'));
+            }
+
+            const withdrawInput = document.getElementById('amount_withdraw');
+            const withdrawPreview = document.getElementById('withdraw_preview');
+            if (withdrawInput && withdrawPreview) {
+                withdrawInput.addEventListener('input', () => updatePreview(withdrawInput, withdrawPreview, 'text-danger', 'withdraw'));
+            }
+
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('reset', () => {
+                    setTimeout(() => {
+                        const depTicker = document.querySelector('.currency-selector-deposit .dynamic-currency-btn.active')?.textContent.trim() || 'USDT';
+                        const witTicker = document.querySelector('.currency-selector-withdraw .dynamic-currency-btn.active')?.textContent.trim() || 'USDT';
+
+                        if (depositPreview) depositPreview.innerText = `Amount: 0.00 ${depTicker}`;
+                        if (withdrawPreview) withdrawPreview.innerText = `Amount: 0.00 ${witTicker}`;
+                        if (depositPreview) depositPreview.classList.replace('text-primary', 'text-muted');
+                        if (withdrawPreview) withdrawPreview.classList.replace('text-danger', 'text-muted');
+                    }, 10);
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // تابع اصلی فراخوانی آمار دشبورد از API جنگو
+        function refreshWalletStats() {
+            // خواندن توکن فعال از هیدن اینپوت اختصاصی دشبورد
+            const activeCurrencyInput = document.getElementById('dashboard-active-currency');
+            const currentCurrency = activeCurrencyInput ? activeCurrencyInput.value : 'usdttrc20';
+
+            $.ajax({
+                url: "{% url 'wallet_stats_api' %}?currency=" + currentCurrency,
+                method: "GET",
+                success: function (data) {
+                    // تزریق اطلاعات به صورت Real-time درون اسپن‌های کارت‌ها
+                    $('#wallet-deposits').text(data.total_deposits);
+                    $('#wallet-withdrawals').text(data.total_withdraws);
+                    $('#wallet-net-flow').text(data.net_flow);
+                    $('#wallet-volume').text(data.wallet_volume);
+
+                    // به‌روزرسانی تمام تیکرهای کوچک متصل به کلاس فرانت‌آند
+                    $('.currency-ticker').text(data.ticker);
+
+                    // مدیریت داینامیک رنگ فلو (قرمز در صورت منفی بودن آمار حساب)
+                    const netFlowContainer = $('#net-flow-container');
+                    const netFlowIcon = $('#net-flow-icon');
+
+                    if (parseFloat(data.net_flow) < 0) {
+                        netFlowContainer.removeClass('text-success').addClass('text-danger');
+                        if (netFlowIcon.length) {
+                            netFlowIcon.removeClass('bg-soft-success text-success').addClass('bg-soft-danger text-danger');
+                        }
+                    } else {
+                        netFlowContainer.removeClass('text-danger').addClass('text-success');
+                        if (netFlowIcon.length) {
+                            netFlowIcon.removeClass('bg-soft-danger text-danger').addClass('bg-soft-success text-success');
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Failed to fetch wallet stats:", error);
+                }
+            });
+        }
+
+        // هندلر کلیک سوییچر جدید داخل کارت اول (Dropdown Items)
+        $(document).ready(function () {
+            $(document).on('click', '.switch-currency-item', function (e) {
+                e.preventDefault();
+
+                const selectedCurrency = $(this).data('currency');
+
+                // مدیریت کلاس فعال منو
+                $('.switch-currency-item').removeClass('active');
+                $(this).addClass('active');
+
+                // قرار دادن مقدار در هیدن اینپوت مادر دشبورد
+                const dashboardInput = document.getElementById('dashboard-active-currency');
+                if (dashboardInput) {
+                    dashboardInput.value = selectedCurrency;
+                }
+
+                // فراخوانی مجدد اطلاعات برای نوسازی کارت‌ها
+                refreshWalletStats();
+            });
+
+            // اجرای لود اولیه کارت‌ها در زمان اولین بالا آمدن صفحه
+            refreshWalletStats();
+            // پولینگ پس‌زمینه کارت‌ها هر ۳۰ ثانیه یک بار
+            setInterval(refreshWalletStats, 30000);
+        });
+
+        // هماهنگی دکمه‌های قدیمی تب‌های فرم با ساختار DOM بدون تداخل و ارور qrEl
+        document.addEventListener('DOMContentLoaded', function () {
+            const currencyButtons = document.querySelectorAll('.dynamic-currency-btn');
+            currencyButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const targetFormType = this.getAttribute('data-target');
+                    const selectedCurrency = this.getAttribute('data-currency');
+                    const currencyText = this.textContent.trim();
+
+                    const parentContainer = this.parentElement;
+                    parentContainer.querySelectorAll('.dynamic-currency-btn').forEach(btn => {
+                        btn.classList.replace('btn-soft-primary', 'btn-soft-light');
+                        btn.classList.remove('active');
+                    });
+                    this.classList.replace('btn-soft-light', 'btn-soft-primary');
+                    this.classList.add('active');
+
+                    const hiddenInput = document.getElementById(`hidden-${targetFormType}-currency`);
+                    if (hiddenInput) hiddenInput.value = selectedCurrency;
+
+                    const addonLabel = document.querySelector(`.${targetFormType}-currency-label`);
+                    if (addonLabel) addonLabel.textContent = currencyText;
+
+                    const inputField = document.getElementById(`amount_${targetFormType}`);
+                    if (inputField) {
+                        inputField.dispatchEvent(new Event('input'));
+                    }
+
+                    // 🎯 دیباگ ارور qrEl: المان را مستقیماً از روی شناسه داک می‌خوانیم تا ارور اسکوپ ندهد
+                    if (targetFormType === 'deposit') {
+                        const targetQr = document.getElementById("qrcode");
+                        const qrIsVisible = targetQr && !targetQr.classList.contains("d-none");
+                        if (qrIsVisible && typeof window.resetForm === 'function') {
+                            window.resetForm();
+                        }
+                    }
+                });
+            });
+
+            // فعال‌سازی تولتیپ‌های بوت‌استرپ به صورت امن
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    container: 'body',
+                    fallbackPlacements: ['bottom', 'right', 'left']
+                });
+            });
+
+            window.addEventListener('beforeunload', function () {
+                tooltipList.forEach(function (t) {
+                    t.hide();
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const alerts = document.querySelectorAll(".alert");
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add("fade");
+                    alert.style.transition = "opacity 0.5s ease";
+                    alert.style.opacity = "0";
+                    setTimeout(() => alert.remove(), 500);
+                }, 6000);
+            });
+        });
+    </script>
+    <script>
+        // نگاشت کلاینت برای مدیریت تیکرها و نمایش صحیح واحد پول
+        const assetTickers = {
+            'usdttrc20': 'USDT',
+            'btc': 'BTC',
+            'eth': 'ETH',
+            'trx': 'TRX'
+        };
+
+        let activeChartAsset = 'usdttrc20'; // ارز پیش‌فرض دشبورد در اولین لود
+        let cashFlowChart = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // ۱. دریافت ساختار اولیه دیتای سمت سرور (تمپلیت کانتکست جنگو)
+            const initialData = {{ chart_data_json|safe }};
+
+            var options = {
+                series: [{
+                    name: 'Inflow (Added)',
+                    data: initialData.deposits
+                }, {
+                    name: 'Outflow (Spent)',
+                    data: initialData.withdraws
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 250,
+                    toolbar: {show: false},
+                    fontFamily: 'inherit',
+                    parentHeightOffset: 0
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '38%',
+                        borderRadius: 5,
+                        borderRadiusApplication: 'around'
+                    },
+                },
+                colors: ['#00bd9d', '#f06548'],
+                dataLabels: {enabled: false},
+                stroke: {
+                    show: true,
+                    width: 3,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    categories: initialData.categories,
+                    axisBorder: {show: false},
+                    axisTicks: {show: false},
+                    labels: {
+                        style: {colors: '#adb5bd', fontSize: '11px', fontWeight: 500}
+                    }
+                },
+                yaxis: {
+                    min: 0, // 👈 قفل شدن کف نمودار روی صفر زمانی که تراکنشی نیست
+                    forceNiceScale: true, // 👈 تولید خودکار اعداد رند و تمیز به محض آمدن دیتا
+                    labels: {
+                        formatter: function (value) {
+                            // اگر مقدار صفر بود، خیلی تمیز فقط صفر و واحد پول را نشان بدهد
+                            if (value === 0) {
+                                return "0 " + assetTickers[activeChartAsset];
+                            }
+
+                            // کالیبراسیون اعشار برای مقادیر واقعی تراکنش‌ها
+                            const dec = (activeChartAsset === 'btc' || activeChartAsset === 'eth') ? 4 : 2;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: dec,
+                                maximumFractionDigits: dec
+                            }) + ' ' + assetTickers[activeChartAsset];
+                        },
+                        style: {
+                            colors: '#adb5bd',
+                            fontSize: '11px',
+                            fontWeight: 500
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: 'rgba(0,0,0,0.03)',
+                    strokeDashArray: 4,
+                    xaxis: {lines: {show: false}},
+                    yaxis: {lines: {show: true}},
+                    padding: {top: 0, right: 0, bottom: 0, left: 10}
+                },
+                fill: {opacity: 0.95},
+                legend: {show: false},
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        formatter: function (val) {
+                            // بالاترین دقت برای نمایش جزییات واریز/برداشت در هاور ستون‌ها
+                            const dec = (activeChartAsset === 'btc' || activeChartAsset === 'eth') ? 6 : 2;
+                            return val.toLocaleString(undefined, {
+                                minimumFractionDigits: dec,
+                                maximumFractionDigits: dec
+                            }) + ' ' + assetTickers[activeChartAsset];
+                        }
+                    }
+                }
+            };
+
+            cashFlowChart = new ApexCharts(document.querySelector("#daily_cashflow_chart"), options);
+            cashFlowChart.render();
+
+            // ۲. شنود کلیک روی مایکروتب‌ها و ارسال درخواست فچ مستقل به API بک‌آند شما
+            document.querySelectorAll('.chart-currency-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (this.classList.contains('active')) return;
+
+                    // مدیریت جابه‌جایی کلاس اکتیو دکمه‌ها
+                    document.querySelectorAll('.chart-currency-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // بروزرسانی مقدار ارز فعال کامپوننت
+                    activeChartAsset = this.getAttribute('data-currency');
+
+                    // اجرای درخواست مستقیم به ایندپوینت جنگو شما
+                    updateChartFromDatabase(activeChartAsset);
+                });
+            });
+        });
+
+        // 🔄 تابع واکشی دیتای ۷ روزه از کلاس UserWalletCashFlowAPI بدون ری‌فرش صفحه
+        function updateChartFromDatabase(currency) {
+            // آدرس را با یو‌آر‌ال مپ‌شده به ویو خود در urls.py هماهنگ کنید (مثال: /api/wallet-cashflow/)
+            fetch(`/api/wallet-cashflow/?currency=${currency}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Database connection issue');
+                    return response.json();
+                })
+                .then(data => {
+                    if (cashFlowChart) {
+                        // بروزرسانی آنی ستون‌ها و تیکرهای چارت با انیمیشن ورود زنده
+                        cashFlowChart.updateOptions({
+                            xaxis: {
+                                categories: data.categories
+                            },
+                            series: [{
+                                name: 'Inflow (Added)',
+                                data: data.deposits
+                            }, {
+                                name: 'Outflow (Spent)',
+                                data: data.withdraws
+                            }]
+                        });
+                    }
+                })
+                .catch(err => console.error("Error updating independent cashflow chart:", err));
+        }
+    </script>
+{% endblock %}
+

@@ -1,0 +1,686 @@
+INFO 2026-06-07 23:25:50,562 views User 12 requested a trade.
+WARNING 2026-06-07 23:25:50,597 views User 12 failed trade: Insufficient balance. Balance: 388.00, Requested: 15.00
+INFO 2026-06-07 23:25:50,611 views User 12 trade success. Amount: 15.00. New Balance: 373.00
+INFO 2026-06-07 23:32:53,613 views User 12 requested a trade.
+WARNING 2026-06-07 23:32:53,632 views User 12 failed trade: Insufficient balance. Balance: 401.97, Requested: 20.00
+INFO 2026-06-07 23:32:53,639 views User 12 trade success. Amount: 20.00. New Balance: 381.97
+INFO 2026-06-07 23:33:52,976 views User 12 requested a trade.
+WARNING 2026-06-07 23:33:52,980 views User 12 failed trade: Insufficient balance. Balance: 381.97, Requested: 20.00
+INFO 2026-06-07 23:33:52,990 views User 12 trade success. Amount: 20.00. New Balance: 361.97
+INFO 2026-06-07 23:34:53,915 views User 12 requested a trade.
+WARNING 2026-06-07 23:34:53,920 views User 12 failed trade: Insufficient balance. Balance: 361.97, Requested: 20.00
+INFO 2026-06-07 23:34:53,933 views User 12 trade success. Amount: 20.00. New Balance: 341.97
+INFO 2026-06-07 23:53:11,518 views User 12 requested a trade.
+INFO 2026-06-08 00:03:03,548 views User 12 requested a trade.
+INFO 2026-06-08 00:04:11,764 views User 12 requested a trade.
+INFO 2026-06-08 00:05:03,976 views User 12 requested a trade.
+INFO 2026-06-08 00:08:31,200 views User 12 requested a trade.
+INFO 2026-06-08 00:13:02,388 views User 12 requested a trade.
+WARNING 2026-06-08 00:13:02,391 views 
+            now=2026-06-08 00:13:02.390954+00:00
+            start=2026-06-08 00:12:44.482796+00:00
+            elapsed_total=17.908158
+            cycle_elapsed=17.908158
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=0
+            
+INFO 2026-06-08 00:14:13,593 views User 12 requested a trade.
+WARNING 2026-06-08 00:14:13,596 views 
+            now=2026-06-08 00:14:13.596212+00:00
+            start=2026-06-08 00:13:44.482796+00:00
+            elapsed_total=29.113416
+            cycle_elapsed=29.113416
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=0
+            
+INFO 2026-06-08 00:26:51,587 views User 12 requested a trade.
+WARNING 2026-06-08 00:26:51,593 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:26:51.593710+00:00
+            start=2026-06-08 00:26:44.482796+00:00
+            elapsed_total=7.110914
+            cycle_elapsed=7.110914
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=140
+            allowed=True
+            
+INFO 2026-06-08 00:27:59,543 views User 12 requested a trade.
+WARNING 2026-06-08 00:27:59,546 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:27:59.545937+00:00
+            start=2026-06-08 00:27:44.482796+00:00
+            elapsed_total=15.063141
+            cycle_elapsed=15.063141
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=141
+            allowed=False
+            
+INFO 2026-06-08 00:28:03,273 views User 12 requested a trade.
+WARNING 2026-06-08 00:28:03,288 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:28:03.288034+00:00
+            start=2026-06-08 00:27:44.482796+00:00
+            elapsed_total=18.805238
+            cycle_elapsed=18.805238
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=141
+            allowed=False
+            
+INFO 2026-06-08 00:49:50,357 views User 12 requested a trade.
+WARNING 2026-06-08 00:49:50,366 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:49:50.366510+00:00
+            start=2026-06-08 00:48:34.482796+00:00
+            elapsed_total=75.883714
+            cycle_elapsed=5.883713999999998
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=159
+            allowed=True
+            
+WARNING 2026-06-08 00:49:50,405 views User 12 failed trade: Insufficient balance. Balance: 341.97, Requested: 15.00
+INFO 2026-06-08 00:49:50,427 views User 12 trade success. Amount: 15.00. New Balance: 326.97
+INFO 2026-06-08 00:49:54,269 views User 12 requested a trade.
+WARNING 2026-06-08 00:49:54,272 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:49:54.272360+00:00
+            start=2026-06-08 00:49:44.482796+00:00
+            elapsed_total=9.789564
+            cycle_elapsed=9.789564
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=160
+            allowed=True
+            
+INFO 2026-06-08 00:51:00,118 views User 12 requested a trade.
+WARNING 2026-06-08 00:51:00,129 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:51:00.129035+00:00
+            start=2026-06-08 00:50:54.482796+00:00
+            elapsed_total=5.646239
+            cycle_elapsed=5.646239
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=161
+            allowed=True
+            
+WARNING 2026-06-08 00:51:00,155 views User 12 failed trade: Insufficient balance. Balance: 355.94, Requested: 15.00
+INFO 2026-06-08 00:51:00,195 views User 12 trade success. Amount: 15.00. New Balance: 340.94
+INFO 2026-06-08 00:51:04,763 views User 12 requested a trade.
+WARNING 2026-06-08 00:51:04,765 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:51:04.765794+00:00
+            start=2026-06-08 00:50:54.482796+00:00
+            elapsed_total=10.282998
+            cycle_elapsed=10.282998
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=161
+            allowed=False
+            
+INFO 2026-06-08 00:52:17,415 views User 12 requested a trade.
+WARNING 2026-06-08 00:52:17,425 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:52:17.424983+00:00
+            start=2026-06-08 00:52:04.482796+00:00
+            elapsed_total=12.942187
+            cycle_elapsed=12.942187
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=162
+            allowed=False
+            
+INFO 2026-06-08 00:53:18,470 views User 12 requested a trade.
+WARNING 2026-06-08 00:53:18,480 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 00:53:18.480296+00:00
+            start=2026-06-08 00:53:14.482796+00:00
+            elapsed_total=3.9975
+            cycle_elapsed=3.9975
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=163
+            allowed=True
+            
+WARNING 2026-06-08 00:53:18,499 views User 12 failed trade: Insufficient balance. Balance: 340.94, Requested: 15.00
+INFO 2026-06-08 00:53:18,527 views User 12 trade success. Amount: 15.00. New Balance: 325.94
+INFO 2026-06-08 01:06:13,199 views User 12 requested a trade.
+WARNING 2026-06-08 01:06:13,208 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:06:13.208273+00:00
+            start=2026-06-08 01:06:04.482796+00:00
+            elapsed_total=8.725477
+            cycle_elapsed=8.725477
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=174
+            allowed=True
+            
+INFO 2026-06-08 01:06:16,232 views User 12 requested a trade.
+WARNING 2026-06-08 01:06:16,234 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:06:16.234599+00:00
+            start=2026-06-08 01:06:04.482796+00:00
+            elapsed_total=11.751803
+            cycle_elapsed=11.751803
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=174
+            allowed=False
+            
+INFO 2026-06-08 01:08:30,063 views User 12 requested a trade.
+WARNING 2026-06-08 01:08:30,066 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:08:30.066627+00:00
+            start=2026-06-08 01:08:24.482796+00:00
+            elapsed_total=5.583831
+            cycle_elapsed=5.583831
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=176
+            allowed=True
+            
+WARNING 2026-06-08 01:08:30,124 views User 12 failed trade: Insufficient balance. Balance: 325.94, Requested: 15.00
+INFO 2026-06-08 01:08:30,161 views User 12 trade success. Amount: 15.00. New Balance: 310.94
+INFO 2026-06-08 01:09:43,951 views User 12 requested a trade.
+WARNING 2026-06-08 01:09:43,957 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:09:43.957121+00:00
+            start=2026-06-08 01:09:34.482796+00:00
+            elapsed_total=9.474325
+            cycle_elapsed=9.474325
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=177
+            allowed=True
+            
+INFO 2026-06-08 01:13:13,592 views User 12 requested a trade.
+WARNING 2026-06-08 01:13:13,595 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:13:13.595080+00:00
+            start=2026-06-08 01:13:04.482796+00:00
+            elapsed_total=9.112284
+            cycle_elapsed=9.112284
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=180
+            allowed=True
+            
+INFO 2026-06-08 01:21:30,649 views User 12 requested a trade.
+WARNING 2026-06-08 01:21:30,652 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:21:30.652191+00:00
+            start=2026-06-08 01:21:14.482796+00:00
+            elapsed_total=16.169395
+            cycle_elapsed=16.169395
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=187
+            allowed=False
+            
+INFO 2026-06-08 01:21:36,499 views User 12 requested a trade.
+WARNING 2026-06-08 01:21:36,507 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:21:36.507401+00:00
+            start=2026-06-08 01:21:14.482796+00:00
+            elapsed_total=22.024605
+            cycle_elapsed=22.024605
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=187
+            allowed=False
+            
+INFO 2026-06-08 01:22:42,504 views User 12 requested a trade.
+WARNING 2026-06-08 01:22:42,507 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:22:42.507570+00:00
+            start=2026-06-08 01:22:24.482796+00:00
+            elapsed_total=18.024774
+            cycle_elapsed=18.024774
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=188
+            allowed=False
+            
+INFO 2026-06-08 01:23:52,256 views User 12 requested a trade.
+WARNING 2026-06-08 01:23:52,278 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:23:52.278529+00:00
+            start=2026-06-08 01:23:44.482796+00:00
+            elapsed_total=7.795733
+            cycle_elapsed=7.795733
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=189
+            allowed=True
+            
+INFO 2026-06-08 01:23:59,856 views User 12 requested a trade.
+WARNING 2026-06-08 01:23:59,858 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:23:59.858227+00:00
+            start=2026-06-08 01:23:44.482796+00:00
+            elapsed_total=15.375431
+            cycle_elapsed=15.375431
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=189
+            allowed=False
+            
+INFO 2026-06-08 01:26:31,200 views User 12 requested a trade.
+WARNING 2026-06-08 01:26:31,203 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:26:31.203685+00:00
+            start=2026-06-08 01:26:24.482796+00:00
+            elapsed_total=6.720889
+            cycle_elapsed=6.720889
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=191
+            allowed=True
+            
+INFO 2026-06-08 01:26:42,126 views User 12 requested a trade.
+WARNING 2026-06-08 01:26:42,129 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:26:42.129266+00:00
+            start=2026-06-08 01:26:24.482796+00:00
+            elapsed_total=17.64647
+            cycle_elapsed=17.64647
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=191
+            allowed=False
+            
+INFO 2026-06-08 01:28:00,278 views User 12 requested a trade.
+WARNING 2026-06-08 01:28:00,281 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:28:00.281720+00:00
+            start=2026-06-08 01:27:44.482796+00:00
+            elapsed_total=15.798924
+            cycle_elapsed=15.798924
+            ENTRY_WINDOW=10
+            TOTAL_CYCLE=70
+            current_cycle=192
+            allowed=False
+            
+INFO 2026-06-08 01:30:31,060 views User 12 requested a trade.
+WARNING 2026-06-08 01:30:31,062 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 01:30:31.062162+00:00
+            start=2026-06-08 01:30:24.482796+00:00
+            elapsed_total=6.579366
+            cycle_elapsed=6.579366
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=194
+            allowed=True
+            
+WARNING 2026-06-08 01:30:31,087 views User 12 failed trade: Insufficient balance. Balance: 339.91, Requested: 10.00
+INFO 2026-06-08 01:30:31,098 views User 12 trade success. Amount: 10.00. New Balance: 329.91
+INFO 2026-06-08 12:35:50,281 views User 12 requested a trade.
+WARNING 2026-06-08 12:35:50,285 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 12:35:50.285059+00:00
+            start=2026-06-08 01:54:24.482796+00:00
+            elapsed_total=38485.802263
+            cycle_elapsed=5.802262999997765
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=212
+            allowed=True
+            
+WARNING 2026-06-08 12:35:50,314 views User 12 failed trade: Insufficient balance. Balance: 329.91, Requested: 10.00
+INFO 2026-06-08 12:35:50,329 views User 12 trade success. Amount: 10.00. New Balance: 319.91
+INFO 2026-06-08 12:37:12,104 views User 12 requested a trade.
+WARNING 2026-06-08 12:37:12,111 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 12:37:12.110983+00:00
+            start=2026-06-08 02:17:04.482796+00:00
+            elapsed_total=37207.628187
+            cycle_elapsed=7.628187000002072
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=229
+            allowed=True
+            
+WARNING 2026-06-08 12:37:12,127 views User 12 failed trade: Insufficient balance. Balance: 339.22, Requested: 10.00
+INFO 2026-06-08 12:37:12,151 views User 12 trade success. Amount: 10.00. New Balance: 329.22
+INFO 2026-06-08 12:38:38,817 views User 12 requested a trade.
+WARNING 2026-06-08 12:38:38,819 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 12:38:38.819915+00:00
+            start=2026-06-08 02:39:44.482796+00:00
+            elapsed_total=35934.337119
+            cycle_elapsed=14.33711900000344
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=246
+            allowed=True
+            
+WARNING 2026-06-08 12:38:38,823 views User 12 failed trade: Insufficient balance. Balance: 348.53, Requested: 10.00
+INFO 2026-06-08 12:38:38,831 views User 12 trade success. Amount: 10.00. New Balance: 338.53
+INFO 2026-06-08 12:46:31,361 views User 12 requested a trade.
+WARNING 2026-06-08 12:46:31,370 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 12:46:31.369951+00:00
+            start=2026-06-08 04:35:44.482796+00:00
+            elapsed_total=29446.887155
+            cycle_elapsed=6.887155000000348
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=333
+            allowed=True
+            
+WARNING 2026-06-08 12:46:31,386 views User 12 failed trade: Insufficient balance. Balance: 357.84, Requested: 10.00
+INFO 2026-06-08 12:46:31,398 views User 12 trade success. Amount: 10.00. New Balance: 347.84
+INFO 2026-06-08 12:47:58,252 views User 12 requested a trade.
+WARNING 2026-06-08 12:47:58,254 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 12:47:58.254812+00:00
+            start=2026-06-08 04:58:24.482796+00:00
+            elapsed_total=28173.772016
+            cycle_elapsed=13.772015999998985
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=350
+            allowed=True
+            
+WARNING 2026-06-08 12:47:58,260 views User 12 failed trade: Insufficient balance. Balance: 367.15, Requested: 15.00
+INFO 2026-06-08 12:47:58,272 views User 12 trade success. Amount: 15.00. New Balance: 352.15
+INFO 2026-06-08 13:05:12,066 views User 12 requested a trade.
+WARNING 2026-06-08 13:05:12,081 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 13:05:12.080883+00:00
+            start=2026-06-08 09:23:44.482796+00:00
+            elapsed_total=13287.598087
+            cycle_elapsed=7.598087000000305
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=549
+            allowed=True
+            
+WARNING 2026-06-08 13:05:12,136 views User 12 failed trade: Insufficient balance. Balance: 381.12, Requested: 20.00
+INFO 2026-06-08 13:05:12,144 views User 12 trade success. Amount: 20.00. New Balance: 361.12
+INFO 2026-06-08 13:05:20,640 views User 12 requested a trade.
+WARNING 2026-06-08 13:05:20,653 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 13:05:20.653422+00:00
+            start=2026-06-08 09:25:04.482796+00:00
+            elapsed_total=13216.170626
+            cycle_elapsed=16.170625999999174
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=550
+            allowed=True
+            
+WARNING 2026-06-08 13:05:20,684 views User 12 failed trade: Insufficient balance. Balance: 361.12, Requested: 20.00
+INFO 2026-06-08 13:05:20,725 views User 12 trade success. Amount: 20.00. New Balance: 341.12
+INFO 2026-06-08 13:09:11,922 views User 12 requested a trade.
+WARNING 2026-06-08 13:09:11,924 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 13:09:11.923944+00:00
+            start=2026-06-08 10:02:24.482796+00:00
+            elapsed_total=11207.441148
+            cycle_elapsed=7.441147999999885
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=578
+            allowed=True
+            
+WARNING 2026-06-08 13:09:11,940 views User 12 failed trade: Insufficient balance. Balance: 379.74, Requested: 13.00
+INFO 2026-06-08 13:09:11,953 views User 12 trade success. Amount: 13.00. New Balance: 366.74
+INFO 2026-06-08 13:13:23,622 views User 12 requested a trade.
+WARNING 2026-06-08 13:13:23,625 views 
+            ENTRY CHECK DEBUG
+            now=2026-06-08 13:13:23.625757+00:00
+            start=2026-06-08 11:10:24.482796+00:00
+            elapsed_total=7379.142961
+            cycle_elapsed=19.14296099999956
+            ENTRY_WINDOW=20
+            TOTAL_CYCLE=80
+            current_cycle=629
+            allowed=True
+            
+INFO 2026-06-08 13:30:32,070 views User 12 requested a trade.
+INFO 2026-06-08 13:30:32,074 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 7.591455s | Cycle Elapsed: 7.591455s
+            Current Calculated Cycle: 0
+            Allowed: True
+            
+INFO 2026-06-08 13:30:32,107 views User 12 trade success. Amount: 10.00. New Balance: 381.84
+INFO 2026-06-08 13:38:30,972 views User 12 requested a trade.
+INFO 2026-06-08 13:38:30,979 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 6.49692s | Cycle Elapsed: 6.49692s
+            Current Calculated Cycle: 0
+            Allowed: True
+            
+INFO 2026-06-08 13:38:31,053 views User 12 trade success. Amount: 10.00. New Balance: 391.15
+INFO 2026-06-08 13:39:51,855 views User 12 requested a trade.
+INFO 2026-06-08 13:39:51,857 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 7.374926s | Cycle Elapsed: 7.374926s
+            Current Calculated Cycle: 0
+            Allowed: True
+            
+INFO 2026-06-08 13:39:51,878 views User 12 trade success. Amount: 20.00. New Balance: 371.15
+INFO 2026-06-08 13:41:22,778 views User 12 requested a trade.
+INFO 2026-06-08 13:41:22,782 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 18.299428s | Cycle Elapsed: 18.299428s
+            Current Calculated Cycle: 0
+            Allowed: True
+            
+INFO 2026-06-15 14:35:48,227 views User 12 requested a trade.
+INFO 2026-06-15 14:35:48,232 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 604563.749699s | Cycle Elapsed: 3.749699000036344s
+            Current Calculated Cycle: 7557
+            Allowed: True
+            
+WARNING 2026-06-15 14:35:48,250 views User 12 failed trade: Insufficient balance. Balance: 0.00, Requested: 10.00
+INFO 2026-06-15 14:37:08,171 views User 12 requested a trade.
+INFO 2026-06-15 14:37:08,176 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 603363.69333s | Cycle Elapsed: 3.6933300000382587s
+            Current Calculated Cycle: 7542
+            Allowed: True
+            
+INFO 2026-06-15 14:37:08,201 views User 12 trade success. Amount: 10.00. New Balance: 90.00
+INFO 2026-06-15 14:50:29,030 views User 12 requested a trade.
+INFO 2026-06-15 14:50:29,036 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 600804.553259s | Cycle Elapsed: 4.553258999949321s
+            Current Calculated Cycle: 7510
+            Allowed: True
+            
+INFO 2026-06-15 14:50:29,069 views User 12 trade success. Amount: 10.00. New Balance: 99.31
+INFO 2026-06-15 15:49:18,465 views User 12 requested a trade.
+INFO 2026-06-15 15:49:18,472 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 561133.990132s | Cycle Elapsed: 13.990131999948062s
+            Current Calculated Cycle: 7014
+            Allowed: True
+            
+INFO 2026-06-15 15:49:18,560 views User 12 trade success. Amount: 12.00. New Balance: 106.62
+INFO 2026-06-15 15:57:19,532 views User 12 requested a trade.
+INFO 2026-06-15 15:57:19,537 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 554015.054171s | Cycle Elapsed: 15.054171000025235s
+            Current Calculated Cycle: 6925
+            Allowed: True
+            
+INFO 2026-06-15 15:57:19,638 views User 12 trade success. Amount: 10.00. New Balance: 119.79
+INFO 2026-06-16 00:17:11,961 views User 12 requested a trade.
+INFO 2026-06-16 00:17:11,964 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 574727.481716s | Cycle Elapsed: 7.481716000009328s
+            Current Calculated Cycle: 7184
+            Allowed: True
+            
+INFO 2026-06-16 00:17:11,995 views User 12 trade success. Amount: 20.00. New Balance: 100544.00
+INFO 2026-06-16 00:29:15,577 views User 12 requested a trade.
+INFO 2026-06-16 00:29:15,579 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 572491.097066s | Cycle Elapsed: 11.097065999987535s
+            Current Calculated Cycle: 7156
+            Allowed: True
+            
+INFO 2026-06-16 00:29:15,627 views User 12 trade success. Amount: 10.00. New Balance: 100534.00
+INFO 2026-06-16 00:31:51,091 views User 12 requested a trade.
+INFO 2026-06-16 00:31:51,093 views 
+            [ENTRY CHECK DEBUG] User: 12
+            Elapsed Total: 570166.610211s | Cycle Elapsed: 6.610210999962874s
+            Current Calculated Cycle: 7127
+            Allowed: True
+            
+INFO 2026-06-16 00:31:51,108 views User 12 trade success. Amount: 20.00. New Balance: 100514.00
+INFO 2026-07-01 15:07:49,156 views User 17 requested a trade.
+INFO 2026-07-01 15:07:49,177 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1819284.694951s | Cycle Elapsed: 4.694950999924913s
+            Current Calculated Cycle: 22741
+            Allowed: True
+            
+ERROR 2026-07-01 15:07:49,204 views CRITICAL: Trade execution failed for User 17. Error: get() returned more than one DollarWallet -- it returned 4!
+Traceback (most recent call last):
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/Prediction/views.py", line 192, in post
+    wallet = DollarWallet.objects.select_for_update().get(user=request.user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 642, in get
+    raise self.model.MultipleObjectsReturned(
+wallet.models.DollarWallet.MultipleObjectsReturned: get() returned more than one DollarWallet -- it returned 4!
+INFO 2026-07-01 15:07:57,310 views User 17 requested a trade.
+INFO 2026-07-01 15:07:57,323 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1819132.840989s | Cycle Elapsed: 12.840988999931142s
+            Current Calculated Cycle: 22739
+            Allowed: True
+            
+ERROR 2026-07-01 15:07:57,343 views CRITICAL: Trade execution failed for User 17. Error: get() returned more than one DollarWallet -- it returned 4!
+Traceback (most recent call last):
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/Prediction/views.py", line 192, in post
+    wallet = DollarWallet.objects.select_for_update().get(user=request.user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 642, in get
+    raise self.model.MultipleObjectsReturned(
+wallet.models.DollarWallet.MultipleObjectsReturned: get() returned more than one DollarWallet -- it returned 4!
+INFO 2026-07-01 15:08:04,295 views User 17 requested a trade.
+INFO 2026-07-01 15:08:04,299 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1819059.817076s | Cycle Elapsed: 19.817075999919325s
+            Current Calculated Cycle: 22738
+            Allowed: True
+            
+INFO 2026-07-01 15:09:08,930 views User 17 requested a trade.
+INFO 2026-07-01 15:09:08,935 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1818084.45218s | Cycle Elapsed: 4.452180000022054s
+            Current Calculated Cycle: 22726
+            Allowed: True
+            
+ERROR 2026-07-01 15:09:08,951 views CRITICAL: Trade execution failed for User 17. Error: get() returned more than one DollarWallet -- it returned 4!
+Traceback (most recent call last):
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/Prediction/views.py", line 192, in post
+    wallet = DollarWallet.objects.select_for_update().get(user=request.user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 642, in get
+    raise self.model.MultipleObjectsReturned(
+wallet.models.DollarWallet.MultipleObjectsReturned: get() returned more than one DollarWallet -- it returned 4!
+INFO 2026-07-01 15:10:29,072 views User 17 requested a trade.
+INFO 2026-07-01 15:10:29,075 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1816884.592235s | Cycle Elapsed: 4.592235000105575s
+            Current Calculated Cycle: 22711
+            Allowed: True
+            
+ERROR 2026-07-01 15:10:29,081 views CRITICAL: Trade execution failed for User 17. Error: get() returned more than one DollarWallet -- it returned 4!
+Traceback (most recent call last):
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/Prediction/views.py", line 192, in post
+    wallet = DollarWallet.objects.select_for_update().get(user=request.user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nobody2005/Pictures/CryptoTradeProject__/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 642, in get
+    raise self.model.MultipleObjectsReturned(
+wallet.models.DollarWallet.MultipleObjectsReturned: get() returned more than one DollarWallet -- it returned 4!
+INFO 2026-07-01 15:11:28,976 views User 17 requested a trade.
+INFO 2026-07-01 15:11:28,980 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1815984.498125s | Cycle Elapsed: 44.498124999925494s
+            Current Calculated Cycle: 12971
+            Allowed: False
+            
+INFO 2026-07-01 15:11:32,478 views User 17 requested a trade.
+INFO 2026-07-01 15:11:32,485 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1815908.00257s | Cycle Elapsed: 108.00257000001147s
+            Current Calculated Cycle: 12970
+            Allowed: False
+            
+INFO 2026-07-01 15:26:29,259 views User 17 requested a trade.
+INFO 2026-07-01 15:26:29,264 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1813364.781671s | Cycle Elapsed: 4.781670999946073s
+            Current Calculated Cycle: 22667
+            Allowed: True
+            
+WARNING 2026-07-01 15:26:29,307 views User 17 failed trade: Insufficient balance. Balance: 0.030000, Requested: 10.00
+INFO 2026-07-01 15:26:34,612 views User 17 requested a trade.
+INFO 2026-07-01 15:26:34,614 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1813290.132107s | Cycle Elapsed: 10.132107000099495s
+            Current Calculated Cycle: 22666
+            Allowed: True
+            
+WARNING 2026-07-01 15:26:34,621 views User 17 failed trade: Insufficient balance. Balance: 0.030000, Requested: 10.00
+INFO 2026-07-01 15:30:37,474 views User 17 requested a trade.
+INFO 2026-07-01 15:30:37,479 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1809692.996182s | Cycle Elapsed: 12.996182000031695s
+            Current Calculated Cycle: 22621
+            Allowed: True
+            
+INFO 2026-07-01 15:30:37,537 views User 17 trade success. Amount: 10.00. New Balance: 90.000000
+INFO 2026-07-01 15:33:07,937 views User 17 requested a trade.
+INFO 2026-07-01 15:33:07,945 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1807443.463008s | Cycle Elapsed: 3.46300800004974s
+            Current Calculated Cycle: 22593
+            Allowed: True
+            
+INFO 2026-07-01 15:33:07,977 views User 17 trade success. Amount: 20.00. New Balance: 70.000000
+INFO 2026-07-01 15:38:27,505 views User 17 requested a trade.
+INFO 2026-07-01 15:38:27,508 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1805203.025802s | Cycle Elapsed: 3.0258019999600947s
+            Current Calculated Cycle: 22565
+            Allowed: True
+            
+INFO 2026-07-01 15:38:27,538 views User 17 trade success. Amount: 20.00. New Balance: 50.000000
+INFO 2026-07-01 15:40:02,034 views User 17 requested a trade.
+INFO 2026-07-01 15:40:02,041 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1803777.558575s | Cycle Elapsed: 17.558574999915436s
+            Current Calculated Cycle: 22547
+            Allowed: True
+            
+INFO 2026-07-01 15:41:08,239 views User 17 requested a trade.
+INFO 2026-07-01 15:41:08,242 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1802803.759813s | Cycle Elapsed: 3.759812999982387s
+            Current Calculated Cycle: 22535
+            Allowed: True
+            
+INFO 2026-07-01 15:41:08,261 views User 17 trade success. Amount: 10.00. New Balance: 1990.000000
+INFO 2026-07-01 15:42:30,940 views User 17 requested a trade.
+INFO 2026-07-01 15:42:30,946 views 
+            [ENTRY CHECK DEBUG] User: 17
+            Elapsed Total: 1801606.463482s | Cycle Elapsed: 6.46348199993372s
+            Current Calculated Cycle: 22520
+            Allowed: True
+            
+INFO 2026-07-01 15:42:30,974 views User 17 trade success. Amount: 20.00. New Balance: 1970.000000

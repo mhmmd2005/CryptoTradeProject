@@ -1,0 +1,260 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+{% block title %}
+    Ticket Detail
+{% endblock %}
+{% block css %}
+    <style>
+        /* کالیبراسیون برای خوانایی بهتر در هر دو تم */
+        .border-soft {
+            border-color: rgba(var(--vz-primary-rgb), 0.1) !important;
+        }
+
+        .reply-body {
+            color: var(--vz-body-color);
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0 text-uppercase fw-bold">Support Center</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">Support</a></li>
+                                    <li class="breadcrumb-item active">Ticket Detail</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xxl-10 col-lg-10 mx-auto">
+                        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                            <div class="card-header bg-primary-subtle border-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <iconify-icon icon="ri:ticket-2-line" class="text-primary fs-22"></iconify-icon>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h4 class="card-title mb-0">Ticket Information</h4>
+                                        <p class="text-muted mb-0 small">Please provide the details of your request.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-4">
+                                {% with is_locked=ticket.replies.exists %}
+                                    <form method="post" enctype="multipart/form-data"
+                                          action="{% url 'ticket_detail' ticket.id %}">
+                                        {% csrf_token %}
+
+                                        <div class="row g-4">
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">Ticket Subject</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0"><i
+                                                            class="ri-edit-2-line"></i></span>
+                                                    <input type="text" name="title" class="form-control border-start-0"
+                                                           placeholder="Enter subject..." value="{{ ticket.title }}"
+                                                           {% if is_locked %}readonly{% endif %}>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Priority Level *</label>
+                                                <select name="priority" class="form-select bg-light-subtle" required
+                                                        {% if is_locked %}disabled{% endif %}>
+                                                    <option value="">-- Select Priority --</option>
+                                                    <option value="low"
+                                                            {% if ticket.priority == "low" %}selected{% endif %}>Low
+                                                    </option>
+                                                    <option value="medium"
+                                                            {% if ticket.priority == "medium" %}selected{% endif %}>
+                                                        Medium
+                                                    </option>
+                                                    <option value="important"
+                                                            {% if ticket.priority == "important" %}selected{% endif %}>
+                                                        Important
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Department *</label>
+                                                <select name="department" class="form-select bg-light-subtle" required
+                                                        {% if is_locked %}disabled{% endif %}>
+                                                    <option value="">-- Select Department --</option>
+                                                    <option value="General"
+                                                            {% if ticket.department == "General" %}selected{% endif %}>
+                                                        General Support
+                                                    </option>
+                                                    <option value="Security"
+                                                            {% if ticket.department == "Security" %}selected{% endif %}>
+                                                        Security Dept.
+                                                    </option>
+                                                    <option value="Payment"
+                                                            {% if ticket.department == "Payment" %}selected{% endif %}>
+                                                        Billing & Payment
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-semibold text-muted small text-uppercase">Submitted
+                                                            On</label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-light border-0"><i
+                                                                    class="ri-calendar-line"></i></span>
+                                                            <input type="text" class="form-control bg-light border-0"
+                                                                   value="{{ ticket.created_at|date:'Y-m-d | H:i' }}"
+                                                                   readonly>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-semibold text-muted small text-uppercase"
+                                                               style="letter-spacing: 0.5px;">
+                                                            Admin Response Date
+                                                        </label>
+                                                        <div class="d-flex align-items-center shadow-sm"
+                                                             style="height: 42px; border-radius: 8px; overflow: hidden; background-color: {% if is_locked %}var(--vz-success-bg-subtle){% else %}var(--vz-light){% endif %};">
+
+                                                            <div class="d-flex align-items-center justify-content-center px-3 h-100 {% if is_locked %}bg-success text-white{% else %}bg-light text-muted{% endif %}">
+                                                                <i class="ri-time-line"></i>
+                                                            </div>
+
+                                                            <div class="px-3 fw-medium {% if is_locked %}text-success{% else %}text-muted{% endif %}"
+                                                                 style="font-size: 13px; white-space: nowrap;">
+                                                                {% if is_locked %}
+                                                                    {{ ticket.replies.last.created_at|date:'Y-m-d H:i' }}
+                                                                {% else %}
+                                                                    Awaiting Reply...
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">Detailed Message *</label>
+                                                <textarea class="form-control bg-light-subtle" name="message" rows="5"
+                                                          placeholder="Describe your issue in detail..." required
+                                                          {% if is_locked %}readonly{% endif %}>{{ ticket.message }}</textarea>
+                                            </div>
+
+                                            {% for message in messages %}
+                                                {% if "success-ticket" in message.tags %}
+                                                    <div class="col-12">
+                                                        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm"
+                                                             role="alert">
+                                                            <strong>Success!</strong> {{ message }}
+                                                            <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="alert" aria-label="Close"></button>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            <div class="col-12 border-top pt-4">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <a href="{% url 'my-ticket' %}"
+                                                       class="btn btn-light px-4">Cancel</a>
+                                                    {% if not is_locked %}
+                                                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                                            <i class="ri-save-line align-bottom me-1"></i> Update Ticket
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                {% endwith %}
+
+                                {% if ticket.replies.exists %}
+                                    <div class="mt-5 pt-4 border-top">
+                                        <label class="form-label fw-bold text-primary mb-4 d-flex align-items-center">
+                                            <i class="ri-customer-service-2-fill me-2 fs-20"></i> Official Support
+                                            History
+                                        </label>
+
+                                        <div class="reply-container">
+                                            {% for reply in ticket.replies.all %}
+                                                <div class="mb-3 p-3 rounded-3 shadow-sm border-start border-primary border-4"
+                                                     style="background-color: var(--vz-light); transition: all 0.3s ease;">
+
+                                                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-soft">
+                        <span class="fw-bold text-primary small">
+                             Official Response
+                        </span>
+                                                        <small class="text-muted italic">
+                                                            <i class="ri-time-line me-1"></i> {{ reply.created_at|date:"Y-m-d H:i" }}
+                                                        </small>
+                                                    </div>
+
+                                                    <div class="reply-body text-content fs-14"
+                                                         style="white-space: pre-wrap; line-height: 1.6;">{{ reply.message }}</div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="footer" style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 text-center text-sm-start">
+                    <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                         style="gap: 6px; line-height: 1;">
+                        <span>&copy;</span>
+                        <span id="footer-year" class="fw-medium"></span>
+                        <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                        <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                        <span>All rights reserved.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        // resize خودکار برای تمام textareaها با کلاس auto-resize
+        const textareas = document.querySelectorAll('.auto-resize');
+        textareas.forEach(function (textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            textarea.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+{% endblock %}

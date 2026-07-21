@@ -1,0 +1,478 @@
+{% extends 'shared/layout.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+    Admin | Secure Portal
+{% endblock %}
+
+{% block css %}
+    <style>
+        /* ==========================================================================
+           Enterprise Edition: Sophisticated Dark & Minimalist Soft UI Gateway
+           ========================================================================== */
+
+        :root {
+            --radius-perfect: 8px; /* کالیبراسیون دقیق لبه‌ها بر اساس هویت طراحی شما */
+            --bg-base: #060709;
+            --card-glass: rgba(13, 15, 20, 0.9);
+            --border-micro: rgba(255, 255, 255, 0.05);
+            --accent-primary: #4f46e5;
+            --accent-primary-hover: #4338ca;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body, .auth-page-wrapper {
+            background-color: var(--bg-base) !important;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+            color: var(--text-main);
+        }
+
+        /* پس‌زمینه ایستا، تاریک و فوق‌العاده عمیق و باوقار */
+        .auth-one-bg {
+            background-image: linear-gradient(180deg, #0b0c10 0%, var(--bg-base) 100%) !important;
+            background-position: center;
+            background-size: cover;
+        }
+
+        /* انحلال مهندسی‌شده انحنای پایینی ولزون در پس‌زمینه */
+        .auth-one-bg .shape > svg {
+            fill: var(--bg-base) !important;
+        }
+
+        /* هاله نوری بسیار ملایم و کنترل‌شده در پشت کارت برای ایجاد عمق بصری */
+        .ambient-glow-core {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, rgba(59, 130, 246, 0.02) 50%, transparent 70%);
+            filter: blur(60px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* بدنه اصلی کارت ورود با استایل Soft UI صنعتی و رسمی */
+        .custom-premium-card {
+            border-radius: var(--radius-perfect) !important;
+            background: var(--card-glass) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-micro) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5),
+            0 24px 64px rgba(0, 0, 0, 0.8),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+
+        .custom-premium-card:hover {
+            border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* خط راهنمای خاکستری-نقره‌ای بسیار مینی‌مال بالای کارت */
+        .custom-premium-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 40px;
+            right: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05), transparent);
+            z-index: 2;
+        }
+
+        /* لوگوی گیت‌وی به صورت مونوکروم با ساختار مدرن و جدی */
+        .admin-logo-node {
+            width: 60px;
+            height: 60px;
+            margin: auto;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 22px;
+            color: var(--text-secondary);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            transition: var(--transition-smooth);
+        }
+
+        .custom-premium-card:hover .admin-logo-node {
+            border-color: rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+        }
+
+        /* فیلدهای ورودی فرورفته کالیبره شده با کنتراست بالا */
+        .custom-admin-group .form-control {
+            display: block;
+            width: 100%;
+            height: 46px;
+            padding: 11px 16px;
+            font-size: 13.5px;
+            color: var(--text-main) !important;
+            background: #090a0d !important;
+            border: 1px solid rgba(255, 255, 255, 0.06) !important;
+            border-radius: var(--radius-perfect) !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+            transition: var(--transition-smooth);
+        }
+
+        .custom-admin-group .form-control:hover {
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .custom-admin-group .form-control:focus {
+            background: #090a0d !important;
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15),
+            inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .custom-admin-group label {
+            display: none !important;
+        }
+
+        /* دکمه اصلی با ساختار رنگی فلت صیقلی */
+        .admin-action-btn {
+            height: 46px;
+            background: var(--accent-primary) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            color: #ffffff !important;
+            border-radius: var(--radius-perfect) !important;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+            transition: var(--transition-smooth);
+        }
+
+        .admin-action-btn:hover {
+            background: var(--accent-primary-hover) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        .admin-action-btn:active {
+            transform: translateY(0);
+        }
+
+        /* باکس قفل ترمینال به سبک پورتال‌های رسمی امنیتی */
+        .terminal-lock-viewport {
+            border-radius: var(--radius-perfect);
+            background: rgba(239, 68, 68, 0.02);
+            border: 1px solid rgba(239, 68, 68, 0.12);
+            padding: 2.2rem 1.5rem;
+        }
+
+        .terminal-pulse-node {
+            width: 44px;
+            height: 44px;
+            background: rgba(239, 68, 68, 0.05);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        #lock-timer {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 1px; /* کالیبره کردن فاصله کاراکترها برای فرمت ساعت دیجیتال */
+            color: #f87171;
+            text-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+        }
+
+        /* استایل ملایم لودینگ خودکار و غیرفعال‌سازی فرم */
+        .form-submitting {
+            pointer-events: none;
+            opacity: 0.6;
+            transition: var(--transition-smooth);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="auth-page-wrapper pt-5">
+        <div class="auth-one-bg-position auth-one-bg">
+            <div class="bg-overlay" style="opacity: 0.15;"></div>
+
+            <div class="shape">
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+                     viewBox="0 0 1440 120">
+                    <path d="M 0,36 C 144,53.6 432,123.2 720,124 C 1008,124.8 1296,124 1440,36 L 1440,120 L 0,120 Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="auth-page-content">
+            <div class="container">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="text-center mt-sm-5 mb-4 text-white-50" style="position: relative; z-index: 2;">
+                            <div>
+                                <a href="/" class="d-inline-block auth-logo">
+                                    <div class="admin-logo-node">
+                                        <i class="ri-shield-user-line"></i>
+                                    </div>
+                                </a>
+                            </div>
+                            <p class="mt-3 fs-13 text-uppercase"
+                               style="letter-spacing: 1.5px; color: var(--text-secondary); font-family: monospace;">
+                                Authorization Node</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6 col-xl-5">
+                        <div id="auth-card-wrapper" class="card custom-premium-card border-0">
+                            <div class="card-body p-4 p-sm-5 position-relative">
+                                <div class="ambient-glow-core"></div>
+
+                                <div class="text-center mb-4" style="position: relative; z-index: 2;">
+                                    <h5 class="fw-bold fs-15 text-white mb-1" style="letter-spacing: -0.2px;">Identity
+                                        Verification</h5>
+                                    <p style="color: var(--text-secondary); font-size: 12px;" class="mb-0">Provide
+                                        authorized credentials to establish server route.</p>
+                                </div>
+
+                                <div class="p-1" style="position: relative; z-index: 2;">
+                                    {% if is_locked %}
+                                        <div class="text-center terminal-lock-viewport">
+                                            <div class="mb-3 terminal-pulse-node">
+                                                <i class="ri-error-warning-line fs-18" style="color: #ef4444;"></i>
+                                            </div>
+                                            <h6 class="fw-bold fs-11 mb-2"
+                                                style="color: #f87171; font-family: monospace; letter-spacing: 0.5px;">
+                                                ACCESS BLOCKED TEMPORARILY</h6>
+
+                                            <div id="lock-timer" class="font-monospace">--:--</div>
+
+                                            <p class="fs-10 text-uppercase mt-2 mb-0"
+                                               style="color: var(--text-muted); font-weight: 700; letter-spacing: 1px;">
+                                                cooldown active</p>
+                                        </div>
+
+                                    {% else %}
+                                        <form method="post" action="" id="secure-gate-form">
+                                            {% csrf_token %}
+
+                                            {% if form.non_field_errors %}
+                                                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center justify-content-between border-0 mb-3"
+                                                     role="alert"
+                                                     style="padding: 0.75rem 1rem; border-radius: var(--radius-perfect); background-color: rgba(239, 68, 68, 0.08); color: #f87171;">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="ri-error-warning-line me-2 fs-13"></i>
+                                                        <span class="small fw-semibold">{{ form.non_field_errors.0 }}</span>
+                                                    </div>
+                                                    <button type="button"
+                                                            class="btn-close custom-alert-close position-static"
+                                                            data-bs-dismiss="alert" aria-label="Close"
+                                                            style="padding: 0.5rem; filter: invert(1);"></button>
+                                                </div>
+                                            {% endif %}
+
+                                            {% if not show_otp %}
+                                                <div class="mb-3 custom-admin-group">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                                        <span style="color: var(--text-secondary); font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; font-family: monospace;">Identity Address</span>
+                                                    </div>
+                                                    {{ form.email|add_class:"form-control" }}
+                                                </div>
+
+                                                <div class="mb-4 custom-admin-group">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                                        <span style="color: var(--text-secondary); font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; font-family: monospace;">Passkey String</span>
+                                                    </div>
+                                                    <div class="position-relative">
+                                                        {{ form.password|add_class:"form-control pe-5" }}
+                                                        <button class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none d-flex align-items-center justify-content-center"
+                                                                type="button" id="password-addon"
+                                                                style="z-index: 10; height: 100%; width: 44px; border: none; color: var(--text-muted); transition: var(--transition-smooth);">
+                                                            <i class="ri-eye-fill align-middle fs-13"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <input type="hidden" name="email"
+                                                       value="{{ form.email.value|default:request.POST.email }}">
+                                                <input type="hidden" name="password"
+                                                       value="{{ form.password.value|default:request.POST.password }}">
+
+                                                <div class="mb-3 custom-admin-group">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                                        <span style="color: var(--text-secondary); font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; font-family: monospace;">Secure 2FA Token</span>
+                                                    </div>
+                                                    <div class="input-group"
+                                                         style="border-radius: var(--radius-perfect); overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);">
+                                                        <span class="input-group-text"
+                                                              style="background: rgba(255, 255, 255, 0.02) !important; color: var(--text-secondary); border: 1px solid rgba(255, 255, 255, 0.06); border-right: none; padding-left: 16px; padding-right: 12px;">
+                                                            <i class="ri-shield-keyhole-line"></i>
+                                                        </span>
+                                                        <input type="tel" name="otp_code"
+                                                               class="form-control text-center fw-bold font-monospace"
+                                                               style="background-color: #090a0d !important; border: 1px solid rgba(255, 255, 255, 0.06) !important; color: #ffffff !important; border-radius: 0 var(--radius-perfect) var(--radius-perfect) 0 !important; letter-spacing: 8px; font-size: 18px; height: 46px;"
+                                                               placeholder="000000" autofocus maxlength="6"
+                                                               pattern="\d*" required>
+                                                    </div>
+                                                    <p class="mt-2.5 small mb-0"
+                                                       style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
+                                                        Enter the synchronized 6-digit verification code from your auth
+                                                        application.
+                                                    </p>
+                                                </div>
+                                            {% endif %}
+
+                                            <div class="mt-4">
+                                                <button type="submit" class="btn w-100 admin-action-btn"
+                                                        id="submit-action-btn">
+                                                    {% if show_otp %}Verify OTP Token{% else %}Verify
+                                                        Identity{% endif %}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer position-relative"
+                style="z-index: 2; background: transparent; border: none; padding: 24px 0;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="text-center">
+                            <p class="mb-0 text-muted fs-10"
+                               style="font-family: monospace; letter-spacing: 1.5px; opacity: 0.35;">
+                                INFRASTRUCTURE NODE · SECURE PORTAL
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'assets/js/pages/password-addon.init.js' %}"></script>
+    <script>
+        // جلوگیری از ثبت مجدد فرم با رفرش
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        // هندلر کش مرورگر (حل مشکل رفتن به صفحات دیگر و برگشتن)
+        window.addEventListener('pageshow', function (event) {
+            // اگر صفحه از کش بک/فور وارد مرورگر لود شده باشد، صفحه را به سرعت رفرش کن
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // هندلر مدرن فیلد نمایش رمز عبور
+            const passwordInput = document.querySelector('#id_password');
+            const toggleButton = document.querySelector('#password-addon');
+
+            if (toggleButton && passwordInput) {
+                toggleButton.addEventListener('click', function () {
+                    const isPassword = passwordInput.type === 'password';
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    toggleButton.innerHTML = isPassword ?
+                        '<i class="ri-eye-off-fill align-middle fs-13" style="color: var(--accent-primary);"></i>' :
+                        '<i class="ri-eye-fill align-middle fs-13" style="color: var(--text-muted);"></i>';
+                });
+            }
+
+            // مدیریت وضعیت پردازش OTP
+            const otpInput = document.querySelector('input[name="otp_code"]');
+            if (otpInput) {
+                otpInput.focus();
+                otpInput.addEventListener('input', function () {
+                    this.value = this.value.replace(/\D/g, '');
+
+                    if (this.value.length === 6) {
+                        const submitBtn = document.getElementById('submit-action-btn');
+                        const cardWrapper = document.getElementById('auth-card-wrapper');
+
+                        if (cardWrapper) {
+                            cardWrapper.classList.add('form-submitting');
+                        }
+
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width: 12px; height: 12px; border-width: 2px; vertical-align: middle;"></span> Verifying node...';
+                            submitBtn.disabled = true;
+                        }
+                        this.closest('form').submit();
+                    }
+                });
+            }
+
+            // ناپدیدشدن بسیار ملایم نوتیفیکیشن خطاها
+            const errorMessage = document.querySelector('.alert-dismissible');
+            if (errorMessage) {
+                setTimeout(function () {
+                    if (document.body.contains(errorMessage)) {
+                        errorMessage.classList.remove('show');
+                        errorMessage.classList.add('fade');
+                        setTimeout(function () {
+                            if (document.body.contains(errorMessage)) errorMessage.remove();
+                        }, 200);
+                    }
+                }, 4000);
+            }
+        });
+    </script>
+
+    {% if is_locked %}
+        <script>
+            (function () {
+                let seconds = {{ lock_seconds }};
+                const timerEl = document.getElementById("lock-timer");
+
+                // فرمت‌ساز هوشمند ثانیه به ساختار دیجیتالی MM:SS
+                function formatDigitalTime(totalSeconds) {
+                    if (totalSeconds <= 0) return "00:00";
+                    const mins = Math.floor(totalSeconds / 60);
+                    const secs = totalSeconds % 60;
+                    const formattedMins = String(mins).padStart(2, '0');
+                    const formattedSecs = String(secs).padStart(2, '0');
+                    return `${formattedMins}:${formattedSecs}`;
+                }
+
+                // کالیبره کردن و مقداردهی آنی برای جلوگیری از فلش تصویر خام
+                if (timerEl) {
+                    timerEl.textContent = formatDigitalTime(seconds);
+                }
+
+                const interval = setInterval(() => {
+                    seconds--;
+                    if (timerEl) {
+                        timerEl.textContent = formatDigitalTime(seconds);
+                    }
+
+                    if (seconds <= 0) {
+                        clearInterval(interval);
+                        location.reload();
+                    }
+                }, 1000);
+            })();
+        </script>
+    {% endif %}
+{% endblock %}

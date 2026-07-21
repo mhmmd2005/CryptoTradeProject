@@ -1,0 +1,237 @@
+{% extends 'shared/layout__.html' %}
+{% load static %}
+{% block title %}
+    Admin | ticket Reply
+{% endblock %}
+
+{% block css %}
+    <style>
+        /* کالیبراسیون برای خوانایی در هر دو حالت */
+        .ticket-info-box {
+            background-color: var(--vz-light); /* متغیر سیستمی برای پس‌زمینه ملایم */
+            border: 1px solid var(--vz-border-color);
+        }
+
+        /* باکس پیام کاربر - هوشمند بر اساس تم */
+        .message-display {
+            background-color: rgba(var(--vz-primary-rgb), 0.03);
+            border: 1px solid var(--vz-border-color);
+            color: var(--vz-body-color);
+        }
+
+        /* استایل اختصاصی برای متون داخل باکس در تم لایت و دارک */
+        .text-content {
+            color: var(--vz-heading-color) !important;
+            line-height: 1.6;
+        }
+
+        .reply-card-item {
+            background-color: var(--vz-card-bg-custom);
+            border: 1px solid var(--vz-border-color) !important;
+        }
+
+        input[readonly], textarea[readonly] {
+            cursor: default !important;
+            user-select: none !important;
+            pointer-events: none !important;
+            background-color: var(--vz-light) !important;
+        }
+
+        textarea.auto-resize {
+            overflow: hidden;
+            resize: none;
+            background-color: var(--vz-input-bg);
+            color: var(--vz-body-color);
+            border: 1px solid var(--vz-input-border);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Reply to Ticket</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0 text-muted">
+                                    <li class="breadcrumb-item">Support</li>
+                                    <li class="breadcrumb-item active">Ticket #{{ ticket.id }}</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xxl-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header align-items-center d-flex border-bottom">
+                                <h4 class="card-title mb-0 flex-grow-1">Operational ID: #{{ ticket.id }}</h4>
+                                <div class="flex-shrink-0">
+                                <span class="badge {% if ticket.status == 'answered' %}bg-success{% else %}bg-warning text-dark{% endif %} px-3 py-2">
+                                    {{ ticket.status|upper }}
+                                </span>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-4">
+                                <div class="row mb-4 ticket-info-box p-3 rounded mx-0 text-start">
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label text-muted small text-uppercase fw-bold">Title</label>
+                                        <div class="fw-bold text-content">{{ ticket.title }}</div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label text-muted small text-uppercase fw-bold">Priority
+                                            Level</label>
+                                        <div>
+                                        <span class="badge {% if ticket.priority == 'important' %}bg-danger{% else %}bg-info{% endif %} shadow-none">
+                                            {{ ticket.priority|upper }}
+                                        </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label text-muted small text-uppercase fw-bold">Department</label>
+                                        <div class="fw-bold text-primary">{{ ticket.department }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-5 text-start">
+                                    <label class="form-label fw-bold text-muted mb-2">User Message</label>
+                                    <div class="p-4 rounded-3 message-display">
+                                        <div class="text-content fs-15"
+                                             style="white-space: pre-wrap;">{{ ticket.message }}</div>
+                                    </div>
+                                    <div class="mt-2 small text-muted d-flex align-items-center">
+                                        <i class="ri-user-follow-line me-1"></i>
+                                        <span>From: <strong
+                                                class="text-content">{{ ticket.user.username }}</strong></span>
+                                        <span class="mx-2">|</span>
+                                        <i class="ri-time-line me-1"></i>
+                                        <span>{{ ticket.created_at|date:"Y-m-d H:i" }}</span>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4 border-dashed">
+
+                                <h5 class="mb-4 d-flex align-items-center text-start text-content">
+                                    <i class="ri-discuss-line me-2 text-primary fs-20"></i> Conversation History
+                                </h5>
+
+                                <div class="pe-2 mb-4 text-start" style="max-height: 400px; overflow-y: auto;">
+                                    {% if replies %}
+                                        {% for reply in replies %}
+                                            <div class="card mb-3 reply-card-item shadow-none">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                                        <i class="ri-admin-line me-1"></i> Support Official
+                                                    </span>
+                                                        <small class="text-muted">{{ reply.created_at|date:"Y-m-d H:i" }}</small>
+                                                    </div>
+                                                    <p class="mb-0 text-content fs-14">{{ reply.message }}</p>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-5 rounded bg-light border border-dashed">
+                                            <i class="ri-message-2-line ri-2x text-muted"></i>
+                                            <p class="text-muted mt-2 mb-0">No official logs found for this inquiry.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if ticket.status != 'answered' %}
+                                    <div class="mt-4 pt-4 border-top">
+                                        <form method="post" action="{% url 'admin_ticket_detail' ticket.id %}"
+                                              class="text-start">
+                                            {% csrf_token %}
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold text-content">Your Response
+                                                    Terminal</label>
+                                                <textarea name="message"
+                                                          class="form-control auto-resize shadow-none p-3"
+                                                          rows="4" placeholder="Type your response to the agent..."
+                                                          required
+                                                          style="border-radius: 10px;"></textarea>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                                <a href="{% url 'user-ticket_list' %}"
+                                                   class="btn btn-link text-muted text-decoration-none">
+                                                    <i class="ri-arrow-go-back-line me-1"></i> Back to Fleet
+                                                </a>
+                                                <button type="submit"
+                                                        class="btn btn-primary px-5 py-2 shadow-sm fw-bold">
+                                                    <i class="ri-send-plane-fill me-1"></i> Send Reply
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <div class="p-4 rounded text-center"
+                                         style="background-color: rgba(10, 179, 156, 0.05); border: 1px dashed #0ab39c;">
+                                        <i class="ri-checkbox-circle-fill ri-3x text-success"></i>
+                                        <h5 class="text-success mt-3 fw-bold">Transmission Complete</h5>
+                                        <p class="text-muted mb-0">This ticket has been officially answered. Waiting for
+                                            user's acknowledgment.</p>
+                                        <a href="{% url 'user-ticket_list' %}"
+                                           class="btn btn-sm btn-outline-success mt-3 px-4">Return to List</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 text-center text-sm-start">
+                    <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                         style="gap: 6px; line-height: 1;">
+                        <span>&copy;</span>
+                        <span id="footer-year" class="fw-medium"></span>
+                        <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                        <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                        <span>All rights reserved.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+    <script>
+        // همه textareaهای با کلاس auto-resize
+        const textareas = document.querySelectorAll('.auto-resize');
+        textareas.forEach(function (textarea) {
+            // ارتفاع اولیه بر اساس متن موجود
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+
+            // resize خودکار هنگام تایپ
+            textarea.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+        });
+    </script>
+{% endblock %}

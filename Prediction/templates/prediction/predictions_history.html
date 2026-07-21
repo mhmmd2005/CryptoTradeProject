@@ -1,0 +1,279 @@
+{% extends 'shared/_layout.html' %}
+
+{% block title %}
+    Prediction History
+{% endblock %}
+{% block css %}
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        #prediction-body td {
+            padding-top: 16px !important; /* افزایش فاصله از بالا */
+            padding-bottom: 16px !important; /* افزایش فاصله از پایین */
+            vertical-align: middle;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Prediction History</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                            <div class="card-header bg-transparent border-bottom">
+                                <h4 class="card-title mb-0">My Prediction Transactions</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                                    <div class="search-box position-relative">
+                                        <input type="text" class="form-control search" id="predSearch"
+                                               placeholder="Search Symbol, Direction or Result..."
+                                               style="width: 300px; padding-left: 35px;">
+                                        <i class="ri-search-line position-absolute"
+                                           style="left: 12px; top: 49%; transform: translateY(-50%); color: #adb5bd;"></i>
+                                    </div>
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-soft-primary dropdown-toggle d-flex align-items-center gap-2"
+                                                type="button" id="filterDropdown" data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                style="border-radius: 8px;">
+                                            <i class="ri-filter-3-line"></i> <span
+                                                id="dropdownLabel">Quick Filter</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2"
+                                            style="border-radius: 12px; min-width: 200px;">
+                                            <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted">
+                                                Filter by Status</h6></li>
+                                            <li>
+                                                <button class="dropdown-item rounded-2 filter-btn active"
+                                                        data-filter="">All History
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item rounded-2 filter-btn" data-filter="win">
+                                                    Wins
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item rounded-2 filter-btn" data-filter="lose">
+                                                    Losses
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item rounded-2 filter-btn"
+                                                        data-filter="pending">Pending
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table align-middle table-nowrap mb-0" style="width: 100%;">
+                                        <thead class="text-muted text-uppercase fw-bold">
+                                        <tr>
+                                            <th class="px-3" style="width: 60px;">No.</th>
+                                            <th>Date</th>
+                                            <th>Asset</th>
+                                            <th>Direction</th>
+                                            <th>Entry Price</th>
+                                            <th>Close Price</th>
+                                            <th>Amount</th>
+                                            <th>Result</th>
+                                            <th>Settlement</th>
+                                            <th>TF</th>
+                                            <th class="text-end pe-3">Payout</th>
+                                            <th class="text-end pe-3">Net Profit</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="prediction-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-4">
+                                    <div class="text-muted small" id="table-info">Showing 0 to 0 entries</div>
+                                    <div class="pagination-wrap hstack gap-2">
+                                        <button class="btn btn-sm btn-light pagination-prev">Previous</button>
+                                        <ul class="pagination listjs-pagination mb-0 hstack gap-1"></ul>
+                                        <button class="btn btn-sm btn-light pagination-next">Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.getElementById('prediction-body');
+            const searchInput = document.getElementById('predSearch');
+            const infoText = document.getElementById('table-info');
+            const pageList = document.querySelector('.listjs-pagination');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const dropdownLabel = document.getElementById('dropdownLabel');
+
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            let searchTimer;
+
+            function fetchHistory(page = 1, query = '') {
+                tbody.style.opacity = '0.7';
+                fetch(`${window.location.pathname}?page=${page}&q=${encodeURIComponent(query)}`, {
+                    headers: {'x-requested-with': 'XMLHttpRequest'}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        tbody.style.opacity = '1';
+                        renderTable(data.predictions, query, (data.current_page - 1) * data.per_page);
+                        renderPagination(data.current_page, data.num_pages, query);
+
+                        const start = data.total_entries > 0 ? (data.current_page - 1) * data.per_page + 1 : 0;
+                        const end = Math.min(start + data.predictions.length - 1, data.total_entries);
+                        infoText.innerText = `Showing ${start} to ${end} of ${data.total_entries} entries`;
+                    });
+            }
+
+            function renderTable(predictions, query, startIndex) {
+                tbody.innerHTML = '';
+
+                if (predictions.length === 0) {
+                    // تغییر colspan به 12
+                    tbody.innerHTML = `
+        <tr>
+            <td colspan="12" class="text-center py-5">
+                <div class="noresult" style="display: block;">
+                    <div class="text-center">
+                        <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" colors="primary:#25a0e2,secondary:#00bd9d" style="width:75px;height:75px"></lord-icon>
+                        <h5 class="mt-2">No History Found</h5>
+                    </div>
+                </div>
+            </td>
+        </tr>`;
+                    return;
+                }
+
+                predictions.forEach((p, index) => {
+                    const dirClass = p.direction === 'up' ? 'text-success' : 'text-danger';
+                    const dirIcon = p.direction === 'up' ? 'ri-arrow-up-circle-fill' : 'ri-arrow-down-circle-fill';
+
+                    // منطق نمایش قیمت بسته شدن
+                    let closePriceHtml = (p.status === 'pending')
+                        ? `<div class="d-flex align-items-center"><i class="ri-loader-2-fill ri-spin me-2" style="font-size: 14px;"></i><span class="fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.9px;">Processing</span></div>`
+                        : `<span class="fw-bold text-dark font-monospace">${p.close_price}</span>`;
+
+                    // منطق نمایش نتیجه
+                    let resultBadge = (p.status === 'pending')
+                        ? '<span class="badge bg-warning-subtle text-warning px-2">PENDING</span>'
+                        : `<span class="badge bg-${p.result === 'win' ? 'success' : 'danger'}-subtle text-${p.result === 'win' ? 'success' : 'danger'} px-2">${p.result.toUpperCase()}</span>`;
+
+                    // منطق نمایش سود خالص (Net Profit)
+                    let netProfitHtml = "";
+                    if (p.status === 'pending') {
+                        netProfitHtml = `<span class="text-muted small">Pending</span>`;
+                    } else {
+                        const isProfit = p.net_profit >= 0;
+                        const sign = isProfit ? '+' : '';
+                        const colorClass = isProfit ? 'text-success' : 'text-danger';
+                        netProfitHtml = `<div class="fw-bold ${colorClass}">$${sign}${p.net_profit.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>`;
+                    }
+
+                    const row = `
+        <tr>
+            <td class="px-3 fw-medium">${startIndex + index + 1}</td>
+            <td class="text-muted small">${p.timestamp}</td>
+            <td class="fw-bold text-dark">${p.symbol}</td>
+            <td class="${dirClass} fw-bold"><i class="${dirIcon} align-middle me-1"></i>${p.direction.toUpperCase()}</td>
+            <td class="font-monospace small text-muted">${p.entry_price}</td>
+            <td class="font-monospace">${closePriceHtml}</td>
+            <td class="fw-medium">$${p.amount.toLocaleString()}</td>
+            <td>${resultBadge}</td>
+            <td class="text-muted small">${p.payout_time}</td>
+            <td><div class="text-secondary d-flex align-items-center"><i class="ri-time-line fs-14 me-1 text-muted"></i><span class="fw-medium">${p.timeframe}</span></div></td>
+            <td class="text-end pe-3"><div class="fw-bold ${p.result === 'win' ? 'text-success' : 'text-dark'}">$${p.payout.toLocaleString()}</div></td>
+            <td class="text-end pe-3">${netProfitHtml}</td>
+        </tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            }
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    filterButtons.forEach(b => b.classList.remove('active', 'bg-primary', 'text-white'));
+                    this.classList.add('active', 'bg-primary', 'text-white');
+                    const val = this.dataset.filter;
+                    searchInput.value = val;
+                    dropdownLabel.innerText = this.innerText;
+                    fetchHistory(1, val);
+                });
+            });
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    dropdownLabel.innerText = 'Quick Filter';
+                    fetchHistory(1, searchInput.value.trim());
+                }, 500);
+            });
+
+            function renderPagination(current, total, query) {
+                pageList.innerHTML = '';
+                const prevBtn = document.querySelector('.pagination-prev');
+                const nextBtn = document.querySelector('.pagination-next');
+
+                if (total <= 1) {
+                    if (prevBtn) prevBtn.classList.add('disabled');
+                    if (nextBtn) nextBtn.classList.add('disabled');
+                    if (total === 1) pageList.innerHTML = `<li class="page-item active"><a class="page-link shadow-none" href="#">1</a></li>`;
+                    return;
+                }
+
+                prevBtn.classList.toggle('disabled', current === 1);
+                nextBtn.classList.toggle('disabled', current === total);
+
+                prevBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (current > 1) fetchHistory(current - 1, query);
+                };
+                nextBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (current < total) fetchHistory(current + 1, query);
+                };
+
+                for (let i = 1; i <= total; i++) {
+                    const active = i === current ? 'active' : '';
+                    const li = `<li class="page-item ${active}"><a class="page-link shadow-none" href="#">${i}</a></li>`;
+                    const el = document.createRange().createContextualFragment(li);
+                    el.querySelector('a').onclick = (e) => {
+                        e.preventDefault();
+                        fetchHistory(i, query);
+                    };
+                    pageList.appendChild(el);
+                }
+            }
+
+            fetchHistory();
+        });
+    </script>
+{% endblock %}

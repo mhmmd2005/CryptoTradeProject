@@ -1,0 +1,468 @@
+{% load static %}
+{% load humanize %}
+
+<!-- لینک اختصاصی Remix Icon -->
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
+
+<style>
+    /* ========== استایل‌های یکپارچه سایدبار و Toast ========== */
+    .app-menu {
+        position: fixed !important;
+        height: 100vh !important;
+        z-index: 1001;
+    }
+
+    /* 🌟 کالیبره کردن لوگوی پرمیوم NexTrade در حالت سایدبار کوچک (Collapsed) */
+    html[data-sidebar-size="sm"] .premium-sidebar-logo,
+    body[data-sidebar-size="sm"] .premium-sidebar-logo {
+        justify-content: center !important;
+        padding: 0 !important;
+        gap: 0 !important;
+    }
+
+    /* پنهان کردن آنی متن نام برند با بسته شدن سایدبار */
+    html[data-sidebar-size="sm"] .premium-sidebar-logo .sidebar-brand-text,
+    body[data-sidebar-size="sm"] .premium-sidebar-logo .sidebar-brand-text {
+        display: none !important;
+    }
+
+    /* هدایت و مرکزچین کردن کامل آیکون پالس به مرکز سایدبار مینی */
+    html[data-sidebar-size="sm"] .premium-sidebar-logo .brand-icon-wrapper,
+    body[data-sidebar-size="sm"] .premium-sidebar-logo .brand-icon-wrapper {
+        margin: 0 auto !important;
+    }
+
+    /* افکت ضربان برای Badge های حیاتی */
+    @keyframes pulse-red {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(217, 83, 79, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 5px rgba(217, 83, 79, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(217, 83, 79, 0);
+        }
+    }
+
+    .pulse-badge {
+        animation: pulse-red 2s infinite;
+    }
+
+    /* بهبود ظاهر متون Title در سایدبار */
+    .menu-title span {
+        color: rgba(255, 255, 255, 0.5) !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+    }
+
+    /* افکت Hover روی آیتم‌های سایدبار */
+    .navbar-nav .nav-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    /* جابه‌جایی تمامی آیتم‌های داخل زیرمنو به سمت بالا */
+    .navbar-nav .nav-sm .nav-link {
+        padding-top: 5px !important;
+        padding-bottom: 7px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .navbar-nav .nav-sm .nav-link i,
+    .navbar-nav .nav-sm .nav-link span {
+        transform: translateY(-2px);
+    }
+
+    /* نمایش متن‌ها در حالت شناور سایدبار (Mini Mode) */
+    .navbar-menu .navbar-nav .nav-item .menu-dropdown span {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        width: auto !important;
+        height: auto !important;
+    }
+
+    /* فیکس کردن دراپ‌داون‌های شناور که در حالت مینی مخفی می‌شوند */
+    body[data-sidebar-size="sm"] .navbar-nav .nav-item:hover > .menu-dropdown {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        position: absolute !important;
+        background: #1a1d21 !important;
+        padding: 10px !important;
+        border-radius: 4px !important;
+        min-width: 180px !important;
+    }
+
+    body[data-sidebar-size="sm"] .menu-dropdown .nav-link span {
+        display: inline-block !important;
+        color: #ced4da !important;
+    }
+
+    body[data-sidebar-size="sm"] .navbar-nav .nav-link span {
+        display: none;
+    }
+
+    body[data-sidebar-size="sm"] .navbar-nav .nav-item:hover > .nav-link span {
+        display: block !important;
+        position: fixed !important;
+        left: 70px !important;
+        background: #212529 !important;
+        padding: 5px 15px !important;
+        border-radius: 4px !important;
+        z-index: 9999 !important;
+    }
+
+    /* استایل‌های Toast */
+    @keyframes matteIn {
+        0% {
+            transform: translateX(30px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes matteOut {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+    }
+
+    .matte-animate-in {
+        animation: matteIn 0.5s ease-out forwards;
+    }
+
+    .matte-animate-out {
+        animation: matteOut 0.4s ease-in forwards !important;
+    }
+
+    .custom-toast button:hover {
+        color: white !important;
+    }
+</style>
+
+<div class="app-menu navbar-menu">
+    <div class="navbar-brand-box">
+        <a class="logo logo-dark">
+            <span class="logo-sm"><img src="{% static 'assets/images/logo-sm.png' %}" alt="" height="22"></span>
+            <span class="logo-lg"><img src="{% static 'assets/images/brands/IMG_20251127_124345xxxxx.jpg' %}" alt=""
+                                       height="70"></span>
+        </a>
+
+        <a class="navbar-brand d-flex align-items-center premium-sidebar-logo"
+           style="text-decoration: none; margin-top: 20px; padding: 0 16px; gap: 14px; transition: all 0.3s ease;">
+
+            <div class="d-flex align-items-center justify-content-center brand-icon-wrapper"
+                 style="width: 36px; height: 36px; background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important; border-radius: 8px; box-shadow: 0 4px 14px rgba(13, 110, 253, 0.25) !important; flex-shrink: 0; transition: all 0.3s ease;">
+                <i class="ri-pulse-fill" style="font-size: 19px; color: #ffffff !important;"></i>
+            </div>
+
+            <div class="d-flex flex-column alignment-block sidebar-brand-text">
+                <span class="fw-bold lh-1" style="font-size: 20px; letter-spacing: -0.03em; color: #ffffff !important;">
+                    Nex<span style="color: #0d6efd !important;">Trade</span>
+                </span>
+            </div>
+        </a>
+
+        <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
+                id="vertical-hover">
+            <i class="ri-record-circle-line"></i>
+        </button>
+    </div>
+
+    <div id="scrollbar">
+        <div class="container-fluid">
+            <div id="two-column-menu"></div>
+            <ul class="navbar-nav" id="navbar-nav">
+                <li class="menu-title"><span data-key="t-menu" class="fw-bold fs-12 text-white text-uppercase"
+                                             style="letter-spacing: 1px; opacity: 1 !important;">Main Menu</span></li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                       href="{% url 'dashboard:dashboard' %}">
+                        <i data-feather="home" class="text-info"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-pages"
+                                                                          class="fw-bold fs-12 text-white text-uppercase"
+                                                                          style="letter-spacing: 1px; opacity: 1 !important;">Account & Security</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link {% if request.resolver_match.url_name == 'profile-setting' and not request.GET.tab %}active{% endif %}"
+                       href="#sidebarPages" data-bs-toggle="collapse" role="button" tabindex="0" aria-expanded="false"
+                       aria-controls="sidebarPages">
+                        <i data-feather="user" class="text-primary"></i> <span data-key="t-pages">Profile</span>
+                    </a>
+                    <div class="collapse menu-dropdown {% if request.resolver_match.url_name == 'profile-setting' and not request.GET.tab %}show{% endif %}"
+                         id="sidebarPages">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{% url 'dashboard:profile-setting' %}"
+                                   class="nav-link d-flex align-items-center {% if request.resolver_match.url_name == 'profile-setting' and not request.GET.tab %}active{% endif %}">
+                                    <i class="ri-checkbox-circle-line me-2" style="font-size: 16px;"></i>
+                                    <span style="line-height: 1;">KYC Verification</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {% if request.GET.tab == 'password' or request.GET.tab == 'twostep' %}active{% endif %}"
+                       href="#sidebarSecurity" data-bs-toggle="collapse" role="button" tabindex="0"
+                       aria-expanded="false" aria-controls="sidebarSecurity">
+                        <i data-feather="shield" class="text-warning"></i>
+                        <span data-key="t-authentication">Security</span>
+                    </a>
+                    <div class="collapse menu-dropdown {% if request.GET.tab == 'password' or request.GET.tab == 'twostep' %}show{% endif %}"
+                         id="sidebarSecurity">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{% url 'dashboard:profile-setting' %}?tab=password" class="nav-link">
+                                    <i class="ri-key-2-line me-2"></i> <span>Change Password</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'dashboard:profile-setting' %}?tab=twostep"
+                                   class="nav-link d-flex align-items-center">
+                                    <i class="ri-shield-keyhole-line me-2" style="font-size: 16px;"></i>
+                                    <span class="flex-grow-1">Two-Step</span>
+                                    {% if is_2fa_enabled %}
+                                        <span class="badge badge-soft-success">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-soft-danger">Disabled</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-pages"
+                                                                          class="fw-bold fs-12 text-white text-uppercase"
+                                                                          style="letter-spacing: 1px; opacity: 1 !important;">Finance & Trading</span>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'buy-and-sell' %}"
+                       class="nav-link menu-link d-flex align-items-center {% if request.resolver_match.url_name == 'buy-and-sell' %}active{% endif %}">
+                        <i class="ri-wallet-3-line text-success me-2" style="font-size: 18px;"></i>
+                        <span data-key="t-pages" class="flex-grow-1">My Wallet</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'prediction-default' %}"
+                       class="nav-link menu-link d-flex align-items-center {% if request.resolver_match.url_name == 'prediction-default' %}active{% endif %}">
+                        <i data-feather="trending-up" class="text-danger me-2"></i>
+                        <span data-key="t-pages" class="flex-grow-1 ms-1"
+                              style="margin-left: 3px;">Trade Terminal</span>
+                        <span class="badge badge-soft-danger pulse-badge" style="font-size: 9px;">LIVE</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#sidebarWalletTransactions"
+                       class="nav-link menu-link d-flex align-items-center {% if request.resolver_match.url_name == 'deposit-transaction-list' or request.resolver_match.url_name == 'withdraw-transaction-list' or request.resolver_match.url_name == 'prediction-history' or request.resolver_match.url_name == 'internal-trade-history' %}active{% endif %}"
+                       data-bs-toggle="collapse" role="button" tabindex="0" aria-expanded="false"
+                       aria-controls="sidebarWalletTransactions">
+                        <i data-feather="list" class="text-secondary"></i>
+                        <span data-key="t-transactions">History & Logs</span>
+                    </a>
+                    <div class="collapse menu-dropdown {% if request.resolver_match.url_name == 'deposit-transaction-list' or request.resolver_match.url_name == 'withdraw-transaction-list' or request.resolver_match.url_name == 'prediction-history' or request.resolver_match.url_name == 'internal-trade-history' %}show{% endif %}"
+                         id="sidebarWalletTransactions">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{% url 'dashboard:internal-trade-history' %}"
+                                   class="nav-link d-flex align-items-center {% if request.resolver_match.url_name == 'internal-trade-history' %}active{% endif %}">
+                                    <i class="ri-arrow-left-right-line me-2" style="font-size: 16px;"></i>
+                                    <span style="line-height: 1;">Trades History</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'prediction-history' %}"
+                                   class="nav-link d-flex align-items-center {% if request.resolver_match.url_name == 'prediction-history' %}active{% endif %}">
+                                    <i class="ri-radar-line me-2" style="font-size: 16px;"></i>
+                                    <span style="line-height: 1;">Predictions</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'deposit-transaction-list' %}"
+                                   class="nav-link d-flex align-items-center {% if request.resolver_match.url_name == 'deposit-transaction-list' %}active{% endif %}">
+                                    <i class="ri-arrow-right-down-line me-2" style="font-size: 16px;"></i>
+                                    <span style="line-height: 1;">Deposits</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'withdraw-transaction-list' %}"
+                                   class="nav-link d-flex align-items-center {% if request.resolver_match.url_name == 'withdraw-transaction-list' %}active{% endif %}">
+                                    <i class="ri-arrow-left-up-line me-2" style="font-size: 16px;"></i>
+                                    <span style="line-height: 1;">Withdrawals</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-support"
+                                                                          class="fw-bold fs-12 text-white text-uppercase"
+                                                                          style="letter-spacing: 1px; opacity: 1 !important;">Help Center</span>
+                </li>
+                <li class="nav-item">
+                    <a href="#sidebarSupport" class="nav-link menu-link d-flex align-items-center"
+                       data-bs-toggle="collapse" role="button" tabindex="0" aria-expanded="false"
+                       aria-controls="sidebarSupport">
+                        <i data-feather="help-circle" class="text-info"></i>
+                        <span data-key="t-support" class="flex-grow-1">Support Tickets</span>
+                        {% if unread_tickets_count > 0 %}
+                            <span class="fw-bold sidebar-notif-indicator animate-pulse"
+                                  style="color: #d9534f; font-size: 16px;">!</span>
+                        {% endif %}
+                    </a>
+                    <div class="collapse menu-dropdown {% if request.resolver_match.url_name == 'add-ticket' or request.resolver_match.url_name == 'my-ticket' %}show{% endif %}"
+                         id="sidebarSupport">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{% url 'add-ticket' %}" class="nav-link">
+                                    <i class="ri-add-circle-line me-2"></i> <span>Submit New Ticket</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'my-ticket' %}" class="nav-link d-flex align-items-center">
+                                    <i class="ri-question-answer-line me-2"></i>
+                                    <span class="flex-grow-1">Ticket History</span>
+                                    {% if unread_tickets_count > 0 %}
+                                        <span class="fw-bold sidebar-notif-indicator"
+                                              style="color: #d9534f; font-size: 14px;">!</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'all_notifications' %}"
+                       class="nav-link menu-link d-flex align-items-center {% if request.resolver_match.url_name == 'all_notifications' %}active{% endif %}">
+                        <i data-feather="bell" class="text-info"></i>
+                        <span data-key="t-notifications" class="flex-grow-1">Notifications</span>
+                        {% if unread_notifications_count > 0 %}
+                            <span class="badge badge-pill bg-danger"
+                                  style="font-size: 10px;">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {% if request.resolver_match.url_name == 'faq' %}active{% endif %}"
+                       href="{% url 'faq' %}">
+                        <i class="ri-question-line me-2" style="font-size: 18px;"></i> <span>FAQ</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="sidebar-background"></div>
+</div>
+
+{% if messages %}
+    <div id="toast-container"
+         style="position: fixed; top: 30px; right: 25px; z-index: 999999 !important; direction: ltr;">
+        {% for message in messages %}
+            <div class="custom-toast matte-animate-in" id="msg-{{ forloop.counter }}"
+                 style="display: none; background: #2c3e50 !important; color: white !important; padding: 16px 20px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); width: 300px; min-height: 80px; flex-direction: row; align-items: center; justify-content: flex-start; font-family: 'Poppins', sans-serif; position: relative; border-left: 4px solid #e74c3c; overflow: hidden;">
+                <div style="margin-right: 15px; font-size: 22px; color: #e74c3c; display: flex; align-items: center;">
+                    <i class="ri-notification-3-fill"></i>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 10px; text-transform: uppercase; color: #bdc3c7; letter-spacing: 0.5px; margin-bottom: 2px;">System Notification</span>
+                    <span style="font-size: 13px; font-weight: 500; line-height: 1.4; color: #ecf0f1;">{{ message }}</span>
+                </div>
+                <button onclick="closeToast(this)"
+                        style="background: none; border: none; color: #bdc3c7; cursor: pointer; font-size: 18px; position: absolute; top: 8px; right: 10px; line-height: 1; transition: 0.2s;">
+                    &times;
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<script>
+    function closeToast(btn) {
+        const toast = btn.closest('.custom-toast');
+        if (toast) {
+            toast.classList.remove('matte-animate-in');
+            toast.classList.add('matte-animate-out');
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 400);
+        }
+    }
+
+    function updateAriaExpanded() {
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(trigger => {
+            const targetId = trigger.getAttribute('aria-controls');
+            if (targetId) {
+                const target = document.getElementById(targetId);
+                if (target) {
+                    const isExpanded = target.classList.contains('show');
+                    trigger.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+                }
+            }
+        });
+    }
+
+    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(trigger => {
+        trigger.addEventListener('click', function () {
+            setTimeout(updateAriaExpanded, 100);
+        });
+    });
+
+    window.addEventListener('load', function () {
+        updateAriaExpanded();
+
+        const toasts = document.querySelectorAll('.custom-toast');
+        if (toasts.length) {
+            setTimeout(() => {
+                toasts.forEach((toast, index) => {
+                    setTimeout(() => {
+                        toast.style.setProperty('display', 'flex', 'important');
+                    }, index * 200);
+                });
+                setTimeout(() => {
+                    document.querySelectorAll('.custom-toast').forEach(t => closeToast(t.querySelector('button')));
+                }, 6000);
+            }, 600);
+        }
+
+        const urlName = '{{ request.resolver_match.url_name|default:"" }}';
+        if (urlName === 'profile-setting') {
+            const activeTab = document.querySelector('.tab-pane.active');
+            if (!activeTab) {
+                const firstTabBtn = document.querySelector('[data-bs-toggle="tab"]');
+                if (firstTabBtn && !firstTabBtn.closest('li')?.classList.contains('active')) {
+                    firstTabBtn.click();
+                    setTimeout(() => firstTabBtn.scrollIntoView({behavior: 'smooth', block: 'center'}), 200);
+                }
+            }
+        }
+
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+</script>

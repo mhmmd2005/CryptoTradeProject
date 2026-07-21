@@ -1,0 +1,399 @@
+{% extends 'shared/layout__.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+    Admin | User Management
+{% endblock %}
+
+{% block content %}
+    <style>
+        .table-responsive {
+            overflow: visible !important;
+        }
+
+        .dropdown-menu {
+            min-width: 150px;
+            white-space: nowrap;
+        }
+
+        .dropdown-item {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+        }
+    </style>
+
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">User Management</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">User service</a></li>
+                                    <li class="breadcrumb-item active">User Management</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">Manage Users</h4>
+                            </div>
+                            <div class="card-body">
+                                <!-- Filters -->
+                                <form method="get" class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <div class="search-box">
+                                            <input type="text" name="search" class="form-control"
+                                                   placeholder="Search by username, email, full name..."
+                                                   value="{{ search }}">
+                                            <i class="ri-search-line search-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="kyc_status" class="form-select">
+                                            <option value="">All KYC Status</option>
+                                            <option value="pending" {% if kyc_status == 'pending' %}selected{% endif %}>
+                                                Pending
+                                            </option>
+                                            <option value="approved"
+                                                    {% if kyc_status == 'approved' %}selected{% endif %}>Approved
+                                            </option>
+                                            <option value="rejected"
+                                                    {% if kyc_status == 'rejected' %}selected{% endif %}>Rejected
+                                            </option>
+                                            <option value="not_submitted"
+                                                    {% if kyc_status == 'not_submitted' %}selected{% endif %}>Not
+                                                Submitted
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="is_active" class="form-select">
+                                            <option value="">Account Status</option>
+                                            <option value="true" {% if is_active == 'true' %}selected{% endif %}>
+                                                Active
+                                            </option>
+                                            <option value="false" {% if is_active == 'false' %}selected{% endif %}>
+                                                Inactive
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary w-100"><i
+                                                class="ri-filter-3-line me-1"></i> Filter
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <!-- Users Table -->
+                                <div class="table-responsive table-card mt-3 mb-1">
+                                    <table class="table align-middle table-nowrap" id="userTable">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" style="width: 50px;">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="checkAll"
+                                                           value="option">
+                                                </div>
+                                            </th>
+                                            <th class="sort">Username</th>
+                                            <th class="sort">Full Name</th>
+                                            <th class="sort">Email</th>
+                                            <th class="sort">Joined Date</th>
+                                            <th class="sort">Ban Status</th>          <!-- جایگزین KYC Status -->
+                                            <th class="sort">Account Status</th>
+                                            <th class="sort">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="list form-check-all">
+                                        {% for user in users %}
+                                            <tr>
+                                                <th scope="row">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="chk_child"
+                                                               value="{{ user.id }}">
+                                                    </div>
+                                                </th>
+                                                <td class="username">{{ user.username }}</td>
+                                                <td class="full_name">{{ user.profile.first_name|default:"" }} {{ user.profile.last_name|default:"" }}</td>
+                                                <td class="email">{{ user.email|default:"-" }}</td>
+                                                <td class="joined">{{ user.date_joined|date:"Y-m-d" }}</td>
+                                                <td class="ban_status">
+                                                    {% if user.profile.is_banned %}
+                                                        <span class="badge bg-danger">Banned</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">not banned</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="account_status">
+                                                    {% if user.is_active %}
+                                                        <span class="badge badge-soft-success">Active</span>
+                                                    {% else %}
+                                                        <span class="badge badge-soft-danger">Inactive</span>
+                                                    {% endif %}
+                                                    <!-- حذف بن از اینجا چون در ستون جدا نمایش داده می‌شود -->
+                                                </td>
+                                                <td class="text-start">
+                                                    <div class="dropdown d-inline-block">
+                                                        <button class="btn btn-soft-secondary btn-sm dropdown-toggle"
+                                                                type="button" data-bs-toggle="dropdown"
+                                                                data-bs-boundary="viewport">
+                                                            <i class="ri-more-fill align-middle"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end">
+                                                            <li><a class="dropdown-item"
+                                                                   href="{% url 'user_detail' user.id %}"><i
+                                                                    class="ri-eye-fill align-bottom me-2 text-muted"></i>
+                                                                Details</a></li>
+                                                            <li>
+                                                                <button class="dropdown-item ban-user-btn"
+                                                                        data-user-id="{{ user.id }}"
+                                                                        data-username="{{ user.username }}"
+                                                                        data-is-banned="{{ user.profile.is_banned|lower }}"
+                                                                        type="button"><i
+                                                                        class="ri-shield-cross-line align-bottom me-2 text-muted"></i>
+                                                                    {% if user.profile.is_banned %}Unban User{% else %}
+                                                                        Ban User{% endif %}</button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="8" class="text-center text-muted py-4">
+                                                    <i class="ri-user-settings-line fs-1"></i>
+                                                    <p class="mt-2">No users found</p>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Pagination -->
+                                <div class="d-flex justify-content-end mt-3">
+                                    <div class="pagination-wrap hstack gap-2">
+                                        {% if page_obj.has_previous %}
+                                            <a class="page-item pagination-prev" href="?page=
+
+
+
+
+
+
+
+                                                    {{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Previous</a>
+                                        {% else %}
+                                            <a class="page-item pagination-prev disabled" href="#">Previous</a>
+                                        {% endif %}
+                                        <ul class="pagination listjs-pagination mb-0">
+                                            {% for num in page_obj.paginator.page_range %}
+                                                {% if num == page_obj.number %}
+                                                    <li class="page-item active"><span
+                                                            class="page-link">{{ num }}</span></li>
+                                                {% else %}
+                                                    <li class="page-item"><a class="page-link" href="?page=
+
+
+
+
+
+
+
+                                                            {{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                        {% if page_obj.has_next %}
+                                            <a class="page-item pagination-next" href="?page=
+
+
+
+
+
+
+
+                                                    {{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Next</a>
+                                        {% else %}
+                                            <a class="page-item pagination-next disabled" href="#">Next</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="footer"
+                style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-12 text-center text-sm-start">
+                        <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                             style="gap: 6px; line-height: 1;">
+                            <span>&copy;</span>
+                            <span id="footer-year" class="fw-medium"></span>
+                            <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                            <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                            <span>All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Ban User Modal -->
+    <div class="modal fade" id="banUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ban User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="banUserForm">
+                        <input type="hidden" id="banUserId">
+                        <div class="mb-3">
+                            <label class="form-label">Ban Start Date</label>
+                            <input type="text" class="form-control" id="banStartDate" readonly>
+                            <small class="text-muted">Current time (auto-filled)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reason for ban</label>
+                            <textarea class="form-control" id="banReason" rows="3"
+                                      placeholder="Enter reason..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmBanBtn">Confirm Ban</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+    <script>
+        // ---------- Toggle Active Status (Activate/Deactivate Account) ----------
+        document.querySelectorAll('.toggle-active-status').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const userId = this.dataset.userId;
+                fetch(`/admin/toggle-user-status/${userId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else alert('Error toggling account status');
+                    })
+                    .catch(() => alert('Connection error'));
+            });
+        });
+
+        // ---------- Ban / Unban Logic (بدون فیلد پایان) ----------
+        const banModal = new bootstrap.Modal(document.getElementById('banUserModal'));
+        let currentUserId = null;
+
+        document.querySelectorAll('.ban-user-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const userId = this.dataset.userId;
+                const username = this.dataset.username;
+                const isBanned = this.dataset.isBanned === 'true';
+
+                if (isBanned) {
+                    // Unban user (simple confirmation)
+                    if (confirm(`Are you sure you want to unban user "${username}"?`)) {
+                        sendBanRequest(userId, false, '');
+                    }
+                } else {
+                    // Ban user: show modal
+                    currentUserId = userId;
+                    document.getElementById('banUserId').value = userId;
+
+                    // پر کردن تاریخ شروع با زمان جاری (فرمت خوانا)
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}`;
+                    document.getElementById('banStartDate').value = formattedDateTime;
+                    document.getElementById('banReason').value = '';
+                    banModal.show();
+                }
+            });
+        });
+
+        document.getElementById('confirmBanBtn').addEventListener('click', function () {
+            const userId = document.getElementById('banUserId').value;
+            const banReason = document.getElementById('banReason').value.trim();
+            if (!banReason) {
+                alert('Please provide a reason for ban.');
+                return;
+            }
+            sendBanRequest(userId, true, banReason);
+            banModal.hide();
+        });
+
+        function sendBanRequest(userId, isBan, reason) {
+            fetch("{% url 'ban_user' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    is_banned: isBan,
+                    ban_reason: reason
+                    // دیگر فیلد ban_end ارسال نمی‌شود
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) location.reload();
+                    else alert('Error: ' + data.message);
+                })
+                .catch(() => alert('Connection error'));
+        }
+
+        // ---------- Check All functionality ----------
+        const checkAll = document.getElementById('checkAll');
+        if (checkAll) {
+            checkAll.addEventListener('click', function (e) {
+                const checkboxes = document.querySelectorAll('input[name="chk_child"]');
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+            });
+        }
+    </script>
+{% endblock %}

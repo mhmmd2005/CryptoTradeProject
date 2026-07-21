@@ -1,0 +1,1664 @@
+{% extends 'shared/layout__.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}
+    Admin | dashboard
+{% endblock %}
+{% block css %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <link href="{% static 'assets/libs/swiper/swiper-bundle.min.css' %}" rel="stylesheet"/>
+
+    <style>
+        .uppercase-text {
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .shadow-inner {
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-link-custom {
+            transition: all 0.2s ease-in-out;
+            background: transparent;
+            color: #6c757d;
+            border-radius: 5px;
+        }
+
+        .nav-link-custom.active-pill {
+            {#background-color: #fff !important;#}
+            color: #405189 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+    <style>
+        /* ۱. مهندسی مجدد گرید جدول به سبک فین‌تک هوشمند */
+        .table {
+            border-collapse: separate !important;
+            border-spacing: 0 12px !important;
+            width: 100% !important;
+            background: transparent !important;
+        }
+
+        /* ۲. شبیه‌سازی ردیف‌ها به شکل کارت‌های تفکیک‌شده سفید (Soft UI) */
+        #platform-liquidity-tbody tr {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        }
+
+        #platform-liquidity-tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        /* ۳. کالیبراسیون انحنای لبه‌های ۸ پیکسلی */
+        #platform-liquidity-tbody tr td:first-child {
+            border-top-left-radius: 8px !important;
+            border-bottom-left-radius: 8px !important;
+            border-left: 1px solid rgba(0, 0, 0, 0.02) !important;
+        }
+
+        #platform-liquidity-tbody tr td:last-child {
+            border-top-right-radius: 8px !important;
+            border-bottom-right-radius: 8px !important;
+            border-right: 1px solid rgba(0, 0, 0, 0.02) !important;
+        }
+
+        #platform-liquidity-tbody tr td {
+            padding: 16px 20px !important;
+            vertical-align: middle;
+            border-top: 1px solid rgba(0, 0, 0, 0.02) !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.02) !important;
+        }
+
+        /* سیستم توست لایه پیشرفته */
+        .toast {
+            display: block !important;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease !important;
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast:not(.show) {
+            transform: translateX(110%);
+            opacity: 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+        }
+
+        .live-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #0ab39c;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(10, 179, 156, 0.7);
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(10, 179, 156, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(10, 179, 156, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(10, 179, 156, 0);
+            }
+        }
+
+        /* 📱 استایل کنترل پویای ارتفاع چارت مانیتور نقدینگی در موبایل و دسکتاپ */
+        .liquidity-chart-container {
+            width: 100%;
+            height: 340px;
+        }
+
+        @media (max-width: 767.98px) {
+            .liquidity-chart-container {
+                height: 260px; /* تنظیم ارتفاع بهینه جهت جلوگیری از کشیدگی عمودی میله‌ها در موبایل */
+            }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="main-content">
+
+        <div class="page-content">
+            <div class="container-fluid">
+                <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="toast align-items-center text-white border-0 shadow-lg mb-2"
+                                 role="alert" aria-live="assertive" aria-atomic="true"
+                                 style="background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border-radius: 8px;">
+                                <div class="d-flex">
+                                    <div class="toast-body d-flex align-items-center">
+                                        <div class="rounded-circle bg-info p-2 me-3 d-flex align-items-center justify-content-center"
+                                             style="width: 32px; height: 32px;">
+                                            <i class="ri-shield-check-fill text-white"></i>
+                                        </div>
+                                        <div>
+                                            <strong class="d-block small opacity-75 text-uppercase">System</strong>
+                                            <span>{{ message }}</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                            data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                                <div class="progress"
+                                     style="height: 2px; background: rgba(255,255,255,0.1); border-radius: 0 0 8px 8px;">
+                                    <div class="progress-bar bg-info"></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Crypto</h4>
+
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    {% for item in breadcrumb %}
+                                        {% if item.url %}
+                                            <li class="breadcrumb-item"><a>{{ item.title }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="breadcrumb-item active">{{ item.title }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ol>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- end page title -->
+
+                <div class="row">
+
+                    <div class="col-12 mb-2">
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-warning text-warning rounded-circle fs-3">
+                                    <i class="ri-customer-service-2-fill"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Open
+                                                    Tickets</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ open_tickets_count }}">{{ open_tickets_count }}</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-warning-subtle text-warning">Awaiting Reply</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-info text-info rounded-circle fs-3">
+                                    <i class="ri-user-shared-line"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Pending KYC
+                                                    Checks</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ pending_kyc_count }}">{{ pending_kyc_count }}</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-info-subtle text-info">In Review</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-3">
+                                    <i class="ri-bank-card-line"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Pending
+                                                    Withdrawals</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ pending_withdraws_count }}">{{ pending_withdraws_count }}</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-danger-subtle text-danger">Action Required</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-primary text-primary rounded-circle fs-3">
+                                    <i class="ri-group-line"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Total
+                                                    Users</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ total_users_count }}">{{ total_users_count }}</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-primary-subtle text-primary">Live Platform</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-success text-success rounded-circle fs-3">
+                                    <i class="ri-arrow-left-down-line"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Total
+                                                    Deposits</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ total_deposits_count }}">{{ total_deposits_count }}</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-success-subtle text-success">Inflow Count</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-secondary text-secondary rounded-circle fs-3">
+                                    <i class="ri-arrow-right-up-line"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Total
+                                                    Withdraws</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ total_withdraws_count }}">{{ total_withdraws_count }}</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-secondary-subtle text-secondary">Outflow Count</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-dark text-dark rounded-circle fs-3">
+                                    <i class="ri-line-chart-line"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Total
+                                                    Predictions</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ total_predictions_count }}">{{ total_predictions_count }}</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-dark-subtle text-dark">All-Time</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card card-animate mb-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-soft-purple text-purple rounded-circle fs-3">
+                                    <i class="ri-pulse-line"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <p class="text-uppercase fw-semibold fs-12 text-muted mb-1">Total
+                                                    Fee</p>
+                                                <h4 class="mb-0">
+                                                    <span class="counter-value"
+                                                          data-target="{{ total_fees_earned }}">{{ total_fees_earned }}</span>
+                                                    <span class="fs-13 text-muted">USDT</span>
+                                                </h4>
+                                            </div>
+                                            <div class="flex-shrink-0 align-self-end">
+                                                <span class="badge bg-purple-subtle text-purple">Live Now</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xxl-3">
+                        <div class="card card-height-100 border-0 shadow-sm"
+                             style="border-radius: 8px; overflow: hidden;">
+
+                            <div class="card-header border-0 align-items-center d-flex bg-light-subtle py-3">
+                                <h4 class="card-title mb-0 flex-grow-1 fw-bold text-dark fs-14">
+                                    <i class="ri-vip-crown-2-line me-1 align-middle text-warning"></i> Platform
+                                    Highlights
+                                </h4>
+
+                                <div class="nav-pills-custom bg-light p-1 d-flex shadow-inner"
+                                     style="border-radius: 6px;">
+                                    <button class="btn btn-sm nav-link-custom active-pill border-0 px-2 py-1 fs-11 fw-semibold"
+                                            id="btnMostActive" onclick="switchHighlightUser('most-active')">
+                                        Most Active
+                                    </button>
+                                    <button class="btn btn-sm nav-link-custom text-muted border-0 px-2 py-1 fs-11 fw-semibold"
+                                            id="btnTopEarner" onclick="switchHighlightUser('top-earner')">
+                                        Top Earner
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-4">
+
+                                <!-- ============================== رپر بخش فعال‌ترین کاربر ============================== -->
+                                <div id="wrapperMostActive" class="highlight-user-wrapper">
+                                    {% if highlight_most_active %}
+                                        <div class="text-center pb-3 border-bottom border-light">
+                                            <div class="position-relative d-inline-block mb-2">
+                                                {% if highlight_most_active.user.profile.avatar %}
+                                                    <img src="{{ highlight_most_active.user.profile.avatar.url }}"
+                                                         class="avatar-md rounded-circle shadow-sm mx-auto mb-2"
+                                                         style="width: 65px; height: 65px; object-fit: cover; border: 2px solid #fff;">
+                                                {% else %}
+                                                    <div class="avatar-md bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center fw-bold fs-20 shadow-sm mx-auto mb-2"
+                                                         style="width: 65px; height: 65px; border-radius: 50% !important;">
+                                                        {{ highlight_most_active.user.username|slice:":2"|upper }}
+                                                    </div>
+                                                {% endif %}
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-info text-white p-1 shadow"
+                                                      style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold;"><i
+                                                        class="ri-flashlight-fill"></i></span>
+                                            </div>
+                                            <h5 class="fs-15 fw-bold text-dark mb-1">
+                                                {{ highlight_most_active.user.profile.first_name }} {{ highlight_most_active.user.profile.last_name|default:highlight_most_active.user.username }}
+                                            </h5>
+                                            <!-- اعمال گزینه ۲: نمایش ایمیل به جای UID -->
+                                            <p class="text-muted fs-12 mb-0 text-truncate px-2"
+                                               title="{{ highlight_most_active.user.email }}">
+                                                <i class="ri-mail-line me-1 align-middle text-muted fs-13"></i><span
+                                                    class="fw-medium text-dark">{{ highlight_most_active.user.email }}</span>
+                                            </p>
+                                            <!-- اصلاح زمان ورود -->
+                                            <p class="text-muted fs-11 mb-0 mt-1"><i class="ri-time-line me-1"></i>Last
+                                                Login: <span
+                                                        class="text-dark fw-medium">{{ highlight_most_active.user.last_login|date:"M d, Y • H:i" }}</span>
+                                            </p>
+                                        </div>
+
+                                        <div class="py-3 my-1">
+                                            <div class="row g-2 text-center">
+                                                <div class="col-6">
+                                                    <div class="p-2 rounded bg-light-subtle border border-light"
+                                                         style="border-radius: 8px !important;">
+                                                        <span class="fs-10 text-muted d-block uppercase-text mb-1">KYC Check</span>
+                                                        {% if highlight_most_active.user.profile.status == 'approved' %}
+                                                            <span class="badge bg-success-subtle text-success fw-semibold fs-11">Verified</span>
+                                                        {% elif highlight_most_active.user.profile.status == 'rejected' %}
+                                                            <span class="badge bg-danger-subtle text-danger fw-semibold fs-11">Rejected</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning-subtle text-warning fw-semibold fs-11">Pending</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="p-2 rounded bg-light-subtle border border-light"
+                                                         style="border-radius: 8px !important;">
+                                                        <span class="fs-10 text-muted d-block uppercase-text mb-1">2FA Security</span>
+                                                        {% if highlight_most_active.two_fa %}
+                                                            <span class="badge bg-success-subtle text-success fw-semibold fs-11">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger-subtle text-danger fw-semibold fs-11">Disabled</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-2">
+                                            <h6 class="fs-12 text-muted fw-bold uppercase-text mb-3 tracking-wide">
+                                                Activity Metrics</h6>
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-light-subtle">
+                                                <span class="fs-13 text-muted"><i
+                                                        class="ri-exchange-funds-line me-2 align-middle text-warning"></i>Total Predictions</span>
+                                                <span class="fs-13 fw-bold text-dark">{{ highlight_most_active.total_predictions }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-light-subtle">
+                                                <span class="fs-13 text-muted"><i
+                                                        class="ri-shuffle-line me-2 align-middle text-purple"></i>Internal Trades</span>
+                                                <span class="fs-13 fw-semibold text-dark">{{ highlight_most_active.total_trades }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <span class="fs-13 text-muted"><i
+                                                        class="ri-ticket-2-line me-2 align-middle text-info"></i>Open Tickets</span>
+                                                <span class="badge {% if highlight_most_active.open_tickets > 0 %}bg-danger-subtle text-danger{% else %}bg-light text-muted{% endif %} rounded-pill px-2 fs-11">
+                                {{ highlight_most_active.open_tickets }} Active
+                            </span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted text-center py-4 mb-0">No active users found.</p>
+                                    {% endif %}
+                                </div>
+
+
+                                <!-- ============================== رپر بخش پرسودترین کاربر ============================== -->
+                                <div id="wrapperTopEarner" class="highlight-user-wrapper d-none">
+                                    {% if highlight_top_earner %}
+                                        <div class="text-center pb-3 border-bottom border-light">
+                                            <div class="position-relative d-inline-block mb-2">
+                                                {% if highlight_top_earner.user.profile.avatar %}
+                                                    <img src="{{ highlight_top_earner.user.profile.avatar.url }}"
+                                                         class="avatar-md rounded-circle shadow-sm mx-auto mb-2"
+                                                         style="width: 65px; height: 65px; object-fit: cover; border: 2px solid #fff;">
+                                                {% else %}
+                                                    <div class="avatar-md bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center fw-bold fs-20 shadow-sm mx-auto mb-2"
+                                                         style="width: 65px; height: 65px; border-radius: 50% !important;">
+                                                        {{ highlight_top_earner.user.username|slice:":2"|upper }}
+                                                    </div>
+                                                {% endif %}
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-warning text-dark p-1 shadow"
+                                                      style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold;">$</span>
+                                            </div>
+                                            <h5 class="fs-15 fw-bold text-dark mb-1">
+                                                {{ highlight_top_earner.user.profile.first_name }} {{ highlight_top_earner.user.profile.last_name|default:highlight_top_earner.user.username }}
+                                            </h5>
+                                            <!-- اعمال گزینه ۲: نمایش ایمیل به جای UID -->
+                                            <p class="text-muted fs-12 mb-0 text-truncate px-2"
+                                               title="{{ highlight_top_earner.user.email }}">
+                                                <i class="ri-mail-line me-1 align-middle text-muted fs-13"></i><span
+                                                    class="fw-medium text-dark">{{ highlight_top_earner.user.email }}</span>
+                                            </p>
+                                            <!-- اصلاح زمان ورود -->
+                                            <p class="text-muted fs-11 mb-0 mt-1"><i class="ri-time-line me-1"></i>Last
+                                                Login: <span
+                                                        class="text-dark fw-medium">{{ highlight_top_earner.user.last_login|date:"M d, Y • H:i" }}</span>
+                                            </p>
+                                        </div>
+
+                                        <div class="py-3 my-1">
+                                            <div class="row g-2 text-center">
+                                                <div class="col-6">
+                                                    <div class="p-2 rounded bg-light-subtle border border-light"
+                                                         style="border-radius: 8px !important;">
+                                                        <span class="fs-10 text-muted d-block uppercase-text mb-1">KYC Check</span>
+                                                        {% if highlight_top_earner.user.profile.status == 'approved' %}
+                                                            <span class="badge bg-success-subtle text-success fw-semibold fs-11">Verified</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning-subtle text-warning fw-semibold fs-11">Pending</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="p-2 rounded bg-light-subtle border border-light"
+                                                         style="border-radius: 8px !important;">
+                                                        <span class="fs-10 text-muted d-block uppercase-text mb-1">2FA Security</span>
+                                                        {% if highlight_top_earner.two_fa %}
+                                                            <span class="badge bg-success-subtle text-success fw-semibold fs-11">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger-subtle text-danger fw-semibold fs-11">Disabled</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-2">
+                                            <h6 class="fs-12 text-muted fw-bold uppercase-text mb-3 tracking-wide">
+                                                Financial Metrics</h6>
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-light-subtle">
+                                                <span class="fs-13 text-muted"><i
+                                                        class="ri-money-dollar-circle-line me-2 align-middle text-success"></i>Platform Generated Fees</span>
+                                                <span class="fs-13 fw-bold text-success">${{ highlight_top_earner.total_profit|floatformat:2 }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-light-subtle">
+                                                <span class="fs-13 text-muted"><i
+                                                        class="ri-line-chart-line me-2 align-middle text-primary"></i>Prediction Win Rate</span>
+                                                <span class="fs-13 fw-semibold text-dark">{{ highlight_top_earner.win_rate }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <span class="fs-13 text-muted"><i
+                                                        class="ri-ticket-2-line me-2 align-middle text-info"></i>Open Tickets</span>
+                                                <span class="badge {% if highlight_top_earner.open_tickets > 0 %}bg-danger-subtle text-danger{% else %}bg-light text-muted{% endif %} rounded-pill px-2 fs-11">
+                                {{ highlight_top_earner.open_tickets }} Active
+                            </span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted text-center py-4 mb-0">No top earners found.</p>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-xxl-9 order-last order-xxl-0">
+                        <div class="d-flex flex-column h-100">
+                            <div class="card"
+                                 style="border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0,0,0,0.03);">
+                                <div class="card-header border-0 align-items-center d-flex"
+                                     style="background: transparent; padding: 20px 24px 10px 24px;">
+                                    <h4 class="card-title mb-0 flex-grow-1"
+                                        style="font-weight: 600; font-size: 16px;">Global Cash Flow
+                                        Analysis</h4>
+                                    <div class="btn-group shadow-sm" style="border-radius: 6px; overflow: hidden;">
+                                        <button type="button" id="btn-filter-today"
+                                                class="btn btn-soft-primary btn-sm fw-medium px-3 active">Today
+                                        </button>
+                                        <button type="button" id="btn-filter-7d"
+                                                class="btn btn-soft-secondary btn-sm fw-medium px-3">7D
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="card-body p-0">
+                                    <div class="bg-light-subtle border-top-dashed border border-start-0 border-end-0 border-bottom-dashed py-3 px-4">
+                                        <div class="row align-items-center">
+                                            <div class="col-5">
+                                                <div class="d-flex flex-wrap gap-4 align-items-center">
+                                                    <h6 class="mb-1 text-muted fs-12 d-block w-100"
+                                                        id="liquidity-snapshot-label"
+                                                        style="letter-spacing: 0.3px; font-weight: 500;">Today's Net
+                                                        Cash Flow</h6>
+                                                    <h5 class="fs-22 mb-0 {{ today_net_class }}" id="platform-net-total"
+                                                        style="font-weight: 700; letter-spacing: -0.5px;">{{ today_net_revenue }}</h5>
+                                                </div>
+                                            </div>
+                                            <div class="col-7">
+                                                <div class="d-flex justify-content-end text-end flex-wrap gap-4">
+                                                    <div class="pe-4 border-end border-light">
+                                                        <h6 class="mb-1 text-muted fs-12"
+                                                            style="letter-spacing: 0.3px; font-weight: 500;">
+                                                            Deposits</h6>
+                                                        <h5 class="mb-0 text-success" id="platform-total-deposits"
+                                                            style="font-weight: 600;">{{ today_deposits }}</h5>
+                                                    </div>
+                                                    <div class="pe-2">
+                                                        <h6 class="mb-1 text-muted fs-12"
+                                                            style="letter-spacing: 0.3px; font-weight: 500;">
+                                                            Withdrawals</h6>
+                                                        <h5 class="text-danger mb-0" id="platform-total-withdrawals"
+                                                            style="font-weight: 600;">-{{ today_withdrawals }}</h5>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body p-4 pb-3">
+                                    <div id="Platform_Liquidity_Chart" class="liquidity-chart-container"
+                                         dir="ltr"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- end row -->
+
+
+            <div class="row">
+                <div class="col-xl-8">
+                    <div class="card card-height-100">
+                        <div class="card-header align-items-center d-flex">
+                            <h4 class="card-title mb-0 flex-grow-1">Platform Liquidity Monitor</h4>
+                            <div class="flex-shrink-0">
+                                <button class="btn btn-soft-success btn-sm d-flex align-items-center gap-2">
+                                    <span class="live-pulse-dot"></span>
+                                    <span>Live System Pulse</span>
+                                </button>
+                            </div>
+                        </div><!-- end card header -->
+                        <div class="card-body" style="min-height: 350px;">
+                            <div class="table-responsive table-card">
+                                <table class="table table-hover table-borderless table-centered align-middle table-nowrap mb-0">
+                                    <thead class="text-muted bg-light-subtle">
+                                    <tr>
+                                        <th>Coin Name</th>
+                                        <th>24h Change</th>
+                                        <th>Total Balance (USD)</th>
+                                        <th>Free Coin</th>
+                                        <th>Frozen Coin</th>
+                                        <th>Total Coin</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="platform-liquidity-tbody">
+                                    {% for asset in platform_assets %}
+                                        <tr data-coin="{{ asset.code }}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2">
+                                                        <img src="/static/assets/images/svg/crypto-icons/{{ asset.icon }}.svg"
+                                                             alt="{{ asset.name }}"
+                                                             class="avatar-xxs"
+                                                             onerror="this.onerror=null; this.src='/static/assets/images/svg/crypto-icons/default.svg';">
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="fs-14 mb-0">{{ asset.name }}</h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td class="coin-change-cell">
+                                                {% if asset.is_stable %}
+                                                    <span class="badge bg-light text-muted">Stablecoin</span>
+                                                {% else %}
+                                                    <h6 class="{% if asset.is_up %}text-success{% else %}text-danger{% endif %} fs-13 mb-0">
+                                                        <i class="mdi {% if asset.is_up %}mdi-trending-up{% else %}mdi-trending-down{% endif %} align-middle me-1"></i>
+                                                        {{ asset.change_pct }}
+                                                    </h6>
+                                                {% endif %}
+                                            </td>
+
+                                            <td>
+                                                <span class="fw-semibold text-body coin-balance-cell">{{ asset.total_balance }}</span>
+                                            </td>
+
+                                            <td>
+                                                <span class="text-success fw-medium coin-free-cell">{{ asset.free_coin }}</span>
+                                            </td>
+
+                                            <td>
+                                                <span class="text-warning fw-medium coin-frozen-cell">{{ asset.frozen_coin }}</span>
+                                            </td>
+
+                                            <td class="text-muted coin-total-cell">
+                                                {{ asset.total_coin }}
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">No assets found in
+                                                platform wallets.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div><!-- end card -->
+                </div><!-- end col -->
+
+                <div class="col-xl-4">
+                    <div class="card card-height-100 border-0 shadow-sm" style="border-radius: 8px;">
+                        <div class="card-header align-items-center border-0 d-flex bg-light-subtle py-3"
+                             style="border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                            <h4 class="card-title mb-0 flex-grow-1 fw-bold text-dark fs-15">User Actions</h4>
+                            <div class="flex-shrink-0">
+                                <ul class="nav justify-content-end nav-tabs-custom rounded card-header-tabs border-bottom-0"
+                                    role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link active fw-semibold fs-13" data-bs-toggle="tab"
+                                           href="#balance-tab" role="tab" aria-selected="true">
+                                            Balance Modifier
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-0">
+                            <div class="p-3 border-bottom border-light bg-light-subtle">
+                                <label class="form-label fs-12 text-muted fw-bold mb-1">Target User Email :</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white border-end-0"><i
+                                            class="ri-user-search-line text-muted"></i></span>
+                                    <input type="email" class="form-control border-start-0 ps-1"
+                                           id="target-admin-email" placeholder="user@example.com" required>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-primary-subtle border-bottom border-primary-subtle">
+                                <h6 class="mb-0 text-primary fw-bold fs-13"><i class="ri-wallet-3-line me-1"></i>
+                                    Manual Balance Adjustment</h6>
+                            </div>
+                            <div class="p-3">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fs-12 fw-semibold text-muted">Currency :</label>
+                                            <select class="form-select form-select-sm" id="admin-balance-currency">
+                                                <option value="usdt">USDT</option>
+                                                <option value="btc">BTC</option>
+                                                <option value="eth">ETH</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fs-12 fw-semibold text-muted">Action Type :</label>
+                                            <select class="form-select form-select-sm" id="admin-balance-action">
+                                                <option value="add" class="text-success fw-medium">➕ Add (Credit)
+                                                </option>
+                                                <option value="deduct" class="text-danger">➖ Deduct (Correction)
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <span class="input-group-text bg-light fw-medium fs-12">Amount</span>
+                                        <input type="number" step="any" min="0" class="form-control"
+                                               id="admin-balance-amount" placeholder="0.00">
+                                    </div>
+
+                                    <div class="input-group input-group-sm mb-0">
+                                        <span class="input-group-text bg-light fw-medium fs-12">Description</span>
+                                        <input type="text" class="form-control" id="admin-balance-reason"
+                                               placeholder="e.g., System compensation">
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-1">
+                                    <button type="button" id="apply-balance-btn" onclick="submitBalanceModification()"
+                                            class="btn btn-primary btn-sm w-100 fw-bold shadow-none"
+                                            style="border-radius: 6px;">
+                                        Apply Balance Change
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ```
+            </div><!-- end row -->
+
+            <div class="row">
+                <div class="col-xxl-4 col-lg-6" id="internal-trade-card">
+                    <div class="card card-height-100">
+                        <div class="card-header align-items-center d-flex">
+                            <h4 class="card-title mb-0 flex-grow-1">Internal Trade Analytics</h4>
+                            <div class="flex-shrink-0">
+                                <div class="dropdown card-header-dropdown">
+                                    <a class="text-reset dropdown-btn" href="javascript:void(0);"
+                                       data-bs-toggle="dropdown"
+                                       aria-haspopup="true" aria-expanded="false">
+                                        <span class="fw-semibold text-uppercase fs-12">Sort by: </span>
+                                        <span class="text-muted">{{ current_activity_filter }}<i
+                                                class="mdi mdi-chevron-down ms-1"></i></span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end">
+                                        <a class="dropdown-item trade-filter-btn" href="javascript:void(0);"
+                                           data-filter="today">Today</a>
+                                        <a class="dropdown-item trade-filter-btn" href="javascript:void(0);"
+                                           data-filter="yesterday">Yesterday</a>
+                                        <a class="dropdown-item trade-filter-btn" href="javascript:void(0);"
+                                           data-filter="week">This Week</a>
+                                        <a class="dropdown-item trade-filter-btn" href="javascript:void(0);"
+                                           data-filter="month">This Month</a>
+                                        <a class="dropdown-item trade-filter-btn" href="javascript:void(0);"
+                                           data-filter="all">All Time</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div data-simplebar="init" style="height: 390px;" class="simplebar-scrollable-y">
+                                <div class="simplebar-wrapper" style="margin: 0px;">
+                                    <div class="simplebar-mask">
+                                        <div class="simplebar-offset" style="right: 0px; bottom: 0px;">
+                                            <div class="simplebar-content-wrapper" tabindex="0" role="region"
+                                                 aria-label="scrollable content"
+                                                 style="height: 100%; overflow: hidden scroll;">
+                                                <div class="simplebar-content" style="padding: 0px;">
+                                                    <div class="p-3">
+
+                                                        {% for crypto in popular_trades %}
+                                                            <div class="d-flex align-items-center {% if not forloop.first %}mt-3{% endif %}">
+                                                                <div class="avatar-xs flex-shrink-0">
+                                                    <span class="avatar-title bg-light rounded-circle text-primary fw-bold fs-11">
+                                                        {{ crypto.symbol }}
+                                                    </span>
+                                                                </div>
+                                                                <div class="flex-grow-1 ms-3">
+                                                                    <h6 class="fs-14 mb-1">{{ crypto.symbol }} Asset
+                                                                        Exchange</h6>
+                                                                    <p class="text-muted fs-12 mb-0">
+                                                                        <i class="mdi mdi-circle-medium text-success fs-15 align-middle"></i>
+                                                                        Total Trades: {{ crypto.trade_count }}
+                                                                        Orders
+                                                                    </p>
+                                                                </div>
+                                                                <div class="flex-shrink-0 text-end ms-2"
+                                                                     style="max-width: 140px;">
+                                                                    <h6 class="mb-1 text-success font-monospace {% if crypto.volume > 99999 %}fs-13{% else %}fs-14{% endif %}"
+                                                                        style="white-space: nowrap; font-weight: 600;">
+                                                                        ${{ crypto.volume|floatformat:2|intcomma }}
+                                                                    </h6>
+                                                                    <p class="text-muted fs-11 mb-0"
+                                                                       style="white-space: nowrap;">Total
+                                                                        Turnover</p>
+                                                                </div>
+                                                            </div>
+                                                        {% empty %}
+                                                            <div class="text-center text-muted py-5 fs-13">
+                                                                No internal trade logs found for this timeframe.
+                                                            </div>
+                                                        {% endfor %}
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simplebar-track simplebar-vertical" style="visibility: visible;">
+                                    <div class="simplebar-scrollbar"
+                                         style="height: 265px; transform: translate3d(0px, 0px, 0px); display: block;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-xxl-4 col-lg-6">
+                    <div class="card card-height-100">
+                        <div class="card-header align-items-center d-flex">
+                            <h4 class="card-title mb-0 flex-grow-1">Top Earners</h4>
+                            <div>
+                                <button type="button" class="btn btn-soft-primary btn-sm">Platform Fees</button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush border-dashed mb-0">
+                                {% for trader in top_earners %}
+                                    {% if trader.placeholder %}
+                                        <!-- ⚡ ردیف جایگاه شیک برای حفظ تقارن ۶ تایی -->
+                                        <li class="list-group-item d-flex align-items-center"
+                                            style="opacity: 0.35; height: 67px;">
+                                            <div class="flex-shrink-0">
+                                                <div class="avatar-xs">
+                                                    <span class="avatar-title bg-light text-muted rounded-circle fs-12">-</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="fs-14 mb-1">—</h6>
+                                                <p class="text-muted mb-0 fs-12">—</p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end ms-2">
+                                                <h6 class="fs-14 mb-1 text-muted">—</h6>
+                                                <p class="text-muted fs-11 mb-0">—</p>
+                                            </div>
+                                        </li>
+                                    {% else %}
+                                        <!-- ردیف کاربر واقعی -->
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                {% if trader.avatar %}
+                                                    <img src="{{ trader.avatar }}" class="avatar-xs rounded-circle"
+                                                         alt="">
+                                                {% else %}
+                                                    <div class="avatar-xs flex-shrink-0">
+                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-12">
+                                            {{ trader.username|slice:":2"|upper }}
+                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="fs-14 mb-1"
+                                                    style="word-break: break-all;">{{ trader.email }}</h6>
+                                                <p class="text-muted mb-0 fs-12">@{{ trader.username }}</p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end ms-2">
+                                                <h6 class="fs-14 mb-1 text-success">{{ trader.profit_display }}</h6>
+                                                <p class="text-muted fs-11 mb-0">Platform Profit</p>
+                                            </div>
+                                        </li>
+                                    {% endif %}
+                                {% empty %}
+                                    <li class="list-group-item text-center text-muted py-4">No revenue data
+                                        available.
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xxl-4 col-lg-6">
+                    <div class="card card-height-100">
+                        <div class="card-header align-items-center d-flex">
+                            <h4 class="card-title mb-0 flex-grow-1">Most Active Users</h4>
+                            <div>
+                                <button type="button" class="btn btn-soft-primary btn-sm">All Actions</button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush border-dashed mb-0">
+                                {% for active_user in most_active_users %}
+                                    {% if active_user.placeholder %}
+                                        <!-- ⚡ ردیف جایگاه شیک برای حفظ تقارن ۶ تایی -->
+                                        <li class="list-group-item d-flex align-items-center"
+                                            style="opacity: 0.35; height: 67px;">
+                                            <div class="flex-shrink-0">
+                                                <div class="avatar-xs">
+                                                    <span class="avatar-title bg-light text-muted rounded-circle fs-12">-</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="fs-14 mb-1">—</h6>
+                                                <p class="text-muted mb-0 fs-11">—</p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end">
+                                                <h6 class="fs-14 mb-1 text-muted">—</h6>
+                                                <p class="text-muted fs-11 mb-0">—</p>
+                                            </div>
+                                        </li>
+                                    {% else %}
+                                        <!-- ردیف کاربر واقعی -->
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                {% if active_user.avatar %}
+                                                    <img src="{{ active_user.avatar }}"
+                                                         class="avatar-xs rounded-circle" alt="">
+                                                {% else %}
+                                                    <div class="avatar-xs flex-shrink-0">
+                                        <span class="avatar-title bg-info-subtle text-info rounded-circle fs-12">
+                                            {{ active_user.username|slice:":2"|upper }}
+                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="fs-14 mb-1">{{ active_user.username }}</h6>
+                                                <p class="text-muted mb-0 fs-11">{{ active_user.details }}</p>
+                                            </div>
+                                            <div class="flex-shrink-0 text-end">
+                                                <h6 class="fs-14 mb-1 text-primary">{{ active_user.total_actions }}</h6>
+                                                <p class="text-muted fs-11 mb-0">Total Ops</p>
+                                            </div>
+                                        </li>
+                                    {% endif %}
+                                {% empty %}
+                                    <li class="list-group-item text-center text-muted py-4">No activity logged
+                                        yet.
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div><!-- end row -->
+
+        </div>
+        <!-- container-fluid -->
+    </div>
+    <!-- End Page-content -->
+
+    <footer class="footer" style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 text-center text-sm-start">
+                    <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                         style="gap: 6px; line-height: 1;">
+                        <span>&copy;</span>
+                        <span id="footer-year" class="fw-medium"></span>
+                        <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                        <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                        <span>All rights reserved.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
+{% block js %}
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+    <script>
+        function switchHighlightUser(mode) {
+            const btnTopEarner = document.getElementById('btnTopEarner');
+            const btnMostActive = document.getElementById('btnMostActive');
+            const wrapperTopEarner = document.getElementById('wrapperTopEarner');
+            const wrapperMostActive = document.getElementById('wrapperMostActive');
+
+            if (mode === 'most-active') {
+                if (btnMostActive) btnMostActive.classList.add('active-pill');
+                if (btnMostActive) btnMostActive.classList.remove('text-muted');
+                if (btnTopEarner) btnTopEarner.classList.remove('active-pill');
+                if (btnTopEarner) btnTopEarner.classList.add('text-muted');
+
+                if (wrapperMostActive) wrapperMostActive.classList.remove('d-none');
+                if (wrapperTopEarner) wrapperTopEarner.classList.add('d-none');
+            } else if (mode === 'top-earner') {
+                if (btnTopEarner) btnTopEarner.classList.add('active-pill');
+                if (btnTopEarner) btnTopEarner.classList.remove('text-muted');
+                if (btnMostActive) btnMostActive.classList.remove('active-pill');
+                if (btnMostActive) btnMostActive.classList.add('text-muted');
+
+                if (wrapperTopEarner) wrapperTopEarner.classList.remove('d-none');
+                if (wrapperMostActive) wrapperMostActive.classList.add('d-none');
+            }
+        }
+    </script>
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const DISPLAY_TIME = 3000; // مدت‌زمان نمایش توست (میلی‌ثانیه)
+            const WAIT_BEFORE_HIDE = 1000; // زمان انتظار پیش از ناپدید شدن کامل
+
+            setTimeout(function () {
+                var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                toastElList.forEach(function (toastEl) {
+                    // ایجاد نمونه پاپ‌آپ با کنترل دستی خروج
+                    var toast = new bootstrap.Toast(toastEl, {
+                        autohide: false
+                    });
+                    toast.show();
+
+                    // مدیریت و متحرک‌سازی نوار پیشرفت داخلی توست
+                    const pb = toastEl.querySelector('.progress-bar');
+                    if (pb) {
+                        pb.style.transition = 'none';
+                        pb.style.width = '100%';
+
+                        setTimeout(() => {
+                            pb.style.transition = `width ${DISPLAY_TIME}ms linear`;
+                            pb.style.width = '0%';
+                        }, 100);
+                    }
+
+                    // زمان‌بندی نهایی برای بستن خودکار توست
+                    setTimeout(function () {
+                        toast.hide();
+                    }, DISPLAY_TIME + WAIT_BEFORE_HIDE);
+                });
+            }, 1000); // تأخیر اولیه لود توست‌ها پس از بارگذاری کامل صفحه
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // ایجاد یک تأخیر کوچک برای اطمینان از اعمال کامل استایل‌های فریم‌ورک سی‌اس‌اس
+            setTimeout(function () {
+                window.dispatchEvent(new Event('resize'));
+            }, 500);
+        });
+    </script>
+
+    <script>
+        document.addEventListener("click", function (e) {
+            const filterBtn = e.target.closest('.trade-filter-btn');
+            if (!filterBtn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const filterValue = filterBtn.getAttribute('data-filter');
+            const ajaxUrl = window.location.pathname + `?sort_activity=${filterValue}`;
+
+            console.log(`📡 Sending Fetch request to: ${ajaxUrl}`);
+
+            fetch(ajaxUrl, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => {
+                    console.log(`📥  Server response status: ${response.status}`);
+                    return response.text(); // ⚡ اصلاح شد: دریافت پاسخ به صورت متن (HTML) به جای جی‌سان
+                })
+                .then(rawHtml => { // تغییر نام متغیر به rawHtml برای وضوح بیشتر
+                    // پردازش ساختار درختی پاسخ سرور بدون رندر کل صفحه
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(rawHtml, 'text/html');
+                    const targetCard = doc.getElementById('internal-trade-card');
+
+                    if (targetCard) {
+                        const currentCard = document.getElementById('internal-trade-card');
+                        if (currentCard) {
+                            // نوسازی لحظه‌ای و فوق سریع محتوای داخلی کارت
+                            currentCard.innerHTML = targetCard.innerHTML;
+
+                            // پالس مجدد به اسکرول‌بار لایه داخلی کارت
+                            window.dispatchEvent(new Event('resize'));
+                            console.log(`✅  Component successfully filtered on [${filterValue}]`);
+                        }
+                    } else {
+                        console.error("❌  Critical Error: #internal-trade-card not found in server response.");
+                    }
+                })
+                .catch(error => {
+                    console.error("❌  Network/Parsing Error encountered:", error);
+                });
+        });
+    </script>
+
+    <script>
+        let reconnectAttempts = 0;
+
+        function connectLiquiditySocket() {
+            console.log("🚀 [Jarvis WebSockets] Guard system active...");
+
+            var wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            var socketUrl = wsProtocol + window.location.host + '/ws/admin/liquidity/';
+
+            var liquiditySocket = new WebSocket(socketUrl);
+
+            liquiditySocket.onopen = function (e) {
+                console.log("✅ WebSocket established successfully.");
+                reconnectAttempts = 0;
+            };
+
+// اضافه کردن منطق رندر ۳ ستونه دارایی‌ها در دیتای زنده وب‌سوکت
+            liquiditySocket.onmessage = function (e) {
+                var response = JSON.parse(e.data);
+                if (response.status === 'success') {
+                    response.assets.forEach(function (asset) {
+                        var targetRow = document.querySelector('#platform-liquidity-tbody tr[data-coin="' + asset.code + '"]');
+                        if (targetRow) {
+                            var balanceEl = targetRow.querySelector('.coin-balance-cell');
+                            var freeEl = targetRow.querySelector('.coin-free-cell');     // سلکتور ستون آزاد جدید
+                            var frozenEl = targetRow.querySelector('.coin-frozen-cell'); // سلکتور ستون فروزن
+                            var totalEl = targetRow.querySelector('.coin-total-cell');
+                            var changeCell = targetRow.querySelector('.coin-change-cell');
+
+                            if (balanceEl && balanceEl.textContent !== asset.total_balance) balanceEl.textContent = asset.total_balance;
+                            if (freeEl && freeEl.textContent !== asset.free_coin) freeEl.textContent = asset.free_coin;       // آپدیت آنی موجودی آزاد
+                            if (frozenEl && frozenEl.textContent !== asset.frozen_coin) frozenEl.textContent = asset.frozen_coin; // آپدیت آنی موجودی فروزن
+                            if (totalEl && totalEl.textContent !== asset.total_coin) totalEl.textContent = asset.total_coin;
+
+                            // مدیریت تغییرات ۲۴ ساعته قیمت
+                            if (!asset.is_stable && changeCell) {
+                                var newHTML = '<h6 class="' + (asset.is_up ? 'text-success' : 'text-danger') + ' fs-13 mb-0">' +
+                                    '<i class="mdi ' + (asset.is_up ? 'mdi-trending-up' : 'mdi-trending-down') + ' align-middle me-1"></i>' +
+                                    asset.change_pct + '</h6>';
+                                if (changeCell.innerHTML !== newHTML) changeCell.innerHTML = newHTML;
+                            }
+                        }
+                    });
+                }
+            };
+
+            liquiditySocket.onclose = function (e) {
+                let delay = Math.min(Math.pow(2, reconnectAttempts) * 1000, 30000);
+                console.warn(`❌ WebSocket disconnected. Reconnecting in ${delay / 1000}s... (Attempt: ${reconnectAttempts + 1})`);
+
+                setTimeout(function () {
+                    reconnectAttempts++;
+                    connectLiquiditySocket();
+                }, delay);
+            };
+
+            liquiditySocket.onerror = function (err) {
+                console.error("⚠️ WebSocket error encountered. Closing connection.");
+                liquiditySocket.close();
+            };
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            connectLiquiditySocket();
+        });
+    </script>
+
+    <script>
+        function getCsrfToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === 'csrftoken=') {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // سیستم تولید پویای توست‌های سفارشی پلتفرم (Matte UI)
+        function showDynamicToast(type, title, message) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style = "position: fixed; top: 30px; right: 25px; z-index: 999999 !important; direction: ltr;";
+                document.body.appendChild(container);
+            }
+
+            const borderLeftColor = type === 'success' ? '#00f2ad' : '#ff3366';
+            const iconClass = type === 'success' ? 'ri-checkbox-circle-fill' : 'ri-error-warning-fill';
+            const iconColor = type === 'success' ? '#00f2ad' : '#ff3366';
+            const toastId = 'msg-ajax-' + Date.now();
+
+            const toastHTML = `
+            <div class="custom-toast" id="${toastId}"
+                 style="display: flex !important; background: #161b22 !important; color: white !important; padding: 16px 20px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); width: 330px; min-height: 80px; flex-direction: row; align-items: center; justify-content: flex-start; font-family: 'Poppins', sans-serif; position: relative; border-left: 4px solid ${borderLeftColor}; animation: toastIn 0.3s ease forwards;">
+                <div style="margin-right: 15px; font-size: 22px; color: ${iconColor}; display: flex; align-items: center;">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div style="display: flex; flex-direction: column; padding-right: 15px;">
+                    <span style="font-size: 10px; text-transform: uppercase; color: #8b949e; letter-spacing: 0.5px; margin-bottom: 2px;">${title}</span>
+                    <span style="font-size: 13px; font-weight: 500; line-height: 1.4; color: #c9d1d9;">${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()"
+                        style="background: none; border: none; color: #8b949e; cursor: pointer; font-size: 18px; position: absolute; top: 8px; right: 10px; line-height: 1;">
+                    &times;
+                </button>
+            </div>
+        `;
+
+            container.insertAdjacentHTML('beforeend', toastHTML);
+
+            setTimeout(() => {
+                const targetToast = document.getElementById(toastId);
+                if (targetToast) targetToast.remove();
+            }, 6000);
+        }
+
+        async function submitBalanceModification() {
+            const email = document.getElementById('target-admin-email').value.trim();
+            const currency = document.getElementById('admin-balance-currency').value;
+            const action = document.getElementById('admin-balance-action').value;
+            const amount = document.getElementById('admin-balance-amount').value;
+            const reason = document.getElementById('admin-balance-reason').value.trim();
+
+            // بررسی ولیدیشن‌ها با توست بجای الرت متنی خام
+            if (!email || !amount || !reason) {
+                showDynamicToast('error', 'Required Fields', "Target email, amount, and reason are mandatory.");
+                return;
+            }
+
+            if (parseFloat(amount) <= 0) {
+                showDynamicToast('error', 'Invalid Amount', "The transaction amount must be greater than zero.");
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to modify ${currency.toUpperCase()} balance for ${email}?`)) return;
+
+            const submitBtn = document.getElementById('apply-balance-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...';
+            }
+
+            try {
+                const response = await fetch('/adminPanel/user/modify-balance/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({email, currency, action, amount, reason})
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    showDynamicToast('success', 'Execution Success', `Balance updated! New: ${data.new_balance} ${currency.toUpperCase()}`);
+                    document.getElementById('admin-balance-amount').value = '';
+                    document.getElementById('admin-balance-reason').value = '';
+                } else {
+                    showDynamicToast('error', 'Transaction Rejected', data.message);
+                }
+            } catch (error) {
+                showDynamicToast('error', 'Core Error', "Error communicating with NexTrade core server.");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Apply Balance Change';
+                }
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var depositData = {{ chart_deposits|safe }};
+            var withdrawalData = {{ chart_withdrawals|safe }};
+            var timelineCategories = {{ chart_categories|safe }};
+
+            var switchableData = {
+                today: {
+                    label: "Today's Net Cash Flow",
+                    net: "{{ today_net_revenue }}",
+                    netClass: "{{ today_net_class }}",
+                    deposits: "{{ today_deposits }}",
+                    withdrawals: "-{{ today_withdrawals }}"
+                },
+                sevenDays: {
+                    label: "Last 7 Days Net Cash Flow",
+                    net: "{{ net_revenue_7d }}",
+                    netClass: "{{ net_revenue_class_7d }}",
+                    deposits: "{{ total_deposits_7d }}",
+                    withdrawals: "-{{ total_withdrawals_7d }}"
+                }
+            };
+
+            var labelEl = document.getElementById("liquidity-snapshot-label");
+            var netEl = document.getElementById("platform-net-total");
+            var depEl = document.getElementById("platform-total-deposits");
+            var witEl = document.getElementById("platform-total-withdrawals");
+
+            var btnToday = document.getElementById("btn-filter-today");
+            var btn7D = document.getElementById("btn-filter-7d");
+
+            function updateHeader(dataKey) {
+                var source = switchableData[dataKey];
+                if (labelEl) labelEl.innerText = source.label;
+                if (netEl) {
+                    netEl.innerText = source.net;
+                    netEl.className = "fs-22 mb-0 " + source.netClass;
+                }
+                if (depEl) depEl.innerText = source.deposits;
+                if (witEl) witEl.innerText = source.withdrawals;
+            }
+
+            if (btnToday && btn7D) {
+                btnToday.addEventListener("click", function () {
+                    btn7D.classList.remove("btn-soft-primary", "active");
+                    btn7D.classList.add("btn-soft-secondary");
+                    btnToday.classList.remove("btn-soft-secondary");
+                    btnToday.classList.add("btn-soft-primary", "active");
+                    updateHeader("today");
+                });
+
+                btn7D.addEventListener("click", function () {
+                    btnToday.classList.remove("btn-soft-primary", "active");
+                    btnToday.classList.add("btn-soft-secondary");
+                    btn7D.classList.remove("btn-soft-secondary");
+                    btn7D.classList.add("btn-soft-primary", "active");
+                    updateHeader("sevenDays");
+                });
+            }
+
+            // =========================================================================
+            // 🪙 کانفیگ اختصاصی و کاملاً اورهال شده Apache ECharts برای موبایل
+            // =========================================================================
+            var chartDom = document.getElementById('Platform_Liquidity_Chart');
+            if (chartDom) {
+                var adminLiquidityChart = echarts.init(chartDom);
+
+                function checkDarkMode() {
+                    return document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
+                        document.documentElement.getAttribute('data-layout-mode') === 'dark' ||
+                        document.body.classList.contains('dark-mode');
+                }
+
+                // 🌟 شناساگر هوشمند سایز اسکرین کلاینت برای اعمال کاستومایز رندرینگ چارت
+                var isMobile = window.innerWidth < 768;
+
+                var liquidityChartOptions = {
+                    color: ['#0eb39c', '#f06548'],
+                    grid: {
+                        top: isMobile ? '18%' : '12%',
+                        left: isMobile ? '4%' : '2%',
+                        right: isMobile ? '4%' : '2%',
+                        bottom: isMobile ? '12%' : '4%',
+                        containLabel: true
+                    },
+                    legend: {
+                        data: ['Total Deposits', 'Total Withdrawals'],
+                        right: isMobile ? 'auto' : '0%',
+                        left: isMobile ? '0%' : 'auto',
+                        top: '0%',
+                        icon: 'circle',
+                        itemWidth: 8,
+                        itemHeight: 8,
+                        textStyle: {
+                            color: checkDarkMode() ? '#ffffff' : '#334155',
+                            fontSize: isMobile ? 11 : 12,
+                            fontWeight: 600,
+                            fontFamily: "'Inter', sans-serif"
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: timelineCategories,
+                        axisTick: {show: false},
+                        axisLine: {show: false},
+                        axisLabel: {
+                            color: checkDarkMode() ? '#b9cbc9' : '#475569',
+                            fontSize: isMobile ? 10 : 11,
+                            fontWeight: 600,
+                            fontFamily: "'Inter', sans-serif",
+                            margin: 12,
+                            // 🌟 جلوگیری از تداخل متن تاریخ‌ها روی اسکرین‌های کوچک با سیستم زاویه‌دهی ۳۵ درجه
+                            rotate: isMobile ? 35 : 0,
+                            interval: 'auto'
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLine: {show: false},
+                        axisTick: {show: false},
+                        splitLine: {
+                            lineStyle: {
+                                type: 'dashed',
+                                color: checkDarkMode() ? 'rgba(255, 255, 255, 0.05)' : 'rgba(99, 115, 129, 0.06)'
+                            }
+                        },
+                        axisLabel: {
+                            color: checkDarkMode() ? '#94a3b8' : '#64748b',
+                            fontSize: 10,
+                            fontWeight: 500,
+                            fontFamily: "'Inter', sans-serif",
+                            formatter: function (value) {
+                                // خلاصه کردن مقادیر بزرگ در موبایل (مثلا 1K به جای 1000) برای تمیز ماندن لایه بصری نمودار
+                                if (isMobile && value >= 1000) {
+                                    return "$" + (value / 1000) + "k";
+                                }
+                                return "$" + value.toLocaleString();
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Total Deposits',
+                            type: 'bar',
+                            barWidth: isMobile ? '20%' : '12%', // پهن‌تر شدن ملایم ستون‌ها در موبایل جهت بهبود ارگونومی دیداری
+                            itemStyle: {
+                                borderRadius: [4, 4, 0, 0],
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    {offset: 0, color: '#34d399'},
+                                    {offset: 1, color: '#0eb39c'}
+                                ])
+                            },
+                            data: depositData
+                        },
+                        {
+                            name: 'Total Withdrawals',
+                            type: 'bar',
+                            barWidth: isMobile ? '20%' : '12%',
+                            itemStyle: {
+                                borderRadius: [4, 4, 0, 0],
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    {offset: 0, color: '#f87171'},
+                                    {offset: 1, color: '#f06548'}
+                                ])
+                            },
+                            data: withdrawalData
+                        }
+                    ],
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {type: 'shadow', shadowStyle: {color: 'rgba(0, 0, 0, 0.01)'}},
+                        backgroundColor: 'transparent',
+                        borderWidth: 0,
+                        shadowBlur: 0,
+                        padding: 0,
+                        extraCssText: 'box-shadow: none; border: none;',
+                        formatter: function (params) {
+                            if (!params || params.length < 2) return '';
+                            var isDark = checkDarkMode();
+                            var label = params[0].name;
+                            var deposit = params[0].value || 0;
+                            var withdraw = params[1].value || 0;
+                            var netResult = deposit - withdraw;
+
+                            var badgeBg = netResult >= 0 ? 'rgba(14, 165, 233, 0.08)' : 'rgba(239, 68, 68, 0.08)';
+                            var badgeColor = netResult >= 0 ? '#0284c7' : '#dc2626';
+                            var resultSign = netResult >= 0 ? '🟢 Net Inflow' : '🔴 Net Outflow';
+                            var absoluteNet = Math.abs(netResult);
+
+                            var ttBg = isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)';
+                            var ttBorder = isDark ? 'rgba(51, 65, 85, 0.9)' : 'rgba(226, 232, 240, 0.95)';
+                            var ttTextMain = isDark ? '#f8fafc' : '#0f172a';
+                            var ttTextMuted = isDark ? '#94a3b8' : '#64748b';
+                            var ttSeparator = isDark ? '#334155' : '#f1f5f9';
+
+                            return '<div style="' +
+                                'background: ' + ttBg + ';' +
+                                'backdrop-filter: blur(16px);' +
+                                '-webkit-backdrop-filter: blur(16px);' +
+                                'border: 1px solid ' + ttBorder + ';' +
+                                'border-radius: 8px;' +
+                                'box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);' +
+                                'padding: 14px;' +
+                                'min-width: 210px;' +
+                                'font-family: \'Inter\', sans-serif;' +
+                                '">' +
+                                '<div style="display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px solid ' + ttSeparator + '; padding-bottom: 8px;">' +
+                                '<span style="font-size: 11px; font-weight: 700; color: ' + ttTextMuted + '; text-transform: uppercase; letter-spacing: 0.6px;">📆 ' + label + ' Overview</span>' +
+                                '</div>' +
+                                '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">' +
+                                '<span style="color: ' + ttTextMuted + '; font-weight: 500; display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #0eb39c; border-radius: 50%; display: inline-block;"></span>Deposits</span>' +
+                                '<span style="font-weight: 700; color: ' + ttTextMain + ';">$' + deposit.toLocaleString(undefined, {minimumFractionDigits: 2}) + '</span>' +
+                                '</div>' +
+                                '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 13px;">' +
+                                '<span style="color: ' + ttTextMuted + '; font-weight: 500; display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #f06548; border-radius: 50%; display: inline-block;"></span>Withdrawals</span>' +
+                                '<span style="font-weight: 700; color: ' + ttTextMain + ';">$' + withdraw.toLocaleString(undefined, {minimumFractionDigits: 2}) + '</span>' +
+                                '</div>' +
+                                '<div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-radius: 6px; background: ' + badgeBg + '; border: 1px solid rgba(0,0,0,0.01);">' +
+                                '<span style="font-size: 12px; font-weight: 600; color: ' + ttTextMuted + ';">' + resultSign + '</span>' +
+                                '<span style="font-size: 12px; font-weight: 700; color: ' + badgeColor + ';">$' + absoluteNet.toLocaleString(undefined, {minimumFractionDigits: 2}) + '</span>' +
+                                '</div>' +
+                                '</div>';
+                        }
+                    }
+                };
+
+                adminLiquidityChart.setOption(liquidityChartOptions);
+
+                var themeObserver = new MutationObserver(function () {
+                    var isDark = checkDarkMode();
+                    adminLiquidityChart.setOption({
+                        legend: {textStyle: {color: isDark ? '#ffffff' : '#334155'}},
+                        xAxis: {axisLabel: {color: isDark ? '#b9cbc9' : '#475569'}},
+                        yAxis: {
+                            axisLabel: {color: isDark ? '#94a3b8' : '#64748b'},
+                            splitLine: {lineStyle: {color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(99, 115, 129, 0.06)'}}
+                        }
+                    });
+                });
+                themeObserver.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['data-bs-theme', 'data-layout-mode']
+                });
+
+                // ⚡ هندلر بهینه‌سازی شده ریسایز پویای چارت هنگام چرخش یا تغییر ابعاد دیوایس کلاینت
+                window.addEventListener('resize', function () {
+                    if (adminLiquidityChart) {
+                        adminLiquidityChart.resize();
+                    }
+                });
+
+                // اجرای تریگر تاخیر برای تضمین محاسبات ابعادی درست کانتینر در اولین لود صفحه
+                setTimeout(function () {
+                    if (adminLiquidityChart) {
+                        adminLiquidityChart.resize();
+                    }
+                }, 150);
+            }
+        });
+    </script>
+{% endblock %}

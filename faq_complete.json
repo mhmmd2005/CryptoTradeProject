@@ -1,0 +1,224 @@
+[
+{
+    "model": "UserPanel.faqcategory",
+    "pk": 2,
+    "fields": {
+        "title": "Getting Started"
+    }
+},
+{
+    "model": "UserPanel.faqcategory",
+    "pk": 3,
+    "fields": {
+        "title": "Notifications"
+    }
+},
+{
+    "model": "UserPanel.faqcategory",
+    "pk": 4,
+    "fields": {
+        "title": "Account & Profile"
+    }
+},
+{
+    "model": "UserPanel.faqcategory",
+    "pk": 6,
+    "fields": {
+        "title": "Support & FAQ"
+    }
+},
+{
+    "model": "UserPanel.faqcategory",
+    "pk": 8,
+    "fields": {
+        "title": "Wallet & Transactions"
+    }
+},
+{
+    "model": "UserPanel.faqcategory",
+    "pk": 9,
+    "fields": {
+        "title": "Trading & Bets"
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 52,
+    "fields": {
+        "category": 2,
+        "question": "How do I get started?",
+        "answer": "Log in to your dashboard. First, your identity verification (KYC) must be approved. Once approved, you can access all platform features. For step‑by‑step guidance, please see other questions in this section.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 53,
+    "fields": {
+        "category": 2,
+        "question": "How can I customize my dashboard?",
+        "answer": "Click the gear icon at the bottom right of the page to adjust widgets, color schemes, and the layout of elements according to your preference.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 54,
+    "fields": {
+        "category": 2,
+        "question": "Can I change the theme (dark/light)?",
+        "answer": "Yes, click the moon/sun icon in the top bar to switch between light and dark mode.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 55,
+    "fields": {
+        "category": 9,
+        "question": "Can I trade without making an initial deposit?",
+        "answer": "No, you need a positive wallet balance to place any trade. The minimum bet amount is displayed for each round.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 56,
+    "fields": {
+        "category": 9,
+        "question": "What is the minimum and maximum bet amount?",
+        "answer": "The bet amount range depends on the round and is shown in the 'Position Center' section when you select a currency and timeframe.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 57,
+    "fields": {
+        "category": 9,
+        "question": "How is profit calculated?",
+        "answer": "When you win, your original stake plus 95% profit is returned. From that profit, a fee between 1% and 5% (depending on the round) is deducted. The exact amount can be seen in the 'History & Logs' section after settlement.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 58,
+    "fields": {
+        "category": 9,
+        "question": "Can I place multiple bets on the same symbol at the same time?",
+        "answer": "No, only one bet per card is allowed per cycle. After the previous bet is settled, you can place a new one.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 59,
+    "fields": {
+        "category": 9,
+        "question": "What determines whether I win or lose?",
+        "answer": "Only the price change at the end of each cycle decides the outcome. If the final price is higher than the entry price (for an 'up' bet) or lower (for a 'down' bet), you win. If prices are equal, your entire stake is refunded.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 60,
+    "fields": {
+        "category": 3,
+        "question": "Why are some notifications archived?",
+        "answer": "To keep your notifications page clean and organized, notifications you have read can be archived.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 61,
+    "fields": {
+        "category": 3,
+        "question": "Can I receive notifications via email?",
+        "answer": "Yes, you can enable this option in the Notifications settings page.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 62,
+    "fields": {
+        "category": 4,
+        "question": "How do I change my password?",
+        "answer": "Go to 'Security Settings', select 'Change Password', and enter your new password.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 63,
+    "fields": {
+        "category": 4,
+        "question": "What are the steps for identity verification (KYC)?",
+        "answer": "To use platform features, you must upload your information and documents in the 'Verification' section. Document review usually takes up to 24 hours.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 64,
+    "fields": {
+        "category": 6,
+        "question": "How can I contact support?",
+        "answer": "You can submit your issue through the ticket system (Support tickets > submit New Ticket).",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 65,
+    "fields": {
+        "category": 6,
+        "question": "What is the response time for tickets?",
+        "answer": "Regular tickets are answered within 24 hours on business days. Urgent tickets are prioritized and handled as quickly as possible.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 66,
+    "fields": {
+        "category": 8,
+        "question": "How do I top up my wallet?",
+        "answer": "Go to the 'Wallet' section, click 'Deposit', and enter the desired amount.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 67,
+    "fields": {
+        "category": 8,
+        "question": "What is the minimum withdrawal amount?",
+        "answer": "Withdrawals start from as little as $1. You can request any amount up to your current balance, and it will be processed immediately after approval.",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 68,
+    "fields": {
+        "category": 8,
+        "question": "How long do withdrawal transactions take?",
+        "answer": "Withdrawal time depends on the amount and whether 2FA is active (full details are available in the withdrawal section of the Wallet page).",
+        "order": 0
+    }
+},
+{
+    "model": "UserPanel.faq",
+    "pk": 69,
+    "fields": {
+        "category": 8,
+        "question": "Is identity verification required for withdrawals?",
+        "answer": "Yes, all withdrawals require completed identity verification (KYC).",
+        "order": 0
+    }
+}
+]

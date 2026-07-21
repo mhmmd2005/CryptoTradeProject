@@ -1,0 +1,924 @@
+{% extends 'shared/layout__.html' %}
+{% load static %}
+{% load tz %}
+{% load humanize %}
+{% block css %}
+    <style>
+        body.light-mode .text-muted {
+            color: #000 !important; /* مطمئن می‌شویم override شود */
+        }
+
+        .qr-box {
+            display: inline-block;
+            padding: 12px;
+            border: 2px solid #010204; /* آبی مثل Bootstrap */
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease;
+        }
+
+        .btn-close-black {
+            filter: invert(1);
+            opacity: 0.8;
+        }
+
+        .btn-close-black:hover {
+            opacity: 1;
+        }
+
+    </style>
+{% endblock %}
+{% block title %}
+    My wallet
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">My wallet</h4>
+
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    {% for item in breadcrumb %}
+                                        {% if item.url %}
+                                            <li class="breadcrumb-item"><a>{{ item.title }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="breadcrumb-item active">{{ item.title }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ol>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- end page title -->
+
+                <div class="row">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-3">Balance</h6>
+                                        <h2 class="mb-0">
+                                            $<span class="counter-value" data-target="{{ wallet.balance }}"></span>
+                                            <small class="text-muted fs-13"></small>
+                                        </h2>
+
+                                    </div>
+                                    <div class="flex-shrink-0 avatar-sm">
+                                        <div class="avatar-title bg-soft-primary text-primary fs-22 rounded">
+                                            <i class="ri-shopping-bag-line"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end card-->
+                    </div>
+                    <!--end col-->
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-3">Total Sell</h6>
+                                        <h2 class="mb-0">$<span class="counter-value" data-target="658"></span><small
+                                                class="text-muted fs-13">.00k</small></h2>
+                                    </div>
+                                    <div class="flex-shrink-0 avatar-sm">
+                                        <div class="avatar-title bg-soft-primary text-primary fs-22 rounded">
+                                            <i class="ri-funds-line"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end card-->
+                    </div>
+                    <!--end col-->
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-3">Today's Buy</h6>
+                                        <h2 class="mb-0">$<span class="counter-value" data-target="104"></span><small
+                                                class="text-muted fs-13">.85k</small></h2>
+                                    </div>
+                                    <div class="flex-shrink-0 avatar-sm">
+                                        <div class="avatar-title bg-soft-primary text-primary fs-22 rounded">
+                                            <i class="ri-arrow-left-down-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end card-->
+                    </div>
+                    <!--end col-->
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-3">Today's Sell</h6>
+                                        <h2 class="mb-0">$<span class="counter-value" data-target="87"></span><small
+                                                class="text-muted fs-13">.35k</small></h2>
+                                    </div>
+                                    <div class="flex-shrink-0 avatar-sm">
+                                        <div class="avatar-title bg-soft-primary text-primary fs-22 rounded">
+                                            <i class="ri-arrow-right-up-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end card-->
+                    </div>
+                    <!--end col-->
+                </div>
+                <!--end row-->
+
+                <div class="row">
+                    <div class="col-xxl-9">
+                        <div class="card" id="marketList">
+                            <div class="card-header border-bottom-dashed d-flex align-items-center">
+                                <h4 class="card-title mb-0 flex-grow-1">Market Status</h4>
+                                <div class="flex-shrink-0">
+                                    <div class="btn-group" role="group" aria-label="Basic example">
+                                        <button type="button" class="btn btn-primary btn-sm">Today</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm">Overall</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive table-card">
+                                    <table class="table align-middle table-nowrap" id="marketStatusTable">
+                                        <thead class="table-light text-muted">
+                                        <tr>
+                                            <th class="sort" data-sort="currency_name" scope="col">Name</th>
+                                            <th class="sort" data-sort="quantity_value" scope="col">Quantity</th>
+                                            <th class="sort" data-sort="avg_price" scope="col">Avg. Price</th>
+                                            <th class="sort" data-sort="current_value" scope="col">Current Value</th>
+                                            <th class="sort" data-sort="returns" scope="col">Returns</th>
+                                            <th class="sort" data-sort="returns_per" scope="col">Returns %</th>
+                                        </tr>
+                                        </thead>
+                                        <!--end thead-->
+                                        <tbody class="market-list form-check-all">
+                                        <tr>
+                                            <td class="id" style="display:none;"><a href="javascript:void(0);"
+                                                                                    class="fw-medium link-primary">#VZ001</a>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center fw-medium">
+                                                    <img src="{% static 'assets/images/svg/crypto-icons/btc.svg' %}"
+                                                         alt=""
+                                                         class="avatar-xxs me-2">
+                                                    <a href="javascript:void(0)" class="currency_name link-secondary">Bitcoin
+                                                        (BTC)</a>
+                                                </div>
+                                            </td>
+                                            <td class="quantity_value">08</td>
+                                            <td class="avg_price">$46,154.30</td>
+                                            <td class="current_value">$46,335.40</td>
+                                            <td class="returns">$3,70,683.2</td>
+                                            <td class="returns_per">
+                                                <h6 class="text-success fs-13 mb-0"><i
+                                                        class="mdi mdi-trending-up align-middle me-1"></i>0.63%</h6>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="id" style="display:none;"><a href="javascript:void(0);"
+                                                                                    class="fw-medium link-primary">#VZ002</a>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center fw-medium">
+                                                    <img src="{% static 'assets/images/svg/crypto-icons/eth.svg' %}"
+                                                         alt=""
+                                                         class="avatar-xxs me-2">
+                                                    <a href="javascript:void(0)" class="currency_name link-secondary">Ethereum
+                                                        (ETH)</a>
+                                                </div>
+                                            </td>
+                                            <td class="quantity_value">50</td>
+                                            <td class="avg_price">$3,744.48</td>
+                                            <td class="current_value">$3,748.66</td>
+                                            <td class="returns">$1,87,433</td>
+                                            <td class="returns_per">
+                                                <h6 class="text-danger fs-13 mb-0"><i
+                                                        class="mdi mdi-trending-down align-middle me-1"></i>3.42%</h6>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="id" style="display:none;"><a href="javascript:void(0);"
+                                                                                    class="fw-medium link-primary">#VZ003</a>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center fw-medium">
+                                                    <img src="{% static 'assets/images/svg/crypto-icons/xrp.svg' %}"
+                                                         alt=""
+                                                         class="avatar-xxs me-2">
+                                                    <a href="javascript:void(0)" class="currency_name link-secondary">Ripple
+                                                        (XRP)</a>
+                                                </div>
+                                            </td>
+                                            <td class="quantity_value">300</td>
+                                            <td class="avg_price">$1.05</td>
+                                            <td class="current_value">$2.20</td>
+                                            <td class="returns">$660</td>
+                                            <td class="returns_per">
+                                                <h6 class="text-success fs-13 mb-0"><i
+                                                        class="mdi mdi-trending-up align-middle me-1"></i>1.20%</h6>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="id" style="display:none;"><a href="javascript:void(0);"
+                                                                                    class="fw-medium link-primary">#VZ004</a>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center fw-medium">
+                                                    <img src="{% static 'assets/images/svg/crypto-icons/xmr.svg' %}"
+                                                         alt=""
+                                                         class="avatar-xxs me-2">
+                                                    <a href="javascript:void(0)" class="currency_name link-secondary">Monero
+                                                        (XMR)</a>
+                                                </div>
+                                            </td>
+                                            <td class="quantity_value">150</td>
+                                            <td class="avg_price">$227.30</td>
+                                            <td class="current_value">$226.55</td>
+                                            <td class="returns">$33,982.5</td>
+                                            <td class="returns_per">
+                                                <h6 class="text-danger fs-13 mb-0"><i
+                                                        class="mdi mdi-trending-down align-middle me-1"></i>1.92%</h6>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="id" style="display:none;"><a href="javascript:void(0);"
+                                                                                    class="fw-medium link-primary">#VZ005</a>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center fw-medium">
+                                                    <img src="{% static 'assets/images/svg/crypto-icons/ltc.svg' %}"
+                                                         alt=""
+                                                         class="avatar-xxs me-2">
+                                                    <a href="javascript:void(0)" class="currency_name link-secondary">Litecoin
+                                                        (LTC)</a>
+                                                </div>
+                                            </td>
+                                            <td class="quantity_value">200</td>
+                                            <td class="avg_price">$144.00</td>
+                                            <td class="current_value">$147.50</td>
+                                            <td class="returns">$29,500</td>
+                                            <td class="returns_per">
+                                                <h6 class="text-danger fs-13 mb-0"><i
+                                                        class="mdi mdi-trending-down align-middle me-1"></i>0.87%</h6>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="id" style="display:none;"><a href="javascript:void(0);"
+                                                                                    class="fw-medium link-primary">#VZ008</a>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center fw-medium">
+                                                    <img src="{% static 'assets/images/svg/crypto-icons/aave.svg' %}"
+                                                         alt=""
+                                                         class="avatar-xxs me-2">
+                                                    <a href="javascript:void(0)" class="currency_name link-secondary">Aave
+                                                        (AAVE)</a>
+                                                </div>
+                                            </td>
+                                            <td class="quantity_value">180</td>
+                                            <td class="avg_price">$250.70</td>
+                                            <td class="current_value">$254.30</td>
+                                            <td class="returns">$45,774</td>
+                                            <td class="returns_per">
+                                                <h6 class="text-success fs-13 mb-0"><i
+                                                        class="mdi mdi-trending-up align-middle me-1"></i>3.96%</h6>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                    <!--end table-->
+                                    <div class="noresult" style="display: none">
+                                        <div class="text-center">
+                                            <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop"
+                                                       colors="primary:#25a0e2,secondary:#00bd9d"
+                                                       style="width:75px;height:75px">
+                                            </lord-icon>
+                                            <h5 class="mt-2">Sorry! No Result Found</h5>
+                                            <p class="text-muted mb-0">We've searched more than 150+ Currencies We did
+                                                not find any
+                                                Currencies for you search.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <div class="pagination-wrap hstack gap-2">
+                                        <a class="page-item pagination-prev disabled" href="#">
+                                            Previous
+                                        </a>
+                                        <ul class="pagination listjs-pagination mb-0">
+                                            <li class="active"><a class="page" href="#" data-i="1" data-page="6">1</a>
+                                            </li>
+                                            <li><a class="page" href="#" data-i="2" data-page="6">2</a></li>
+                                        </ul>
+                                        <a class="page-item pagination-next" href="#">
+                                            Next
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- end card -->
+                    </div>
+                    <!--end col-->
+                    <div class="col-xxl-3">
+                        <div class="card card-height-100">
+                            <div class="card-header">
+                                <ul class="nav nav-tabs-custom rounded card-header-tabs nav-justified border-bottom-0 mx-n3"
+                                    role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#cryptoDeposit"
+                                           role="tab">
+                                            Deposit
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#cryptoWithdraw" role="tab">
+                                            Withdraw
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="tab-content text-muted">
+
+                                    <!-- Deposit Tab -->
+                                    <div class="tab-pane active" id="cryptoDeposit" role="tabpanel">
+                                        <div class="p-3 bg-soft-primary">
+                                            <div class="float-end ms-2">
+                                                <h6 class="text-primary mb-0">USD Balance :
+                                                    <span class="text-dark">${{ wallet.balance|floatformat:2|intcomma }}</span>
+                                                </h6>
+                                            </div>
+                                            <h6 class="mb-0 text-primary">Deposit</h6>
+                                        </div>
+                                        <div class="p-3">
+
+                                            <!-- پیام‌های موفقیت و خطا -->
+                                            {% for message in messages %}
+                                                {% if "deposit" in message.tags %}
+                                                    <div class="alert alert-success alert-dismissible fade show mt-2"
+                                                         role="alert">
+                                                        {{ message }}
+                                                        <button type="button" class="btn-close btn-close-black"
+                                                                data-bs-dismiss="alert"
+                                                                aria-label="Close"></button>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            <div class="text-center mb-3">
+                                                <!-- Timer -->
+                                                <p id="countdown" class="text-danger fw-bold d-none"></p>
+
+                                                <!-- QR Code -->
+                                                <div id="qrcode" class="qr-box d-none"></div>
+
+                                                <!-- Wallet address -->
+                                                <p id="wallet-address" class="text-break mt-2 d-none"></p>
+
+                                                <!-- Copy button -->
+                                                <div class="text-center mt-2">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                                            id="copy-btn" disabled>
+                                                        Copy Address
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {#                                            <!-- پیام Pending بالای فرم دیپوزیت -->#}
+                                            {#                                            <div id="pending-message"#}
+                                            {#                                                 class="alert alert-warning alert-dismissible d-none" role="alert">#}
+                                            {#                                                <span id="pending-message-text"></span>#}
+                                            {#                                                <button type="button" class="btn btn-sm btn-primary float-end"#}
+                                            {#                                                        id="ackPendingBtn">OK#}
+                                            {#                                                </button>#}
+                                            {#                                            </div>#}
+
+                                            <!-- Deposit Form -->
+                                            <form method="post" action="{% url 'create-deposit' %}">
+                                                {% csrf_token %}
+                                                <div class="input-group mb-3">
+                                                    <label class="input-group-text" for="amount_deposit">Amount
+                                                        (USD)</label>
+                                                    <input type="number" class="form-control" id="amount_deposit"
+                                                           name="amount"
+                                                           step="0.01" min="0.01" placeholder="0.00" required>
+                                                </div>
+                                                <div class="mt-3 pt-2">
+                                                    <button id="confirm-btn" type="submit"
+                                                            class="btn btn-success w-100">Confirm
+                                                        Deposit
+                                                    </button>
+                                                </div>
+                                            </form>
+
+
+                                        </div>
+                                    </div>
+                                    <!--end tab-pane-->
+
+                                    <!-- Withdraw Tab -->
+                                    <div class="tab-pane" id="cryptoWithdraw" role="tabpanel">
+                                        <div class="p-3 bg-soft-primary">
+                                            <div class="float-end ms-2">
+                                                <h6 class="text-primary mb-0">USD Balance :
+                                                    <span class="text-dark">${{ wallet.balance|floatformat:2|intcomma }}</span>
+                                                </h6>
+                                            </div>
+                                            <h6 class="mb-0 text-primary">Withdraw</h6>
+                                        </div>
+                                        <div class="p-3">
+                                            <br>
+                                            <!-- Withdraw Form -->
+                                            <form method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="withdraw">
+                                                <div class="input-group mb-3">
+                                                    <label class="input-group-text"
+                                                           for="withdraw_address">Recipient</label>
+                                                    <input type="text" class="form-control" id="withdraw_address"
+                                                           name="address"
+                                                           value="{{ withdraw_form.initial.address|default:'' }}"
+                                                           placeholder="Enter wallet address">
+                                                </div>
+                                                <div class="input-group mb-3">
+                                                    <label class="input-group-text" for="amount_withdraw">Amount</label>
+                                                    <input type="text" class="form-control" id="amount_withdraw"
+                                                           name="amount"
+                                                           value="{{ withdraw_form.initial.amount|default:'' }}"
+                                                           placeholder="0.0">
+                                                </div>
+
+                                                <div class="mt-3 pt-2">
+                                                    <button type="submit" class="btn btn-primary w-100"> Confirm
+                                                        Withdraw
+                                                    </button>
+                                                </div>
+                                                <!-- پیام‌های موفقیت و خطا -->
+                                                {% for message in messages %}
+                                                    {% if "withdraw" in message.tags %}
+                                                        <div class="alert alert-warning alert-dismissible fade show mt-2"
+                                                             role="alert">
+                                                            {{ message }}
+                                                            <button type="button" class="btn-close btn-close-black"
+                                                                    data-bs-dismiss="alert"
+                                                                    aria-label="Close"></button>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <!--end tab-pane-->
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end col-->
+                </div>
+                <!--end row-->
+
+                <div class="card" id="contactList">
+                    <div class="card-header">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-3">
+                                <h5 class="card-title mb-0">All Transactions</h5>
+                            </div>
+                            <!--end col-->
+                            {#                            <div class="col-md-auto ms-auto">#}
+                            {#                                <div class="d-flex gap-2">#}
+                            {#                                    <div class="search-box">#}
+                            {#                                        <input type="text" class="form-control search" id="transactionSearch"#}
+                            {#                                               placeholder="Search for Transaction ID, Type, Date...">#}
+                            {#                                        <i class="ri-search-line search-icon"></i>#}
+                            {#                                    </div>#}
+                            {#                                    <select id="transactionTypeFilter" class="form-select">#}
+                            {#                                        <option value="">All Types</option>#}
+                            {#                                        <option value="deposit">Deposit</option>#}
+                            {#                                        <option value="withdraw">Withdraw</option>#}
+                            {#                                    </select>#}
+                            {#                                </div>#}
+                            {#                            </div>#}
+
+                            <!--end col-->
+                        </div>
+                        <!--end row-->
+                    </div>
+                    <!--end card-header-->
+                    <div class="card-body">
+                        <div class="table-responsive table-card">
+                            <table class="table align-middle table-nowrap" id="customerTable">
+                                <thead class="table-light text-muted">
+                                <tr>
+                                    <th scope="col">No.</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Transaction ID</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- ردیف‌ها توسط JS اضافه می‌شوند -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!--end card-body-->
+                </div>
+                <!--end card-->
+
+            </div>
+            <!-- container-fluid -->
+        </div>
+        <!-- End Page-content -->
+
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <script></script>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-sm-end d-none d-sm-block">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'assets/js/pages/crypto-buy-sell.init.js' %}"></script>
+    <script src="{% static 'assets/libs/apexcharts/apexcharts.min.js' %}"></script>
+    <script src="{% static 'assets/libs/list.js/list.min.js' %}"></script>
+    <script src="{% static 'assets/libs/list.pagination.js/list.pagination.min.js' %}"></script>
+    <script src="{% static 'assets/js/app.js' %}"></script>
+    <script src="{% static 'assets/js/pages/dashboard-crypto.init.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        // تابع گرفتن CSRF Token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        // ریست فرم دیپوزیت
+        function resetDepositForm() {
+            document.getElementById("amount_deposit").value = "";
+            const qrEl = document.getElementById("qrcode");
+            const walletAddressEl = document.getElementById("wallet-address");
+            const countdownEl = document.getElementById("countdown");
+            const copyBtn = document.getElementById("copy-btn");
+
+            qrEl.classList.add("d-none");
+            walletAddressEl.classList.add("d-none");
+            countdownEl.classList.add("d-none");
+            copyBtn.classList.add("d-none");
+
+            qrEl.innerHTML = "";
+            walletAddressEl.textContent = "";
+            countdownEl.textContent = "";
+            copyBtn.disabled = false;
+            document.getElementById("confirm-btn").disabled = false;
+        }
+    </script>
+    <script>
+        let activeRequest = null;
+
+        // ساخت badge وضعیت
+        function getStatusBadge(status) {
+            if (status === 'success') return '<span class="badge bg-success">Success</span>';
+            if (status === 'failed') return '<span class="badge bg-danger">Failed</span>';
+            if (status === 'pending') return '<span class="badge bg-warning text-dark">Pending</span>';
+            return '<span class="badge bg-secondary">' + status + '</span>';
+        }
+
+        // spinner کوچک
+        function spinnerHtml() {
+            return '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>';
+        }
+
+        // ساخت ردیف جدید
+        function renderRow(tx, index) {
+            let amountHtml = tx.type === 'deposit'
+                ? '<h6 class="text-success mb-1">+' + tx.amount + ' $</h6>'
+                : '<h6 class="text-danger mb-1">-' + tx.amount + ' $</h6>';
+
+            return `
+    <tr data-id="${tx.id}" data-status="${tx.status}">
+        <td></td>
+        <td class="date">${tx.timestamp}</td>
+        <td class="transaction_id">${tx.tx_hash}</td>
+        <td class="type">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</td>
+        <td class="amount">${amountHtml}</td>
+        <td class="status">${getStatusBadge(tx.status)}</td>
+    </tr>`;
+        }
+
+        // به‌روزرسانی جدول با نمایش spinner فقط برای pending‌ها
+        // به‌روزرسانی جدول با بازسازی شماره ردیف‌ها
+        function updateTable(transactions) {
+            const tbody = $("#customerTable tbody");
+            const existingRows = {};
+
+            // ذخیره ردیف‌های موجود
+            tbody.find('tr').each(function () {
+                const id = $(this).data('id');
+                existingRows[id] = $(this);
+            });
+
+            tbody.empty();
+
+            if (!transactions || transactions.length === 0) {
+                tbody.append('<tr><td colspan="6" class="text-center text-muted">No transactions found.</td></tr>');
+                return;
+            }
+
+            transactions.forEach((tx) => {
+                let row;
+                const prevRow = existingRows[tx.id];
+
+                if (prevRow) {
+                    const prevStatus = prevRow.data('status');
+
+                    if (prevStatus === 'pending' && prevStatus !== tx.status) {
+                        const statusCell = prevRow.find('.status');
+                        statusCell.html(spinnerHtml());
+
+                        setTimeout(() => {
+                            statusCell.html(getStatusBadge(tx.status));
+                            prevRow.data('status', tx.status);
+                        }, 800);
+                    } else {
+                        prevRow.find('.status').html(getStatusBadge(tx.status));
+                        prevRow.data('status', tx.status);
+                    }
+
+                    // آپدیت بقیه سلول‌ها
+                    prevRow.find('.date').text(tx.timestamp);
+                    prevRow.find('.transaction_id').text(tx.tx_hash);
+                    prevRow.find('.type').text(tx.type.charAt(0).toUpperCase() + tx.type.slice(1));
+                    const amountHtml = tx.type === 'deposit'
+                        ? '<h6 class="text-success mb-1">+' + tx.amount + ' $</h6>'
+                        : '<h6 class="text-danger mb-1">-' + tx.amount + ' $</h6>';
+                    prevRow.find('.amount').html(amountHtml);
+
+                    row = prevRow;
+                } else {
+                    // ردیف جدید
+                    row = $(renderRow(tx));
+                }
+
+                tbody.append(row);
+            });
+
+            // شماره ردیف‌ها را بازسازی کن
+            tbody.find('tr').each(function (i) {
+                $(this).find('td:first').text(i + 1);
+            });
+        }
+
+        // دریافت تراکنش‌ها
+        function fetchTransactions() {
+            if (activeRequest) {
+                activeRequest.abort();
+                activeRequest = null;
+            }
+
+            activeRequest = $.ajax({
+                url: "{% url 'latest_transactions' %}",
+                method: "GET",
+                cache: false,
+                success: function (response) {
+                    if (response.last_six_transactions) {
+                        updateTable(response.last_six_transactions);
+                    }
+                },
+                error: function (xhr, status, err) {
+                    if (status !== "abort") console.error("Error fetching transactions:", err);
+                },
+                complete: function () {
+                    activeRequest = null;
+                }
+            });
+        }
+
+        // اجرای اولیه و هر ۱۰ ثانیه
+        fetchTransactions();
+        setInterval(fetchTransactions, 10000);
+
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tabLinks = document.querySelectorAll('[data-bs-toggle="tab"]');
+
+            // وقتی کاربر روی یه تب کلیک می‌کنه، اسم تب رو ذخیره کن
+            tabLinks.forEach(tab => {
+                tab.addEventListener("shown.bs.tab", function (e) {
+                    localStorage.setItem("activeTab", e.target.getAttribute("href"));
+                });
+            });
+
+            // وقتی صفحه دوباره لود میشه، آخرین تب فعال رو باز کن
+            const activeTab = localStorage.getItem("activeTab");
+            if (activeTab) {
+                const triggerEl = document.querySelector(`[href="${activeTab}"]`);
+                if (triggerEl) {
+                    const tab = new bootstrap.Tab(triggerEl);
+                    tab.show();
+                }
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const alerts = document.querySelectorAll(".alert");
+
+            alerts.forEach(alert => {
+                // بعد از ۸ ثانیه آرام محو می‌شود
+                setTimeout(() => {
+                    alert.classList.add("fade");
+                    alert.style.transition = "opacity 0.5s ease";
+                    alert.style.opacity = "0";
+                    setTimeout(() => alert.remove(), 500);
+                }, 6000);
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmBtn = document.getElementById("confirm-btn");
+            const amountInput = document.getElementById("amount_deposit");
+            const qrEl = document.getElementById("qrcode");
+            const walletAddressEl = document.getElementById("wallet-address");
+            const copyBtn = document.getElementById("copy-btn");
+            const countdownEl = document.getElementById("countdown");
+
+            qrEl.classList.add("d-none");
+            walletAddressEl.classList.add("d-none");
+            countdownEl.classList.add("d-none");
+            copyBtn.classList.add("d-none");
+
+            let timerInterval;
+
+            const resetForm = () => {
+                qrEl.classList.add("d-none");
+                walletAddressEl.classList.add("d-none");
+                countdownEl.classList.add("d-none");
+                copyBtn.classList.add("d-none");
+
+                qrEl.innerHTML = "";
+                walletAddressEl.textContent = "";
+                countdownEl.textContent = "";
+                copyBtn.disabled = false;
+                confirmBtn.disabled = false;
+            };
+
+            const startTimer = (seconds) => {
+                clearInterval(timerInterval);
+                let timeLeft = seconds;
+                timerInterval = setInterval(() => {
+                    const m = Math.floor(timeLeft / 60);
+                    const s = timeLeft % 60;
+                    countdownEl.textContent = `⏳ Time left: ${m}:${s.toString().padStart(2, '0')}`;
+                    timeLeft--;
+                    if (timeLeft < 0) {
+                        clearInterval(timerInterval);
+                        countdownEl.textContent = "❌ Payment time expired";
+                        qrEl.classList.add("opacity-50");
+                        copyBtn.disabled = true;
+
+                        // بعد از ۵ ثانیه فرم ریست شود
+                        setTimeout(() => {
+                            qrEl.classList.remove("opacity-50");
+                            resetForm();
+                        }, 3000);
+                    }
+                }, 1000);
+            };
+
+            const showDeposit = (data) => {
+                qrEl.classList.remove("d-none");
+                walletAddressEl.classList.remove("d-none");
+                countdownEl.classList.remove("d-none");
+                copyBtn.classList.remove("d-none");
+
+                walletAddressEl.textContent = `Send ${data.amount} to: ${data.wallet_address}`;
+                qrEl.innerHTML = "";
+                new QRCode(qrEl, {
+                    text: data.wallet_address,
+                    width: 152,
+                    height: 152,
+                    colorDark: "#000",
+                    colorLight: "#fff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                copyBtn.disabled = false;
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(data.wallet_address)
+                        .then(() => {
+                            copyBtn.textContent = "Copied!";
+                            setTimeout(() => copyBtn.textContent = "Copy Address", 2000)
+                        });
+                };
+
+                // اگر expires_at موجود بود تایمر بر اساس آن باشد، در غیر اینصورت 60 ثانیه
+                const remaining = data.expires_at
+                    ? Math.max(data.expires_at - Math.floor(Date.now() / 1000), 0)
+                    : 60; // 60 ثانیه
+                startTimer(remaining);
+
+                confirmBtn.disabled = true;
+            };
+
+            // بررسی تراکنش Pending هنگام لود صفحه
+            fetch("{% url 'create-deposit' %}?check_pending=1")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.wallet_address) {
+                        showDeposit(data);
+                    }
+                });
+
+            // ایجاد پرداخت جدید
+            confirmBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                const amount = amountInput.value.trim();
+                if (!amount || amount <= 0) {
+                    alert("Please enter a valid amount.");
+                    return;
+                }
+
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = "Creating deposit...";
+
+                fetch("{% url 'create-deposit' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: `amount=${amount}`
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = "Confirm Deposit";
+
+                        if (data.wallet_address) {
+                            showDeposit(data);
+                        } else {
+                            alert("❌ Failed to get wallet address. Try again.");
+                        }
+                    })
+                    .catch(err => {
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = "Confirm Deposit";
+                        alert("Error: " + err);
+                    });
+            });
+        });
+    </script>
+{% endblock %}

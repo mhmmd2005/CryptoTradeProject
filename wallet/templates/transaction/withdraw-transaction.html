@@ -1,0 +1,367 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+{% block title %} Withdraw Transactions {% endblock %}
+
+{% block css %}
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        /* Modern UI Calibration - Soft UI Style */
+        .card {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #25a0e2;
+            transition: all 0.2s;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .copy-btn:hover {
+            background: rgba(37, 160, 226, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* ستون‌های طولانی بلاکچین */
+        .gridjs-td {
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle !important;
+        }
+
+        /* Soft Badge Colors */
+        .bg-success-subtle {
+            background-color: rgba(0, 189, 157, 0.1) !important;
+            color: #00bd9d !important;
+        }
+
+        .bg-danger-subtle {
+            background-color: rgba(240, 101, 72, 0.1) !important;
+            color: #f06548 !important;
+        }
+
+        .bg-warning-subtle {
+            background-color: rgba(255, 191, 0, 0.1) !important;
+            color: #ffbf00 !important;
+        }
+
+        .filter-select {
+            width: 160px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Withdrawal History</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header bg-transparent border-bottom">
+                                <h4 class="card-title mb-0 flex-grow-1">Withdrawal Requests</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div id="table-gridjs">
+                                    <div class="gridjs gridjs-container" style="width: 100%;">
+
+                                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                                            <div class="position-relative">
+                                                <input type="text" class="form-control search" id="transactionSearch"
+                                                       placeholder="Search Email, Hash or Address..."
+                                                       style="width: 280px; padding-left: 35px;">
+                                                <i class="ri-search-line search-icon position-absolute"
+                                                   style="left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd;"></i>
+                                            </div>
+
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <select class="form-select filter-select shadow-none"
+                                                        id="currencyFilter">
+                                                    <option value="all">All Currencies</option>
+                                                    <option value="usdttrc20">USDT (TRC20)</option>
+                                                    <option value="trx">TRX</option>
+                                                    <option value="btc">BTC</option>
+                                                    <option value="eth">ETH</option>
+                                                </select>
+
+                                                <select class="form-select filter-select shadow-none" id="dateFilter">
+                                                    <option value="all">All Time</option>
+                                                    <option value="today">Today</option>
+                                                    <option value="7_days">Last 7 Days</option>
+                                                    <option value="30_days">Last 30 Days</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="gridjs-wrapper custom-table-responsive" style="overflow-x: auto;">
+                                            <table class="gridjs-table w-100">
+                                                <thead class="gridjs-thead text-muted text-uppercase"
+                                                       style="font-size: 11px; background-color: #f3f6f9;">
+                                                <tr class="gridjs-tr">
+                                                    <th class="gridjs-th text-center" style="width: 60px;">No.</th>
+                                                    <th class="gridjs-th" style="min-width: 130px;">Date</th>
+                                                    <th class="gridjs-th d-none d-md-table-cell">Internal ID</th>
+                                                    <th class="gridjs-th" style="min-width: 160px;">Tx Hash (On-Chain)
+                                                    </th>
+                                                    <th class="gridjs-th d-none d-lg-table-cell"
+                                                        style="min-width: 150px;">Target Address
+                                                    </th>
+                                                    <th class="gridjs-th">User Email</th>
+                                                    <th class="gridjs-th text-end" style="min-width: 100px;">Amount</th>
+                                                    <th class="gridjs-th text-center" style="width: 80px;">Asset</th>
+                                                    <th class="gridjs-th text-center">Status</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody class="gridjs-tbody" id="transaction-body">
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="gridjs-footer mt-4">
+                                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                                                <div class="text-muted small" id="table-info">Showing 0 to 0 entries
+                                                </div>
+                                                <div class="pagination-wrap hstack gap-2">
+                                                    <button class="btn btn-sm btn-light pagination-prev disabled">
+                                                        Previous
+                                                    </button>
+                                                    <ul class="pagination listjs-pagination mb-0 hstack gap-1"></ul>
+                                                    <button class="btn btn-sm btn-light pagination-next disabled">Next
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="https://code.iconify.design/iconify-icon/2.0.0/iconify-icon.min.js"></script>
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.getElementById('transaction-body');
+            const prevBtn = document.querySelector('.pagination-prev');
+            const nextBtn = document.querySelector('.pagination-next');
+            const pageList = document.querySelector('.listjs-pagination');
+            const searchInput = document.getElementById('transactionSearch');
+            const currencyFilter = document.getElementById('currencyFilter');
+            const dateFilter = document.getElementById('dateFilter');
+            const infoText = document.getElementById('table-info');
+
+            let currentPage = 1;
+            let numPages = 1;
+            let perPage = 10;
+            let searchTimer;
+
+            // فرمت‌کننده داینامیک اعداد بر اساس ساختار فین‌تک برای دقت‌های بالا (مثلا بورس یا رمزارز)
+            const cryptoFormatter = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 6
+            });
+
+            function showMessage(type, query = '') {
+                let title, desc;
+                if (type === 'empty') {
+                    title = 'No withdrawal history';
+                    desc = 'No withdrawal records match the selected asset or criteria.';
+                } else {
+                    title = 'No matches found';
+                    desc = `No withdrawal records found for <b>"${query}"</b>`;
+                }
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="noresult" style="display: block;">
+                                <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" colors="primary:#25a0e2,secondary:#00bd9d" style="width:75px;height:75px"></lord-icon>
+                                <h5 class="mt-2">${title}</h5>
+                                <p class="text-muted mb-0">${desc}</p>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+
+            function fetchTransactions(page = 1) {
+                const searchQuery = searchInput.value.trim();
+                const selectedCurrency = currencyFilter.value;
+                const selectedDate = dateFilter.value;
+
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div> Fetching Records...</td></tr>';
+
+                const url = `/transactions/withdraw/?page=${page}&q=${encodeURIComponent(searchQuery)}&currency=${selectedCurrency}&date_range=${selectedDate}`;
+
+                fetch(url, {headers: {'x-requested-with': 'XMLHttpRequest'}})
+                    .then(res => res.json())
+                    .then(data => {
+                        currentPage = data.current_page;
+                        numPages = data.num_pages;
+                        perPage = data.per_page;
+
+                        if (data.main_transaction && data.main_transaction.length > 0) {
+                            renderTable(data.main_transaction, searchQuery);
+                            renderPagination();
+
+                            const start = (currentPage - 1) * perPage + 1;
+                            const end = start + data.main_transaction.length - 1;
+                            infoText.innerText = `Showing ${start} to ${end} of ${data.total_entries} entries`;
+                        } else {
+                            showMessage(searchQuery ? 'search' : 'empty', searchQuery);
+                            infoText.innerText = `Showing 0 to 0 of 0 entries`;
+                            renderPagination();
+                        }
+                    })
+                    .catch(() => showMessage('empty'));
+            }
+
+            function renderTable(transactions, searchQuery) {
+                tbody.innerHTML = '';
+                const isSearching = searchQuery && searchQuery.trim().length > 0;
+
+                transactions.forEach((tx, index) => {
+                    const rowNumber = (currentPage - 1) * perPage + index + 1;
+
+                    const fullInternalHash = tx.tx_hash || '';
+                    const fullAdminTx = (tx.admin_tx_hash && tx.admin_tx_hash !== '-') ? tx.admin_tx_hash : '';
+                    const fullTargetAddr = tx.target_address || '---';
+                    const fullEmail = tx.user_email || '---';
+
+                    let adminDisplay = fullAdminTx ? (fullAdminTx.length > 25 ? fullAdminTx.substring(0, 25) + '...' : fullAdminTx) : 'Processing...';
+                    let internalDisplay = fullInternalHash ? fullInternalHash.substring(0, 8) + '...' : '---';
+                    let targetDisplay = fullTargetAddr !== '---' ? fullTargetAddr.substring(0, 12) + '...' : '---';
+                    let emailDisplay = fullEmail;
+
+                    if (isSearching) {
+                        const regex = new RegExp(`(${searchQuery})`, 'gi');
+                        const highlight = '<mark class="p-0 bg-warning-subtle">$1</mark>';
+
+                        if (fullAdminTx) adminDisplay = fullAdminTx.replace(regex, highlight);
+                        internalDisplay = fullInternalHash.replace(regex, highlight);
+                        targetDisplay = fullTargetAddr.replace(regex, highlight);
+                        emailDisplay = fullEmail.replace(regex, highlight);
+                    }
+
+                    // 🎯 قالب‌بندی مقدار عددی بدون چسباندن واحد ارز
+                    const formattedAmount = cryptoFormatter.format(tx.amount);
+                    const coinTicker = tx.currency ? tx.currency : 'USDT';
+
+                    const currentStatus = tx.status.toLowerCase();
+                    let badgeClass = 'bg-warning-subtle text-warning';
+                    if (['success', 'done', 'finished', 'approved'].includes(currentStatus)) badgeClass = 'bg-success-subtle text-success';
+                    else if (['failed', 'rejected', 'expired'].includes(currentStatus)) badgeClass = 'bg-danger-subtle text-danger';
+
+                    const row = document.createElement('tr');
+                    row.className = 'gridjs-tr';
+                    row.innerHTML = `
+        <td class="gridjs-td text-center fw-medium">${rowNumber}</td>
+        <td class="gridjs-td text-muted">${tx.timestamp}</td>
+        <td class="gridjs-td d-none d-md-table-cell">
+            <span class="text-secondary">${internalDisplay}</span>
+            ${fullInternalHash ? `<button class="btn btn-link p-0 ms-1 copy-btn" data-copy="${fullInternalHash}"><iconify-icon icon="ri:file-copy-2-line"></iconify-icon></button>` : ''}
+        </td>
+        <td class="gridjs-td">
+            <span class="fw-medium font-monospace" style="font-size: 0.85rem;">${adminDisplay}</span>
+            ${fullAdminTx ? `<button class="btn btn-link p-0 ms-1 copy-btn" data-copy="${fullAdminTx}"><iconify-icon icon="ri:file-copy-2-line"></iconify-icon></button>` : ''}
+        </td>
+        <td class="gridjs-td d-none d-lg-table-cell" title="${fullTargetAddr}">
+            <span class="text-muted">${targetDisplay}</span>
+            ${fullTargetAddr !== '---' ? `<button class="btn btn-link p-0 ms-1 copy-btn" data-copy="${fullTargetAddr}"><iconify-icon icon="ri:file-copy-2-line"></iconify-icon></button>` : ''}
+        </td>
+        <td class="gridjs-td">${emailDisplay}</td>
+
+        <td class="gridjs-td text-end fw-bold text-success font-monospace">${formattedAmount}</td>
+
+        <td class="gridjs-td text-center">
+            <span class="badge bg-light text-dark border font-monospace px-2 py-1 fs-11">${coinTicker}</span>
+        </td>
+
+        <td class="gridjs-td text-center"><span class="badge ${badgeClass} text-uppercase">${tx.status}</span></td>
+    `;
+                    tbody.appendChild(row);
+                });
+
+                initCopyButtons();
+            }
+
+            function renderPagination() {
+                pageList.innerHTML = '';
+                if (numPages <= 1) return;
+
+                for (let i = 1; i <= numPages; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link shadow-none" href="#">${i}</a>`;
+                    li.onclick = (e) => {
+                        e.preventDefault();
+                        fetchTransactions(i);
+                    };
+                    pageList.appendChild(li);
+                }
+
+                prevBtn.onclick = () => {
+                    if (currentPage > 1) fetchTransactions(currentPage - 1);
+                };
+                nextBtn.onclick = () => {
+                    if (currentPage < numPages) fetchTransactions(currentPage + 1);
+                };
+
+                prevBtn.classList.toggle('disabled', currentPage === 1);
+                nextBtn.classList.toggle('disabled', currentPage === numPages);
+            }
+
+            function initCopyButtons() {
+                document.querySelectorAll('.copy-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        const text = btn.getAttribute('data-copy');
+                        navigator.clipboard.writeText(text);
+                        const icon = btn.querySelector('iconify-icon');
+                        icon.setAttribute('icon', 'ri:check-line');
+                        icon.style.color = '#00bd9d';
+                        setTimeout(() => {
+                            icon.setAttribute('icon', 'ri:file-copy-2-line');
+                            icon.style.color = '';
+                        }, 1500);
+                    };
+                });
+            }
+
+            // لیسنرهای اکتیو برای اعمال آنی فیلترها و سرچ دبانس‌شده
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => fetchTransactions(1), 500);
+            });
+
+            currencyFilter.addEventListener('change', () => fetchTransactions(1));
+            dateFilter.addEventListener('change', () => fetchTransactions(1));
+
+            // لود اولیه
+            fetchTransactions();
+        });
+    </script>
+{% endblock %}

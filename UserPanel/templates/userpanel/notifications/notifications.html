@@ -1,0 +1,308 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+
+{% block title %}
+    Notifications
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Notifications</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">Notifications</a></li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card p-4 faq-card-style">
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check form-switch form-switch-lg me-3" dir="ltr">
+                                        <input class="form-check-input" type="checkbox" id="email-notif-switch"
+                                               {% if request.user.profile.email_notifications_enabled %}checked{% endif %}
+                                               onchange="toggleEmailNotif(this.checked)">
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="text-muted mb-0 fw-medium">Receive email notifications</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div id="customerList">
+                                    <div class="row g-4 mb-3">
+                                        <div class="col-sm-auto">
+                                            <div>
+                                                <button class="btn btn-soft-info" onclick="archiveSelected()">
+                                                    <i class="ri-archive-line"></i> Archive Selected
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm">
+                                            <div class="d-flex justify-content-sm-end">
+                                                <form method="GET" action="{% url 'all_notifications' %}"
+                                                      class="search-box ms-2">
+                                                    <input type="text" id="searchInput" class="form-control"
+                                                           placeholder="Search..."
+                                                           value="{{ request.GET.search|default:'' }}">
+                                                    <i class="ri-search-line search-icon"></i>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive table-card mt-3 mb-1">
+                                        <table class="table align-middle table-nowrap table-bordered table-hover"
+                                               id="customerTable">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 50px;">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="checkAll"
+                                                               onclick="toggleSelectAll(this)">
+                                                    </div>
+                                                </th>
+                                                <th class="sort" data-sort="category">Category</th>
+                                                <th class="sort" data-sort="title">Subject</th>
+                                                <th class="sort" data-sort="message">Message</th>
+                                                <th class="sort" data-sort="date">Date</th>
+                                                <th class="sort" data-sort="status">Status</th>
+                                                <th class="sort" data-sort="action">Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="list form-check-all" id="notification-table-body">
+                                            {% if notifications %}
+                                                {% for n in notifications %}
+                                                    <tr>
+                                                        <td>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox"
+                                                                       name="chk_child" value="{{ n.id }}">
+                                                            </div>
+                                                        </td>
+                                                        <td class="category text-uppercase text-muted fs-12 fw-semibold">{{ n.category }}</td>
+                                                        <td class="title fw-bold">{{ n.title }}</td>
+                                                        <td class="message text-muted"
+                                                            style="max-width: 250px; white-space: normal;">{{ n.message }}</td>
+                                                        <td class="date">{{ n.created_at|date:"d M, Y H:i" }}</td>
+                                                        <td class="status">
+                                                            {% if n.is_read %}
+                                                                <span class="badge badge-soft-success text-uppercase">Read</span>
+                                                            {% else %}
+                                                                <span class="badge badge-soft-danger text-uppercase">New</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if n.message %}
+                                                                <button type="button"
+                                                                        class="btn btn-sm btn-soft-primary"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#notificationModal"
+                                                                        onclick="showNotification(`{{ n.message|escapejs }}`)">
+                                                                    View
+                                                                </button>
+                                                            {% else %}
+                                                                <span class="text-muted small">N/A</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="7">
+                                                        <div class="text-center py-5">
+                                                            <lord-icon src="https://cdn.lordicon.com/msoeawqm.json"
+                                                                       trigger="loop"
+                                                                       colors="primary:#25a0e2,secondary:#00bd9d"
+                                                                       style="width:75px;height:75px">
+                                                            </lord-icon>
+                                                            {% if request.GET.search %}
+                                                                <h5 class="mt-2">Sorry! No Result Found</h5>
+                                                                <p class="text-muted mb-0">We could not find any
+                                                                    notifications matching your search.</p>
+                                                                <a href="{% url 'all_notifications' %}"
+                                                                   class="btn btn-primary mt-3">Clear Search</a>
+                                                            {% else %}
+                                                                <h5 class="mt-2">Nothing to display</h5>
+                                                                <p class="text-muted mb-0">You don't have any
+                                                                    notifications at the moment.</p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end">
+                                        <div class="pagination-wrap hstack gap-2">
+                                            <a class="page-item pagination-prev {% if not page_obj.has_previous %}disabled{% endif %}"
+                                               href="{% if page_obj.has_previous %}?page=
+                                                   {{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% else %}#{% endif %}">
+                                                Previous
+                                            </a>
+                                            <ul class="pagination listjs-pagination mb-0">
+                                                <li class="active">
+                                                    <a class="page" href="#">{{ page_obj.number }}</a>
+                                                </li>
+                                            </ul>
+                                            <a class="page-item pagination-next {% if not page_obj.has_next %}disabled{% endif %}"
+                                               href="{% if page_obj.has_next %}?page=
+                                                   {{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% else %}#{% endif %}">
+                                                Next
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 text-center text-sm-start">
+                    <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                         style="gap: 6px; line-height: 1;">
+                        <span>&copy;</span>
+                        <span id="footer-year" class="fw-medium"></span>
+                        <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                        <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                        <span>All rights reserved.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+
+        // 🌟 اسکریپت جدید: مدیریت انتخاب و غیرفعال‌سازی همزمان چک‌باکس‌ها
+        function toggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('input[name="chk_child"]');
+            checkboxes.forEach(cb => {
+                cb.checked = master.checked;
+            });
+        }
+
+        function archiveSelected() {
+            var selectedCheckboxes = document.querySelectorAll('input[name="chk_child"]:checked');
+            var selectedIds = [];
+
+            selectedCheckboxes.forEach(function (checkbox) {
+                selectedIds.push(checkbox.value);
+            });
+
+            if (selectedIds.length > 0) {
+                fetch("{% url 'archive-notifications' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'ids[]=' + selectedIds.join('&ids[]=')
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else {
+                alert("Please select at least one item to proceed.");
+            }
+        }
+
+        // بررسی ایمن وجود المان‌ها قبل از اعمال وضعیت ریست اولیه
+        window.onload = function () {
+            var checkboxes = document.querySelectorAll('input[name="chk_child"]');
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = false;
+            });
+            const checkAllBtn = document.getElementById('checkAll');
+            if (checkAllBtn) {
+                checkAllBtn.checked = false;
+            }
+        };
+
+        function toggleEmailNotif(isEnabled) {
+            const checkbox = document.getElementById('email-notif-switch');
+            if (!checkbox) return;
+
+            checkbox.disabled = true;
+
+            fetch('/update-email-settings/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({'email_enabled': isEnabled})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setTimeout(() => {
+                        checkbox.disabled = false;
+                        console.log("Settings updated successfully!");
+                    }, 1000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    checkbox.disabled = false;
+                    checkbox.checked = !isEnabled;
+                });
+        }
+
+        // اسکریپت هوشمند لایو سرچ بر اساس مکانیزم DOMParser
+        let timer;
+        const searchInput = document.getElementById('searchInput');
+        const tableContainer = document.querySelector('.table-responsive');
+
+        if (searchInput && tableContainer) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    const query = searchInput.value;
+                    fetch(`?search=${encodeURIComponent(query)}`)
+                        .then(response => response.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const newTable = doc.querySelector('.table-responsive');
+                            if (newTable) {
+                                tableContainer.innerHTML = newTable.innerHTML;
+                                // ریست کردن وضعیت چک‌باکس مادر پس از بروزرسانی داینامیک جدول
+                                const checkAllBtn = document.getElementById('checkAll');
+                                if (checkAllBtn) checkAllBtn.checked = false;
+                            }
+                        });
+                }, 800);
+            });
+        }
+    </script>
+{% endblock %}

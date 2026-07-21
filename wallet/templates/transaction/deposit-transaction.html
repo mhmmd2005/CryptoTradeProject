@@ -1,0 +1,406 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %} Deposit Transactions {% endblock %}
+
+{% block css %}
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        /* Modern Highlight Style */
+        .highlight {
+            background-color: rgba(37, 160, 226, 0.2);
+            border-bottom: 2px solid #25a0e2;
+            border-radius: 2px;
+            color: inherit;
+        }
+
+        /* Soft UI Scrollbar for Mobile */
+        .custom-table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .custom-table-responsive::-webkit-scrollbar-thumb {
+            background: #e2e2e2;
+            border-radius: 10px;
+        }
+
+        /* 🛠️ کالیبراسیون هوشمند وضعیت‌ها برای پایداری در رسپانسیو موبایل */
+        .status-badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important; /* جلوگیری مطلق از دو خطی شدن متن و آیکون */
+            padding: 5px 10px !important;
+            border-radius: 6px;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            min-width: 95px !important; /* هم‌اندازه کردن دقیق باکس موفق، ناموفق و در انتظار */
+            text-align: center !important;
+            text-transform: uppercase;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .status-success {
+            background: rgba(0, 189, 157, 0.1) !important;
+            color: #00bd9d !important;
+        }
+
+        .status-failed {
+            background: rgba(240, 101, 72, 0.1) !important;
+            color: #f06548 !important;
+        }
+
+        .status-pending {
+            background: rgba(255, 191, 0, 0.1) !important;
+            color: #ffbf00 !important;
+        }
+
+        /* تراز کردن آیکون داخل بچ‌ها */
+        .status-badge i {
+            font-size: 13px !important;
+            line-height: 1 !important;
+            margin-right: 4px !important;
+        }
+
+        /* 🛠️ کالیبراسیون المان‌ها برای حل شدن کامل در پس‌زمینه خود قالب */
+        .filter-select {
+            border-radius: 8px; /* حفظ انحنای استاندارد ۸ پیکسلی */
+            font-size: 13px;
+            font-weight: 500;
+            padding: 0 12px;
+            height: 38px;
+            border: 1px solid rgba(0, 0, 0, 0.12); /* خط مرزی بسیار ملایم متناسب با قالب */
+            color: inherit !important; /* ارث‌بری خودکار رنگ متن از پوسته */
+            box-shadow: none;
+            transition: border-color 0.15s ease-in-out;
+        }
+
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">Deposit History</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    {% for item in breadcrumb %}
+                                        <li class="breadcrumb-item {% if not item.url %}active{% endif %}">
+                                            {% if item.url %}<a href="{{ item.url }}">{{ item.title }}</a>{% else %}
+                                                {{ item.title }}{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                            <div class="card-header d-flex align-items-center bg-transparent border-bottom">
+                                <h4 class="card-title mb-0 flex-grow-1">Transaction List</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div id="table-gridjs">
+                                    <div class="gridjs gridjs-container" style="width: 100%;">
+
+                                        <div class="search-box mb-3 d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2">
+                                            <div class="position-relative">
+                                                <input type="text" class="form-control search" id="transactionSearch"
+                                                       placeholder="Search transactions ( ID, Asset)..."
+                                                       style="width: 280px; padding-left: 35px;">
+                                                <i class="ri-search-line search-icon position-absolute"
+                                                   style="left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd;"></i>
+                                            </div>
+
+                                            <div>
+                                                <select class="form-select filter-select" id="dateFilter"
+                                                        style="width: 160px;">
+                                                    <option value="all" selected>All Time</option>
+                                                    <option value="today">Today</option>
+                                                    <option value="7_days">Last 7 Days</option>
+                                                    <option value="30_days">Last 30 Days</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="gridjs-wrapper custom-table-responsive" style="overflow-x: auto;">
+                                            <table class="gridjs-table w-100">
+                                                <thead class="gridjs-thead text-muted text-uppercase"
+                                                       style="font-size: 11px; background-color: #f3f6f9;">
+                                                <tr class="gridjs-tr">
+                                                    <th class="gridjs-th px-3" style="width: 60px;">No.</th>
+                                                    <th class="gridjs-th" style="min-width: 140px;">Date</th>
+                                                    <th class="gridjs-th" style="min-width: 150px;">User</th>
+                                                    <th class="gridjs-th" style="min-width: 160px;">Transaction ID</th>
+                                                    <th class="gridjs-th" style="min-width: 90px;">Asset</th>
+                                                    <th class="gridjs-th" style="min-width: 100px;">Amount</th>
+                                                    <th class="gridjs-th" style="min-width: 100px;">Status</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody class="gridjs-tbody" id="transaction-body">
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="gridjs-footer mt-4">
+                                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                                                <div class="text-muted small mb-2 mb-sm-0" id="table-info">Showing 0 to
+                                                    0 entries
+                                                </div>
+                                                <div class="pagination-wrap hstack gap-2">
+                                                    <button class="btn btn-sm btn-light pagination-prev disabled">
+                                                        Previous
+                                                    </button>
+                                                    <ul class="pagination listjs-pagination mb-0 hstack gap-1"></ul>
+                                                    <button class="btn btn-sm btn-light pagination-next disabled">Next
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.getElementById('transaction-body');
+            const prevBtn = document.querySelector('.pagination-prev');
+            const nextBtn = document.querySelector('.pagination-next');
+            const pageList = document.querySelector('.listjs-pagination');
+            const searchInput = document.getElementById('transactionSearch');
+            const dateFilterSelect = document.getElementById('dateFilter'); // 🛠️ انتخاب‌گر فیلتر زمان
+            const infoText = document.getElementById('table-info');
+
+            if (searchInput) searchInput.value = '';
+            if (dateFilterSelect) dateFilterSelect.value = 'all'; // ریست مقادیر در اولین فرآیند لود
+
+            let currentPage = 1;
+            let numPages = 1;
+            let perPage = 10;
+            let searchTimer;
+
+            const amountFormatter = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            function showMessage(type, query = '', dateFilter = 'all') {
+                let title, desc;
+
+                if (type === 'empty') {
+                    title = 'No transactions found';
+                    desc = 'There is nothing to display. You haven\'t made any deposit transactions yet.';
+                } else {
+                    title = 'No result found';
+
+                    // نگاشت مقادیر فیلتر به متن‌های خوانا و تمیز برای کاربر
+                    const filterLabels = {
+                        'today': 'Today',
+                        '7_days': 'Last 7 Days',
+                        '30_days': 'Last 30 Days'
+                    };
+
+                    const filterText = filterLabels[dateFilter] || '';
+
+                    // بررسی سناریوهای مختلف فیلتر و سرچ
+                    if (query && dateFilter !== 'all') {
+                        desc = `No matches found for <b>"${query}"</b> within <b>"${filterText}"</b>.`;
+                    } else if (query) {
+                        desc = `No matches found for <b>"${query}"</b>. Please check your spelling.`;
+                    } else if (dateFilter !== 'all') {
+                        desc = `No transactions found for <b>"${filterText}"</b>.`;
+                    } else {
+                        desc = 'No transactions found for the selected criteria.';
+                    }
+                }
+
+                tbody.innerHTML = `
+<tr>
+    <td colspan="7" class="text-center py-5">
+        <div class="noresult" style="display: block;">
+            <lord-icon src="https://cdn.lordicon.com/msoeawqm.json"
+                       trigger="loop"
+                       colors="primary:#25a0e2,secondary:#00bd9d"
+                       style="width:75px;height:75px">
+            </lord-icon>
+            <h5 class="mt-2">${title}</h5>
+            <p class="text-muted mb-0">${desc}</p>
+        </div>
+    </td>
+</tr>`;
+            }
+
+            // 🛠️ افزودن پارامتر dateFilter به بدنه متد ارسال اطلاعات
+            function fetchTransactions(page = 1, query = '', dateFilter = 'all') {
+                if (query || dateFilter !== 'all') {
+                    infoText.innerHTML = `<span class="spinner-border spinner-border-sm text-primary"></span> Filtering...`;
+                }
+
+                fetch(`/transactions/deposit/?page=${page}&q=${encodeURIComponent(query)}&date_filter=${dateFilter}`, {
+                    headers: {'x-requested-with': 'XMLHttpRequest'}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        currentPage = data.current_page;
+                        numPages = data.num_pages;
+                        perPage = data.per_page;
+
+                        if (data.main_transaction && data.main_transaction.length > 0) {
+                            renderTable(data.main_transaction, query);
+                            renderPagination(query, dateFilter);
+                            const start = (currentPage - 1) * perPage + 1;
+                            const end = start + data.main_transaction.length - 1;
+                            infoText.innerText = `Showing ${start} to ${end} of ${data.total_entries} entries`;
+                        } else {
+                            // 🛠️ پاس دادن آرگومان دیت فیلتر به تابع پیام‌رسان
+                            showMessage((query || dateFilter !== 'all') ? 'search' : 'empty', query, dateFilter);
+                            infoText.innerText = `Showing 0 to 0 entries`;
+                            renderPagination(query, dateFilter);
+                        }
+                    })
+                    .catch(() => showMessage('empty', query, dateFilter));
+            }
+
+            function renderTable(transactions, query = '') {
+                tbody.innerHTML = '';
+                transactions.forEach((tx, index) => {
+                    const rowNumber = (currentPage - 1) * perPage + index + 1;
+                    const statusClass = tx.status === 'success' ? 'status-success' : (tx.status === 'failed' ? 'status-failed' : 'status-pending');
+                    const statusIcon = tx.status === 'success' ? 'ri-checkbox-circle-line' : (tx.status === 'failed' ? 'ri-close-circle-line' : 'ri-time-line');
+
+                    // فرمت اولیه ستون‌ها
+                    const formattedAmount = amountFormatter.format(tx.amount);
+                    let amountHtml = `$${formattedAmount}`;
+                    let email = tx.user_email || '---';
+                    let fullHash = tx.tx_hash || '';
+                    let displayHash = fullHash || '---';
+                    let currencyName = tx.currency ? tx.currency.toUpperCase() : '---';
+                    let statusText = tx.status ? tx.status.toUpperCase() : '---'; // ذخیره متن وضعیت برای هایلایت پویاتر
+                    let hashHtml = '<span class="text-muted">---</span>';
+
+                    // خلاصه‌سازی تراکنش‌های طولانی
+                    if (fullHash && fullHash !== '---' && fullHash.length > 15) {
+                        displayHash = `${fullHash.substring(0, 6)}...${fullHash.substring(fullHash.length - 4)}`;
+                    }
+
+                    // 🛠️ اعمال هوشمند هایلایت روی تمامی ستون‌ها از جمله وضعیت
+                    if (query) {
+                        const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+
+                        email = email.replace(regex, '<span class="highlight">$1</span>');
+                        displayHash = displayHash.replace(regex, '<span class="highlight">$1</span>');
+                        currencyName = currencyName.replace(regex, '<span class="highlight">$1</span>');
+                        amountHtml = amountHtml.replace(regex, '<span class="highlight">$1</span>');
+                        statusText = statusText.replace(regex, '<span class="highlight">$1</span>'); // <-- هایلایت متن وضعیت
+                    }
+
+                    // ساخت ساختار لینک و دکمه کپی شناسه تراکنش
+                    if (fullHash && fullHash !== '---') {
+                        let explorerUrl = '#';
+                        const rawCurrency = tx.currency_raw || '';
+                        if (rawCurrency === 'usdttrc20' || rawCurrency === 'trx') {
+                            explorerUrl = `https://tronscan.org/#/transaction/${fullHash}`;
+                        } else if (rawCurrency === 'eth') {
+                            explorerUrl = `https://etherscan.io/tx/${fullHash}`;
+                        } else if (rawCurrency === 'btc') {
+                            explorerUrl = `https://www.blockchain.com/explorer/transactions/btc/${fullHash}`;
+                        }
+
+                        hashHtml = `
+            <div class="d-flex align-items-center gap-2">
+                <a href="${explorerUrl}" target="_blank" class="text-info font-monospace text-decoration-none fw-medium d-flex align-items-center gap-1" title="View on Blockchain Explorer">
+                    ${displayHash} <i class="ri-external-link-line" style="font-size: 11px; opacity: 0.7;"></i>
+                </a>
+                <button class="btn btn-link p-0 text-muted shadow-none d-flex align-items-center justify-content-center border-0 bg-transparent"
+                        style="height: 16px; width: 16px;"
+                        onclick="navigator.clipboard.writeText('${fullHash}'); this.innerHTML='<i class=\'ri-check-line text-success\' style=\'font-size: 13px;\'></i>'; setTimeout(()=>this.innerHTML='<i class=\'ri-file-copy-line\'></i>', 1500)"
+                        title="Copy Full Hash">
+                    <i class="ri-file-copy-line" style="font-size: 12px;"></i>
+                </button>
+            </div>`;
+                    }
+
+                    const row = document.createElement('tr');
+                    row.className = 'gridjs-tr';
+                    row.innerHTML = `
+        <td class="gridjs-td fw-medium px-3">${rowNumber}</td>
+        <td class="gridjs-td text-muted">${tx.timestamp}</td>
+        <td class="gridjs-td">${email}</td>
+        <td class="gridjs-td">${hashHtml}</td>
+        <td class="gridjs-td"><span class="badge bg-light text-dark border-0 shadow-sm px-2 py-1" style="border-radius: 4px; font-weight: 600;">${currencyName}</span></td>
+        <td class="gridjs-td fw-bold text-success">${amountHtml}</td>
+        <td class="gridjs-td">
+            <span class="status-badge ${statusClass}">
+                <i class="${statusIcon} align-middle me-1"></i>${statusText}
+            </span>
+        </td>`;
+                    tbody.appendChild(row);
+                });
+            }
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    fetchTransactions(1, searchInput.value.trim(), dateFilterSelect.value); // 🛠️ حفظ وضعیت فیلتر زمان هنگام سرچ متنی
+                }, 500);
+            });
+
+            // 🛠️ شنونده‌ی پویای رویداد تغییر وضعیت فیلتر زمانی
+            dateFilterSelect.addEventListener('change', () => {
+                fetchTransactions(1, searchInput.value.trim(), dateFilterSelect.value);
+            });
+
+            // 🛠️ افزودن پارامتر حفظ وضعیت دیتای سرچ و زمان به دکمه‌های ناوبری پجینیشن
+            function renderPagination(query = '', dateFilter = 'all') {
+                pageList.innerHTML = '';
+                if (numPages <= 1) {
+                    prevBtn.classList.add('disabled');
+                    nextBtn.classList.add('disabled');
+                    return;
+                }
+
+                for (let i = 1; i <= numPages; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link shadow-none" href="#">${i}</a>`;
+                    li.onclick = (e) => {
+                        e.preventDefault();
+                        fetchTransactions(i, query, dateFilter);
+                    };
+                    pageList.appendChild(li);
+                }
+
+                prevBtn.classList.toggle('disabled', currentPage === 1);
+                nextBtn.classList.toggle('disabled', currentPage === numPages);
+
+                prevBtn.onclick = () => {
+                    if (currentPage > 1) fetchTransactions(currentPage - 1, query, dateFilter);
+                };
+                nextBtn.onclick = () => {
+                    if (currentPage < numPages) fetchTransactions(currentPage + 1, query, dateFilter);
+                };
+            }
+
+            fetchTransactions();
+        });
+    </script>
+{% endblock %}

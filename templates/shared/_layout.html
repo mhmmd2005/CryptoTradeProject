@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-layout="vertical" data-topbar="dark" data-sidebar="dark" data-sidebar-size="lg"
+      data-sidebar-image="none" data-layout-mode="dark" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>{% block title %}{% endblock %}</title>
+
+    <script>
+        (function () {
+            // ۱. خواندن پیکربندی کامل قالب از حافظه مرورگر
+            let config = {};
+            try {
+                config = JSON.parse(sessionStorage.getItem('defaultAttribute') || localStorage.getItem('defaultAttribute') || '{}');
+            } catch (e) {
+            }
+
+            let savedTheme = config['data-layout-mode'] || localStorage.getItem('data-layout-mode') || sessionStorage.getItem('data-layout-mode');
+            let savedTopbar = config['data-topbar'] || localStorage.getItem('data-topbar') || sessionStorage.getItem('data-topbar');
+
+            if (!savedTheme) savedTheme = 'dark';
+            if (!savedTopbar) savedTopbar = (savedTheme === 'dark' ? 'dark' : 'light');
+
+            // مهار تداخل لایت در بدو ورود: اگر تم لایت است، هدر حتماً سفید (light) بماند
+            if (savedTheme === 'light') {
+                savedTopbar = 'light';
+            }
+
+            // اعمال آنی ویژگی‌ها روی روت قبل از رندر شدن سنگین بدنه صفحه
+            document.documentElement.setAttribute('data-layout-mode', savedTheme);
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            document.documentElement.setAttribute('data-topbar', savedTopbar);
+
+            // اعمال سایر ویژگی‌های ذخیره شده ولزون جهت حفظ یکپارچگی سایدبار و ابعاد قالب
+            for (const key in config) {
+                if (config.hasOwnProperty(key) && key !== 'data-layout-mode' && key !== 'data-topbar') {
+                    document.documentElement.setAttribute(key, config[key]);
+                }
+            }
+
+            // ۲. ناظر هوشمند زنده (MutationObserver) برای مهار تغییرات لحظه‌ای کاستومایزر
+            const observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    if (mutation.attributeName === 'data-layout-mode') {
+                        const currentMode = document.documentElement.getAttribute('data-layout-mode');
+                        if (currentMode === 'light') {
+                            // قطع دسترسی ابزارهای فرعی برای تبدیل هدر به رنگ آبی (brand) و تثبیت رنگ سفید
+                            if (document.documentElement.getAttribute('data-topbar') !== 'light') {
+                                document.documentElement.setAttribute('data-topbar', 'light');
+                            }
+                        }
+                    }
+                });
+            });
+
+            // آغاز بکار ناظر زنده به محض آماده شدن سند اصلی
+            document.addEventListener("DOMContentLoaded", function () {
+                observer.observe(document.documentElement, {attributes: true});
+            });
+        })();
+    </script>
+
+    <script>
+        const staticBase = "{% static '' %}";
+        window.STATIC_URL = staticBase;
+        window.rootUrl = staticBase + "assets/";
+        window.base_url = staticBase + "assets/";
+    </script>
+    {% include 'header_include/header_references.html' %}
+    {% block header_references %}{% endblock %}
+    {% block css %}{% endblock %}
+    <style>
+        #back-to-top {
+            display: none;
+            position: fixed;
+            right: 26px;
+            z-index: 99;
+        }
+    </style>
+</head>
+<body>
+
+{% include 'header_include/header_include.html' %}
+{% block content %}{% endblock %}
+{% include 'Theme_Setting/Theme_Setting.html' %}
+{% include 'sidebar_include/sidebar_include.html' %}
+{% include 'footer_references/footer_references.html' %}
+{% block footer_references %}{% endblock %}
+
+<button class="btn btn-danger btn-icon" id="back-to-top">
+    <i class="ri-arrow-up-line"></i>
+</button>
+
+<div class="customizer-setting d-none d-md-block">
+    <div class="btn-primary btn-rounded shadow-lg btn btn-icon btn-lg p-2" data-bs-toggle="offcanvas"
+         data-bs-target="#theme-settings-offcanvas" aria-controls="theme-settings-offcanvas">
+        <i class='mdi mdi-spin mdi-cog-outline fs-22'></i>
+    </div>
+</div>
+
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notification Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="mainNotificationText" style="white-space: pre-wrap;"></div>
+                <div id="adminNoteBox" class="mt-3 p-3 border rounded"
+                     style=" border-left: 4px solid #0d6efd; display: none;">
+                    <small class="fw-bold text-primary d-block mb-1">Admin Note:</small>
+                    <div id="adminNoteText" style="white-space: pre-wrap; font-size: 0.9rem;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showNotification(fullMessage, notificationId) {
+        const adminNoteBox = document.getElementById('adminNoteBox');
+        const mainTextDiv = document.getElementById('mainNotificationText');
+        const adminTextDiv = document.getElementById('adminNoteText');
+
+        const parts = fullMessage.split('**Admin Note:**');
+        mainTextDiv.innerText = parts[0].trim();
+
+        if (parts.length > 1) {
+            adminTextDiv.innerText = parts[1].trim();
+            adminNoteBox.style.display = 'block';
+        } else {
+            adminNoteBox.style.display = 'none';
+        }
+
+        if (notificationId) {
+            fetch(`/notifications/mark-as-read/${notificationId}/`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            }).then(() => {
+                const item = document.querySelector(`[data-id="${notificationId}"]`);
+                if (item) item.classList.remove('active');
+            });
+        }
+    }
+</script>
+
+<script>
+    (function () {
+        function fixAdminPaths() {
+            const basePath = window.STATIC_URL + "assets/images/flags/";
+            const mainFlag = document.getElementById('custom-header-lang-img');
+            if (mainFlag && !mainFlag.src.includes('/static/')) {
+                mainFlag.src = basePath + mainFlag.src.split('/').pop();
+            }
+            document.querySelectorAll('.custom-lang-item img').forEach(img => {
+                if (img.src && !img.src.includes('/static/')) {
+                    img.src = basePath + img.src.split('/').pop();
+                }
+            });
+        }
+
+        const backToTopBtn = document.getElementById("back-to-top");
+        if (backToTopBtn) {
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 100) {
+                    backToTopBtn.style.display = "block";
+                } else {
+                    backToTopBtn.style.display = "none";
+                }
+            });
+
+            backToTopBtn.addEventListener('click', function () {
+                const duration = 1000;
+                const start = window.pageYOffset;
+                const startTime = performance.now();
+
+                function scrollAnimation(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    const ease = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                    window.scrollTo(0, start * (1 - ease));
+
+                    if (progress < 1) {
+                        requestAnimationFrame(scrollAnimation);
+                    }
+                }
+
+                requestAnimationFrame(scrollAnimation);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', fixAdminPaths);
+
+        window.addEventListener('load', function () {
+            window.dispatchEvent(new Event('resize'));
+
+            setTimeout(function () {
+                window.dispatchEvent(new Event('resize'));
+            }, 100);
+        });
+    })();
+</script>
+
+</body>
+{% block js %}
+{% endblock %}
+</html>

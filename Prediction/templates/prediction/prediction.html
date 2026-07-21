@@ -1,0 +1,1392 @@
+{% extends 'shared/_layout.html' %}
+{% load static %}
+{% load tz %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}
+    {{ asset.symbol }} Round Details | Trading Terminal
+{% endblock %}
+
+{% block css %}
+    <style>
+        /* ==========================================
+           ۱. متغیرهای سراسری و تم‌پذیری (Themes)
+           ========================================== */
+        :root {
+            --tf-bg: #262a2f;
+            --tf-bg-hover: #25303b;
+            --tf-bg-active: #2b3642;
+            --tf-border: rgba(255, 255, 255, 0.05);
+            --tf-border-active: #3b4756;
+            --tf-text: #cbd5e1;
+            --tf-text-active: #e5e7eb;
+        }
+
+        html[data-layout-mode="light"] {
+            --tf-bg: #ffffff;
+            --tf-bg-hover: #f1f5f9;
+            --tf-bg-active: #e2e8f0;
+            --tf-border: rgba(0, 0, 0, 0.12);
+            --tf-border-active: rgba(0, 0, 0, 0.25);
+            --tf-text: #334155;
+            --tf-text-active: #0f172a;
+        }
+
+        /* کامپوننت‌های عمومی متمایز */
+        .stark-border-soft-ui {
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 8px !important; /* کالیبراسیون دقیق لبه‌ها */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important; /* سایه ملایم و عمق‌دار */
+        }
+
+        .swal2-timer-progress-bar {
+            background: rgba(75, 56, 179, 0.5) !important;
+        }
+
+        /* شخصی‌سازی تولیپ */
+        .tooltip-inner {
+            background-color: #1e2227 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .tooltip .tooltip-arrow::before {
+            border-top-color: #1e2227 !important;
+        }
+
+        /* ==========================================
+           ۲. ساختار کانتینرها و اسکلتون لودر
+           ========================================== */
+        .tf-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .skeleton {
+            background: #2a2e33;
+            background: linear-gradient(110deg, #2a2e33 8%, #363b42 18%, #2a2e33 33%);
+            background-size: 200% 100%;
+            animation: skeleton-shine 1.5s linear infinite;
+            border-radius: 6px;
+            border: none !important;
+        }
+
+        .skeleton-card {
+            height: 250px;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        @keyframes skeleton-shine {
+            to {
+                background-position-x: -200%;
+            }
+        }
+
+        /* ==========================================
+           ۳. کارت اصلی معامله (The Trading Card)
+           ========================================== */
+        .tf-card {
+            flex: 1 1 22%;
+            min-width: 220px;
+            min-height: 320px;
+            background-color: #212529;
+            color: #ffffff;
+            border-radius: 8px; /* کالیبراسیون بر پایه سیستم طراحی Soft UI */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 15px;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.3s, opacity 0.3s;
+            position: relative;
+        }
+
+        .tf-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .tf-card .tf-header {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #3d4248;
+            padding-bottom: 10px;
+        }
+
+        .tf-card .tf-header h6,
+        .tf-card .tf-header small {
+            color: #f8f9fa !important;
+        }
+
+        .tf-card .tf-time {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* ==========================================
+           ۴. کنترلرها، دکمه‌های جهت و فرم‌ها
+           ========================================== */
+        .input-group {
+            width: 100%;
+            padding-left: 1px;
+            padding-right: 1px;
+            border-radius: 6px;
+        }
+
+        .input-group-text,
+        .form-control,
+        .tf-input {
+            border-radius: 6px;
+            background: #1a1d21;
+            border: 1px solid #333;
+            color: white;
+        }
+
+        .form-select {
+            border-radius: 6px;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            background-image: none !important;
+            padding-right: 8px !important;
+        }
+
+        .tf-card .tf-input {
+            margin-bottom: 10px;
+        }
+
+        .input-group input[type=number]::-webkit-outer-spin-button,
+        .input-group input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+        }
+
+        .input-group input[type=number] {
+            -moz-appearance: textfield !important;
+        }
+
+        .input-group.mb-2 .form-select {
+            flex: 0 0 70px !important;
+            max-width: 70px !important;
+            padding: 4px 6px !important;
+            font-size: 0.85rem !important;
+        }
+
+        #predictionForm .input-group > * {
+            border-radius: 6px;
+        }
+
+        #predictionForm .input-group > *:last-child {
+            margin-right: 0;
+        }
+
+        .tf-toggle {
+            display: flex;
+            gap: 8px;
+            height: 38px;
+            min-width: 90px;
+            background: transparent;
+            margin-bottom: 10px;
+        }
+
+        .tf-option {
+            flex: 1;
+            background-color: var(--tf-bg);
+            border: 1px solid var(--tf-border);
+            border-radius: 6px;
+            color: var(--tf-text);
+            font-size: 0.85rem;
+            padding: 0 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 45px;
+            font-weight: 600;
+        }
+
+        .tf-option:hover:not(:disabled) {
+            background-color: var(--tf-bg-hover);
+        }
+
+        .tf-option.active {
+            background-color: #0d6efd !important;
+            border-color: var(--tf-border-active);
+            color: #ffffff !important;
+        }
+
+        .tf-option:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(1);
+            background-color: #1a1d21 !important;
+            border-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        .tf-card .tf-submit {
+            width: 100%;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        /* ==========================================
+           ۵. سیستم انیمیشن زنده و لودینگ سه بعدی
+           ========================================== */
+        #balanceAmount {
+            transition: color 0.5s ease, transform 0.3s ease;
+            display: inline-block;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .balance-up {
+            color: #28a745 !important;
+            transform: scale(1.05);
+            font-weight: bold;
+        }
+
+        .balance-down {
+            color: #dc3545 !important;
+            transform: scale(0.98);
+            font-weight: bold;
+        }
+
+        #currency-loading {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        #currency-loading .spinner3d {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            margin: 0 auto 8px auto;
+        }
+
+        #currency-loading .spinner3d div {
+            box-sizing: border-box;
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #0d6efd;
+            border-radius: 50%;
+            animation: spin3d 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #0d6efd transparent transparent transparent;
+        }
+
+        #currency-loading .spinner3d div:nth-child(1) {
+            animation-delay: -0.45s;
+        }
+
+        #currency-loading .spinner3d div:nth-child(2) {
+            animation-delay: -0.3s;
+        }
+
+        #currency-loading .spinner3d div:nth-child(3) {
+            animation-delay: -0.15s;
+        }
+
+        @keyframes spin3d {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #currency-loading .progress-bar {
+            width: 60%;
+            height: 4px;
+            background-color: rgba(13, 110, 253, 0.2);
+            border-radius: 2px;
+            margin: 6px auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #currency-loading .progress-bar::after {
+            content: '';
+            position: absolute;
+            left: -40%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, #0d6efd, #00d4ff);
+            animation: move 1s linear infinite;
+        }
+
+        #currency-loading p {
+            font-size: 13px;
+            color: #0d6efd;
+            margin: 6px 0 0 0;
+            font-weight: 500;
+        }
+
+        @keyframes move {
+            0% {
+                left: -40%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        #currency-loading p.colorPulse {
+            animation: colorPulse 1.5s infinite;
+        }
+
+        @keyframes colorPulse {
+            0%, 100% {
+                color: #0d6efd;
+            }
+            50% {
+                color: #00d4ff;
+            }
+        }
+
+        /* ==========================================
+           ۶. معماری مدرن دو وضعیتی قفل‌ها (Dual-State Locks)
+           ========================================== */
+
+        /* [وضعیت اول]: انتظار نتیجه با حفظ شفافیت کامل برای خوانایی داده‌ها */
+        .tf-card.state-bet-placed {
+            pointer-events: none;
+            overflow: hidden;
+            border: 1px solid rgba(13, 110, 253, 0.5) !important; /* مرز هوشمند درخشان */
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.15) !important;
+        }
+
+        .tf-card.state-bet-placed::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* رنگ بسیار ملایم شیمر خطی بدون ایجاد مزاحمت برای متن */
+            background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0) 30%,
+                    rgba(13, 110, 253, 0.08) 50%,
+                    rgba(255, 255, 255, 0) 70%
+            );
+            background-size: 300% 300%;
+            animation: sweep-effect 3.5s ease-in-out infinite;
+            z-index: 1;
+            border-radius: inherit;
+            backdrop-filter: none !important; /* حذف بلور برای شفافیت کامل */
+        }
+
+        .tf-card.state-bet-placed::after {
+            content: "🔒 PENDING";
+            position: absolute;
+            top: 10px;
+            right: 10px; /* انتقال به گوشه راست بالا برای جلوگیری از شلوغی مرکز کارت */
+            background: #0d6efd;
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 5px;
+            z-index: 10;
+            font-weight: 700;
+            font-size: 0.72rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            animation: pulse-lock 2s infinite ease-in-out;
+        }
+
+        /* [وضعیت دوم]: زمان ورود منقضی شده */
+        .tf-card.state-entry-closed {
+            opacity: 0.5;
+            filter: grayscale(0.6);
+            pointer-events: none;
+        }
+
+        @keyframes pulse-lock {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(0.95);
+                opacity: 0.85;
+            }
+        }
+
+        @keyframes sweep-effect {
+            0% {
+                background-position: 100% 100%;
+            }
+            50% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .col-xl-2-4 {
+                flex: 0 0 20% !important;
+                max-width: 20% !important;
+            }
+        }
+    </style>
+
+
+{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0 text-uppercase fw-bold" style="letter-spacing: 0.5px;">Trade
+                                Terminal</h4>
+
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">Analytics</a></li>
+                                    <li class="breadcrumb-item active">Terminal</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- end page title -->
+
+                <div class="row">
+                    <div class="col-xl-2-4 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <p class="text-uppercase fw-medium text-muted mb-0"
+                                           data-bs-toggle="tooltip" data-bs-placement="top"
+                                           title="Your real earnings. Calculated as: Total Returns minus Total Investment.">
+                                            Net Profit (PNL) <i class="ri-information-line align-middle text-muted"></i>
+                                        </p>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-0">$<span
+                                                id="stat-net-profit">0.00</span></h4>
+                                    </div>
+                                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-soft-primary rounded fs-3">
+                            <i class="ri-money-dollar-circle-line text-primary"></i>
+                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-2-4 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <p class="text-uppercase fw-medium text-muted mb-0"
+                                           data-bs-toggle="tooltip" data-bs-placement="top"
+                                           title="Net profit or loss generated from trades settled today.">
+                                            Today's PnL <i class="ri-information-line align-middle text-muted"></i>
+                                        </p>
+                                        <h4 id="stat-today-profit" class="fs-22 fw-semibold ff-secondary mb-0">
+                                            $0.00</h4>
+                                    </div>
+                                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-soft-danger rounded fs-3">
+                            <i class="ri-line-chart-line text-danger"></i>
+                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-2-4 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <p class="text-uppercase fw-medium text-muted mb-0"
+                                           data-bs-toggle="tooltip" data-bs-placement="top"
+                                           title="Success ratio. The percentage of your winning trades.">
+                                            Win Rate <i class="ri-information-line align-middle text-muted"></i>
+                                        </p>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-0"><span
+                                                id="stat-win-rate">0%</span></h4>
+                                    </div>
+                                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-soft-warning rounded fs-3">
+                            <i class="ri-trophy-line text-warning"></i>
+                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-2-4 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <p class="text-uppercase fw-medium text-muted mb-0"
+                                           data-bs-toggle="tooltip" data-bs-placement="top"
+                                           title="Profitability leader. The trading pair where you have generated the highest net profit.">
+                                            Best Asset <i class="ri-information-line align-middle text-muted"></i>
+                                        </p>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-0"><span
+                                                id="stat-best-asset">N/A</span></h4>
+                                    </div>
+                                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-soft-success rounded fs-3">
+                            <i class="ri-funds-line text-success"></i>
+                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-2-4 col-sm-6">
+                        <div class="card card-animate">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <p class="text-uppercase fw-medium text-muted mb-0"
+                                           data-bs-toggle="tooltip" data-bs-placement="top"
+                                           title="Trading activity. Total number of orders you have placed.">
+                                            Total Predictions <i
+                                                class="ri-information-line align-middle text-muted"></i>
+                                        </p>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-0"><span
+                                                id="stat-total-bets">0</span></h4>
+                                    </div>
+                                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-soft-info rounded fs-3">
+                            <i class="ri-numbers-line text-info"></i>
+                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end row-->
+
+
+                <div class="row">
+                    <div class="col-xxl-9">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">Market Chart</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="tv_chart" style="height:350px"></div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3" style="background: #1a1d21; border: 1px solid #2d3239;">
+                            <div class="card-header border-0 align-items-center d-flex" style="background: #1a1d21;">
+                                <h4 class="card-title mb-0 flex-grow-1 text-white">Position History</h4>
+                                <div class="flex-shrink-0">
+                                    <a href="{% url 'prediction-history' %}"
+                                       class="btn btn-soft-primary btn-sm">
+                                        See All <i class="ri-arrow-right-line align-middle ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive"
+                                     style="max-height: 360px; overflow-y: auto; scrollbar-width: thin;">
+                                    <table class="table table-dark table-nowrap align-middle mb-0">
+                                        <thead class="table-light"
+                                               style="position: sticky; top: 0; z-index: 10; --vz-table-bg: #22272e;">
+                                        <tr>
+                                            <th class="ps-4">Asset</th>
+                                            <th>Side</th>
+                                            <th>Entry Price</th>
+                                            <th>Amount</th>
+                                            <th>Timeframe</th>
+                                            <th>Result</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="historyTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xxl-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">Position Center</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="tab-content text-muted">
+                                    <div class="tab-pane active" id="cryptoBuy" role="tabpanel">
+                                        <div class="p-3 bg-soft-primary">
+                                            <div class="float-end ms-2">
+                                                <h6 class="text-primary mb-0">
+                                                    Balance : <span id="balanceAmount">
+            {{ wallet.balance|default:0|floatformat:2|intcomma }}
+        </span>
+                                                </h6>
+                                            </div>
+                                            <h6 class="mb-0 text-primary">Active Round</h6>
+                                        </div>
+
+                                        <div class="p-3"
+                                             style="min-height: 333px; display: flex; flex-direction: column;">
+                                            <form method="post" id="predictionForm" style="flex-grow: 1;">
+                                                {% csrf_token %}
+                                                <div class="mb-3">
+                                                    <label for="currencySelect" class="form-label">Select
+                                                        Currency*</label>
+                                                    <select class="form-select" id="currencySelect" name="currency">
+                                                        <option value="" selected disabled>--- Choose ---</option>
+                                                        {% for a in assets %}
+                                                            <option value="{{ a.symbol }}"
+                                                                    {% if selected_symbol == a.symbol %}selected{% endif %}>
+                                                                {{ a.symbol }}
+                                                            </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3" id="timeframeContainer"
+                                                     style="display: {% if timeframes %}block{% else %}none{% endif %};">
+                                                    <label for="timeframeSelect" class="form-label">Select Timeframe
+                                                        *</label>
+                                                    <select class="form-select" id="timeframeSelect" name="timeframe">
+                                                        {% for tf in timeframes %}
+                                                            <option value="{{ tf.seconds }}"
+                                                                    {% if forloop.first %}selected{% endif %}>
+                                                                {{ tf.minutes }} minutes
+                                                            </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+
+                                                <div id="currency-loading" style="display:none;">
+                                                    <div class="spinner3d">
+                                                        <div></div>
+                                                        <div></div>
+                                                        <div></div>
+                                                        <div></div>
+                                                    </div>
+                                                    <p class="colorPulse">Loading...</p>
+                                                </div>
+
+                                                <div id="tf-loading"
+                                                     style="display:none;text-align:center;margin-top:10px">
+                                                    <span class="spinner-border spinner-border-sm"></span>
+                                                </div>
+
+                                                <div id="roundContainer"
+                                                     style="display: {% if selected_symbol %}block{% else %}none{% endif %}">
+                                                    {% if not round %}
+                                                        <p class="text-danger">No active round</p>
+                                                    {% endif %}
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="tfFormsContainer" class="tf-container mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <footer class="footer"
+                style="padding: 20px 24px; background: transparent; border-top: 1px solid rgba(0,0,0,0.03);">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-12 text-center text-sm-start">
+                        <div class="text-muted fs-13 d-inline-flex align-items-center justify-content-center justify-content-sm-start"
+                             style="gap: 6px; line-height: 1;">
+                            <span>&copy;</span>
+                            <span id="footer-year" class="fw-medium"></span>
+                            <span class="text-dark fw-bold" style="letter-spacing: 0.3px;">NexTrade</span>
+                            <span class="text-muted-light" style="margin: 0 2px;">•</span>
+                            <span>All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // 🌟 تزریق یکپارچه و هم‌تراز سال جاری به فوتور پلتفرم
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+    </script>
+
+
+    <script>
+        // --- ۱. تنظیمات و متغیرهای سراسری ---
+        let globalActiveBets = {{ active_bets_json|default:"[]"|safe }};
+        let lastBalance = null;
+        let tvWidget = null;
+        let serverMoment = new Date("{{ server_time }}").getTime();
+        let localStart = Date.now();
+
+        const ENTRY_WINDOW = 20;
+
+        function getStartTime() {
+            return new Date(ROUND_DATA.tf_start_at).getTime();
+        }
+
+        function getTotalCycle(tf) {
+            return tf + ENTRY_WINDOW;
+        }
+
+        function getCurrentCycle(tf) {
+            const startTime = getStartTime();
+            const elapsed = (getCurrentServerTime() - startTime) / 1000;
+            return Math.floor(elapsed / getTotalCycle(tf));
+        }
+
+        function getCycleElapsed(tf) {
+            const startTime = getStartTime();
+            const elapsed = (getCurrentServerTime() - startTime) / 1000;
+            return elapsed % getTotalCycle(tf);
+        }
+
+        function formatTime(totalSeconds) {
+            const sec = Math.max(0, Math.ceil(totalSeconds));
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+
+            let result = "";
+            if (h > 0) result += `${h}H `;
+            if (h > 0 || m > 0) result += `${m}M `;
+            result += `${s}S`;
+            return result;
+        }
+
+        function getCurrentServerTime() {
+            return serverMoment + (Date.now() - localStart);
+        }
+
+        let popupQueue = [];
+        let popupActive = false;
+        let roundSocket = null;
+
+        const CURRENT_USER_ID = {{ request.user.id|default:0 }};
+        const ROUND_DATA = {
+            id: {{ round.id|default:"null"|safe }},
+            symbol: "{{ round.asset.symbol|default:'' }}",
+            tf_start_at: "{{ round.current_tf_start_at|date:'c'|default:'' }}"
+        };
+
+        // --- ۲. مدیریت وب‌ساکت ---
+        const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const socketUrl = `${protocol}${window.location.host}/ws/rounds/`;
+
+        function connectSocket() {
+            if (roundSocket && (roundSocket.readyState === WebSocket.OPEN || roundSocket.readyState === WebSocket.CONNECTING)) {
+                return;
+            }
+            roundSocket = new WebSocket(socketUrl);
+            roundSocket.onopen = () => console.log("✅ WebSocket Connected");
+            roundSocket.onmessage = handleSocketMessage;
+            roundSocket.onerror = (error) => {
+                console.error("❌ WebSocket Error", error);
+                roundSocket.close();
+            };
+            roundSocket.onclose = () => {
+                console.warn("⚠️ WebSocket Closed");
+                setTimeout(() => connectSocket(), 3000);
+            };
+        }
+
+        function enqueueSettlement(data) {
+            popupQueue.push(data);
+            popupQueue.sort((a, b) => new Date(a.settled_at) - new Date(b.settled_at));
+            processQueue();
+        }
+
+        function processQueue() {
+            if (popupActive || popupQueue.length === 0) return;
+            popupActive = true;
+            const tradeData = popupQueue.shift();
+            showResultPopupWithCallback(tradeData, () => {
+                popupActive = false;
+                processQueue();
+            });
+        }
+
+        function showResultPopupWithCallback(trade, onClose) {
+            const result = trade.result;
+            const payout = trade.payout;
+            const amount = trade.amount;
+            const isWin = result === "win";
+            const isRefund = result === "refund";
+            const fPayout = parseFloat(payout) || 0;
+            const fAmount = parseFloat(amount) || 0;
+
+            let iconColor, title, emoji, soundFile, bodyHtml;
+
+            if (isWin) {
+                iconColor = "#28a745";
+                title = "💰 VICTORY!";
+                emoji = "🏆🎉";
+                soundFile = "win.mp3";
+                bodyHtml = `
+            <div class="p-3">
+                <div class="mb-3">
+                    <div class="badge bg-primary">${trade.symbol}</div>
+                    <div class="mt-2">${trade.direction.toUpperCase()} | ${trade.timeframe}s</div>
+                </div>
+                <div class="display-4 fw-bold text-success">+$${fPayout.toFixed(2)}</div>
+                <hr>
+                <small>Entry: ${trade.entry_price}<br>Exit: ${trade.exit_price}</small>
+            </div>`;
+            } else if (isRefund) {
+                iconColor = "#ffc107";
+                title = "🔄 PRICE STUCK";
+                bodyHtml = `
+            <div class="p-3">
+                <p class="text-white">Market didn't move.</p>
+                <p>Refunded: <strong>$${fAmount.toFixed(2)}</strong></p>
+            </div>`;
+            } else {
+                iconColor = "#dc3545";
+                title = " LOSS";
+                soundFile = "lose.mp3";
+                bodyHtml = `
+            <div class="p-3">
+                <p class="text-white">Lost: <strong class="text-danger">-$${fAmount.toFixed(2)}</strong></p>
+            </div>`;
+            }
+
+            if (soundFile && window.audioEnabled !== false) {
+                const audio = new Audio(`/static/sounds/${soundFile}`);
+                audio.volume = 0.3;
+                audio.play().catch(() => {
+                });
+            }
+
+            if (isWin) {
+                confetti({particleCount: 200, spread: 100, origin: {y: 0.7}});
+                setTimeout(() => {
+                    confetti({particleCount: 100, spread: 70, origin: {x: 1, y: 0.5}});
+                }, 200);
+            } else if (!isRefund) {
+                document.body.style.transform = 'translateX(4px)';
+                setTimeout(() => document.body.style.transform = '', 100);
+            }
+
+            highlightRelatedCard();
+
+            Swal.fire({
+                title: `${emoji} ${title}`,
+                html: bodyHtml,
+                background: '#1a1d21',
+                showConfirmButton: true,
+                confirmButtonText: 'Continue',
+                confirmButtonColor: iconColor,
+                timer: isWin ? 4000 : 3000,
+                timerProgressBar: true,
+                backdrop: 'rgba(0,0,0,0.6)',
+                customClass: {popup: 'stark-border-soft-ui animated bounceIn', title: 'fs-2'},
+                willClose: () => {
+                    if (onClose) onClose();
+                }
+            });
+        }
+
+        function highlightRelatedCard() {
+            document.querySelectorAll('.tf-card.state-bet-placed').forEach(card => {
+                card.style.transition = 'box-shadow 0.2s';
+                card.style.boxShadow = '0 0 15px rgba(255,193,7,0.8)';
+                setTimeout(() => card.style.boxShadow = '', 1000);
+            });
+        }
+
+        function handleSocketMessage(e) {
+            let data;
+            try {
+                data = JSON.parse(e.data);
+            } catch (err) {
+                return;
+            }
+            if (data.type !== "settlement_notification") return;
+
+            const tf = parseInt(data.timeframe || data.timeframe_seconds || 0);
+            const cycleElapsed = getCycleElapsed(tf);
+            const totalCycleTime = ENTRY_WINDOW + tf;
+            const remainingSeconds = totalCycleTime - cycleElapsed;
+
+            const delayMs = remainingSeconds > 0 ? (remainingSeconds * 1000) : 0;
+
+            setTimeout(() => {
+                enqueueSettlement(data);
+
+                const card = document.querySelector(`.tf-card[data-timeframe="${tf}"]`);
+                if (card) {
+                    card.classList.remove('state-bet-placed', 'state-entry-closed');
+                    delete card.dataset.betCycle;
+
+                    const inputField = card.querySelector(".tf-input");
+                    const submitBtn = card.querySelector(".tf-submit");
+                    if (inputField) {
+                        inputField.value = "";
+                        inputField.disabled = false;
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Place Trade";
+                    }
+                }
+
+                syncLocksWithServer();
+                updateBalance();
+                updateRowInTable(data);
+                updateDashboardStats();
+            }, delayMs);
+        }
+
+        connectSocket();
+
+        // --- ۳. توابع کمکی و جداول تکمیلی ---
+        function updateRowInTable(data) {
+            const row = document.getElementById(`pred-row-${data.prediction_id}`);
+            if (!row) return;
+            const resultCell = row.querySelector('.result-cell');
+            if (!resultCell) return;
+            const isWin = data.result === 'win';
+            const isRefund = data.result === 'refund';
+
+            resultCell.classList.remove('text-warning', 'text-success', 'text-danger', 'text-info', 'fw-bold');
+            if (isWin) {
+                resultCell.classList.add('text-success', 'fw-bold');
+                resultCell.innerHTML = `+$${parseFloat(data.payout).toFixed(2)}`;
+                row.style.backgroundColor = 'rgba(25,135,84,0.12)';
+            } else if (isRefund) {
+                resultCell.classList.add('text-info');
+                resultCell.innerHTML = 'REFUNDED';
+                row.style.backgroundColor = 'rgba(13,202,240,0.12)';
+            } else {
+                resultCell.classList.add('text-danger');
+                resultCell.innerHTML = 'LOSS';
+                row.style.backgroundColor = 'rgba(220,53,69,0.12)';
+            }
+            setTimeout(() => row.style.backgroundColor = '', 2000);
+        }
+
+        function renderHistoryTable(predictions) {
+            const tbody = document.getElementById('historyTableBody');
+            if (!tbody) return;
+            if (!predictions || predictions.length === 0) {
+                tbody.innerHTML = '<td><td colspan="6" class="text-center py-4 text-muted">No recent trades</td></tr>';
+                return;
+            }
+            tbody.innerHTML = predictions.map(p => {
+                const rowId = `pred-row-${p.id}`;
+                let resDisplay = p.settled ? (p.result === 'win' ? "+$" + parseFloat(p.payout).toFixed(2) : p.result.toUpperCase()) : '<span class="spinner-border spinner-border-sm text-warning"></span> PENDING';
+                let resClass = p.settled ? (p.result === 'win' ? "text-success fw-bold" : "text-danger") : "text-warning";
+                const sideBadge = p.direction === 'up' ? 'bg-success' : 'bg-danger';
+                return `
+            <tr id="${rowId}" style="border-bottom: 1px solid #2d3239; transition: background-color 0.5s ease;">
+                <td class="ps-4">
+                    <h6 class="fs-14 mb-0 text-white">${p.symbol}</h6>
+                    <small class="text-muted">${p.timestamp || p.created_at}</small>
+                </td>
+                <td><span class="badge ${sideBadge} text-uppercase">${p.direction}</span></td>
+                <td class="text-white">$${p.entry_price}</td>
+                <td class="text-white">$${parseFloat(p.amount).toFixed(2)}</td>
+                <td><span class="badge bg-soft-light text-white">${p.timeframe}</span></td>
+                <td class="result-cell ${resClass}">${resDisplay}</td>
+            </tr>`;
+            }).join('');
+        }
+
+        function updateDashboardStats() {
+            fetch("{% url 'user_stats_api' %}")
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.error) return;
+
+                    const elProfit = document.getElementById('stat-net-profit');
+                    const elWinRate = document.getElementById('stat-win-rate');
+                    const elBest = document.getElementById('stat-best-asset');
+                    const elTotal = document.getElementById('stat-total-bets');
+                    const elTodayProfit = document.getElementById('stat-today-profit'); // المان کارت امروز
+
+                    // تزریق داده‌های اصلی داشبورد
+                    if (elProfit) elProfit.innerText = data.net_profit;
+                    if (elWinRate) {
+                        elWinRate.innerHTML = `${data.win_rate}<span class="fs-13 text-muted fw-normal ms-1">(${data.wins_count}W - ${data.losses_count}L)</span>`;
+                    }
+                    if (elBest) elBest.innerText = data.best_asset;
+                    if (elTotal) elTotal.innerText = data.total_bets;
+
+                    // مدیریت هوشمند و رنگ‌آمیزی داینامیک کارت سود/زیان امروز
+                    if (elTodayProfit && data.today_profit !== undefined) {
+                        const val = data.today_profit;
+                        const formattedVal = Math.abs(val).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+
+                        if (val > 0) {
+                            elTodayProfit.innerHTML = `+$${formattedVal}`;
+                            elTodayProfit.className = "fs-22 fw-semibold ff-secondary mb-0 text-success";
+                        } else if (val < 0) {
+                            elTodayProfit.innerHTML = `-$${formattedVal}`;
+                            elTodayProfit.className = "fs-22 fw-semibold ff-secondary mb-0 text-danger";
+                        } else {
+                            elTodayProfit.innerHTML = `$0.00`;
+                            elTodayProfit.className = "fs-22 fw-semibold ff-secondary mb-0 text-muted";
+                        }
+                    }
+
+                    if (data.latest_predictions) renderHistoryTable(data.latest_predictions);
+                })
+                .catch(err => console.error("API Fetch Error (Check Django Console):", err));
+        }
+
+        // --- ۴. مدیریت هوشمند قفل‌های دو وضعیتی با ساختار منعطف سرور ---
+        function applyGlobalLocks() {
+            document.querySelectorAll('.tf-card').forEach(card => {
+                const cardIdx = parseInt(card.dataset.index);
+                const cardTf = parseInt(card.dataset.timeframe);
+                const currentCycle = getCurrentCycle(cardTf);
+
+                const activeBet = globalActiveBets.find(bet => {
+                    const betTimeframe = parseInt(bet.timeframe_seconds || bet.timeframe || 0);
+                    const betIndex = parseInt(bet.card_index || bet.card_idx || cardIdx);
+                    return betTimeframe === cardTf && betIndex === cardIdx;
+                });
+
+                const betCycle = parseInt(card.dataset.betCycle);
+                const hasLocalBet = (betCycle === currentCycle);
+
+                const isEntryWindowOpen = !card.classList.contains('state-entry-closed');
+                const inputField = card.querySelector(".tf-input");
+                const submitBtn = card.querySelector(".tf-submit");
+                const options = card.querySelectorAll(".tf-option");
+
+                if (activeBet || hasLocalBet || !isEntryWindowOpen) {
+                    if (inputField) inputField.disabled = true;
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = (activeBet || hasLocalBet) ? "🔒 Locked" : "Entry Closed";
+                    }
+                    options.forEach(btn => btn.disabled = true);
+
+                    if (activeBet || hasLocalBet) {
+                        card.classList.add('state-bet-placed');
+                        card.classList.remove('state-entry-closed');
+                    } else {
+                        card.classList.add('state-entry-closed');
+                        card.classList.remove('state-bet-placed');
+                    }
+                } else {
+                    if (inputField) inputField.disabled = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Place Trade";
+                    }
+                    options.forEach(btn => btn.disabled = false);
+                    card.classList.remove('state-bet-placed', 'state-entry-closed');
+                }
+            });
+        }
+
+        function syncLocksWithServer() {
+            fetch("{% url 'api_get_active_locks' %}").then(r => r.json()).then(data => {
+                if (data.status === "success") {
+                    globalActiveBets = data.active_bets;
+                    applyGlobalLocks();
+                }
+            });
+        }
+
+        function updateBalance() {
+            fetch('/api/wallet-balance/').then(r => r.json()).then(data => {
+                if (data.status === 'success') updateBalanceUI(data.formatted_balance);
+            });
+        }
+
+        function updateBalanceUI(formattedBalance) {
+            const balanceEl = document.getElementById("balanceAmount");
+            if (balanceEl) balanceEl.innerText = formattedBalance;
+        }
+
+        function renderAllCards(timeSeconds) {
+            const container = document.getElementById("tfFormsContainer");
+            if (!container || !timeSeconds) return;
+            container.innerHTML = "";
+            const singleCard = createSingleCard(1, timeSeconds);
+            container.appendChild(singleCard);
+            applyGlobalLocks();
+        }
+
+        function createSingleCard(index, timeframeSeconds) {
+            const div = document.createElement("div");
+            div.className = "tf-card";
+            div.dataset.index = index;
+            div.dataset.timeframe = timeframeSeconds;
+            div.innerHTML = `
+        <div class="tf-header text-center"><h5 class="mb-1">${ROUND_DATA.symbol} / USDT</h5><small><strong class="tf-timer text-warning">--:--</strong></small></div>
+        <div class="mt-3"><input type="number" class="form-control tf-input" placeholder="Trade Size ($)"></div>
+        <div class="tf-toggle mt-3 d-flex gap-2">
+            <button type="button" class="tf-option up btn btn-outline-success w-100">UP ↑</button>
+            <button type="button" class="tf-option down btn btn-outline-danger w-100">Down ↓</button>
+        </div>
+        <input type="hidden" class="tf-direction">
+        <button type="button" class="btn btn-primary w-100 mt-3 tf-submit">Place Trade</button>`;
+
+            const options = div.querySelectorAll(".tf-option");
+            options.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    options.forEach(b => b.classList.remove("active", "btn-success", "btn-danger"));
+                    btn.classList.add("active", btn.classList.contains('up') ? 'btn-success' : 'btn-danger');
+                    div.querySelector(".tf-direction").value = btn.classList.contains("up") ? "up" : "down";
+                });
+            });
+
+            div.querySelector(".tf-submit").addEventListener("click", function () {
+                const amount = div.querySelector(".tf-input").value;
+                const direction = div.querySelector(".tf-direction").value;
+                if (!amount || !direction) return alert("Select side and amount!");
+
+                this.disabled = true;
+                this.innerText = "Executing...";
+
+                fetch("{% url 'place_order_api' %}", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+// داخل fetch در بخش place-order
+                    body: JSON.stringify({
+                        bets: [{
+                            amount: parseFloat(amount), // تبدیل به عدد استاندارد برای جلوگیری از خطای دسیماال در JSON
+                            direction,
+                            round_id: ROUND_DATA.id,
+                            card_index: index,
+                            timeframe: timeframeSeconds,
+                            currency: 'usdttrc20' // اضافه کردن ارز برای هماهنگی با بک‌اند جدید
+                        }]
+                    })
+                }).then(r => r.json()).then(data => {
+                    if (data.status === "success") {
+                        div.dataset.betCycle = getCurrentCycle(timeframeSeconds);
+                        div.classList.add('state-bet-placed');
+                        div.classList.remove('state-entry-closed');
+
+                        syncLocksWithServer();
+                        updateBalance();
+                        updateDashboardStats();
+                    } else {
+                        alert(data.message);
+                        this.disabled = false;
+                        this.innerText = "Place Trade";
+                    }
+                }).catch(error => {
+                    console.error(error);
+                    alert("Connection Error");
+                    this.disabled = false;
+                    this.innerText = "Place Trade";
+                });
+            });
+
+            startCardTimer(div, timeframeSeconds);
+            return div;
+        }
+
+        // --- ۵. کنترلر پیشرفته زمان‌بندی چرخه‌ها ---
+        function startCardTimer(cardElement, timeframeSeconds) {
+            const timerDisplay = cardElement.querySelector(".tf-timer");
+            const submitBtn = cardElement.querySelector(".tf-submit");
+            const inputField = cardElement.querySelector(".tf-input");
+
+            if (!ROUND_DATA.tf_start_at) return;
+
+            const intervalId = setInterval(() => {
+                const cycleElapsed = getCycleElapsed(timeframeSeconds);
+                const currentCycle = getCurrentCycle(timeframeSeconds);
+                const totalCycle = getTotalCycle(timeframeSeconds);
+
+                const isBetPlaced = cardElement.classList.contains('state-bet-placed');
+                const isEntryOpen = cycleElapsed < ENTRY_WINDOW;
+
+                if (isBetPlaced) {
+                    if (inputField) inputField.disabled = true;
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = "🔒 Locked";
+                    }
+
+                    if (isEntryOpen) {
+                        timerDisplay.innerText = `Starts in: ${formatTime(ENTRY_WINDOW - cycleElapsed)}`;
+                        timerDisplay.className = "tf-timer text-info";
+                    } else {
+                        const mainTime = cycleElapsed - ENTRY_WINDOW;
+                        const remaining = timeframeSeconds - mainTime;
+                        if (remaining > 0) {
+                            timerDisplay.innerText = `Running: ${formatTime(remaining)}`;
+                            timerDisplay.className = "tf-timer text-warning";
+                        } else {
+                            timerDisplay.innerText = "Processing...";
+                            timerDisplay.className = "tf-timer text-info";
+                        }
+                    }
+                } else if (!isEntryOpen) {
+                    cardElement.classList.add('state-entry-closed');
+                    if (inputField) inputField.disabled = true;
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = "Entry Closed";
+                    }
+
+                    const remaining = totalCycle - cycleElapsed;
+                    timerDisplay.innerText = `Next Entry in: ${formatTime(remaining)}`;
+                    timerDisplay.className = "tf-timer text-danger";
+
+                    const betCycle = parseInt(cardElement.dataset.betCycle);
+                    if (betCycle && betCycle !== currentCycle) {
+                        delete cardElement.dataset.betCycle;
+                    }
+                } else {
+                    const betCycle = parseInt(cardElement.dataset.betCycle);
+                    if (betCycle && betCycle !== currentCycle) {
+                        delete cardElement.dataset.betCycle;
+                        cardElement.classList.remove('state-bet-placed');
+                    }
+
+                    cardElement.classList.remove('state-entry-closed');
+                    if (inputField && inputField.disabled) {
+                        inputField.value = "";
+                        inputField.disabled = false;
+                    }
+                    if (submitBtn && submitBtn.disabled && submitBtn.innerText !== "Executing...") {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Place Trade";
+                    }
+
+                    timerDisplay.innerText = `Entry Open: ${Math.ceil(ENTRY_WINDOW - cycleElapsed)}s`;
+                    timerDisplay.className = "tf-timer text-success";
+                }
+
+                if (!document.body.contains(cardElement)) {
+                    clearInterval(intervalId);
+                }
+            }, 1000);
+
+            cardElement.timerInterval = intervalId;
+        }
+
+        function loadTradingViewChart(symbol) {
+            if (!symbol || !document.getElementById("tv_chart")) return;
+            tvWidget = new TradingView.widget({
+                container_id: "tv_chart",
+                symbol: `BINANCE:${symbol}USDT`,
+                interval: "1",
+                theme: "dark",
+                autosize: true,
+                style: "1",
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            syncLocksWithServer();
+            updateBalance();
+            updateDashboardStats();
+            if (ROUND_DATA.symbol) loadTradingViewChart(ROUND_DATA.symbol);
+
+            const currencySelect = document.getElementById("currencySelect");
+            const timeframeSelect = document.getElementById("timeframeSelect");
+
+            if (currencySelect) {
+                currencySelect.addEventListener("change", function () {
+                    const selectedSymbol = this.value;
+                    if (selectedSymbol) {
+                        if (document.getElementById('currency-loading')) {
+                            document.getElementById('currency-loading').style.display = 'block';
+                        }
+                        window.location.href = `/trading/${selectedSymbol}/`;
+                    }
+                });
+            }
+
+            if (timeframeSelect) {
+                timeframeSelect.addEventListener("change", (e) => {
+                    renderAllCards(parseInt(e.target.value));
+                });
+                if (timeframeSelect.value) {
+                    renderAllCards(parseInt(timeframeSelect.value));
+                }
+            }
+        });
+    </script>
+
+    <script>
+        (function () {
+            /**
+             * مدیریت متمرکز تولیپ‌های بوت استرپ
+             * این اسکریپت به صورت خودکار تمام المنت‌های دارای data-bs-toggle="tooltip" را مدیریت می‌کند.
+             */
+            const TooltipManager = {
+                init: function () {
+                    // استفاده از Event Delegation برای پشتیبانی از المنت‌هایی که بعداً با Ajax اضافه می‌شوند
+                    document.body.addEventListener('mouseover', function (e) {
+                        const target = e.target.closest('[data-bs-toggle="tooltip"]');
+
+                        if (target && !bootstrap.Tooltip.getInstance(target)) {
+                            const tooltip = new bootstrap.Tooltip(target, {
+                                trigger: 'hover',
+                                boundary: 'viewport'
+                            });
+                            tooltip.show();
+                        }
+                    });
+                }
+            };
+
+            // اجرا به محض آماده شدن DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', TooltipManager.init);
+            } else {
+                TooltipManager.init();
+            }
+        })();
+    </script>
+{% endblock %}
+

@@ -1,0 +1,642 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexTrade | Elite Next-Gen Crypto Trading Terminal</title>
+
+    <!-- BOOTSTRAP 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- REMIX ICONS v4.2 -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- GOOGLE FONTS (INTER) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d6efd'/%3E%3Cpath d='M6 16h4l3-7 4 14 3-10 2 3h4' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+    <style>
+        {% include 'header_include/landing-style.css' %}
+    </style>
+</head>
+<body>
+
+<!-- 🌐 NAVIGATION BAR -->
+<nav class="navbar navbar-expand-lg custom-nav fixed-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-dark d-flex align-items-center gap-2" href="#" style="font-size: 20px;">
+            <div class="bg-primary text-white d-flex align-items-center justify-content-center"
+                 style="width:30px; height:30px; border-radius: var(--card-radius);"><i class="ri-pulse-fill"
+                                                                                        style="font-size: 16px;"></i>
+            </div>
+            <span>NexTrade</span>
+        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'login' %}" class="btn soft-btn soft-btn-secondary">Log In</a>
+            <a href="{% url 'register' %}" class="btn soft-btn soft-btn-primary">Sign Up</a>
+        </div>
+    </div>
+</nav>
+
+<!-- 🟢 HERO SECTION -->
+<section class="hero-section">
+    <div class="glow-orb" style="top: 5%; right: 2%;"></div>
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 text-center text-lg-start position-relative" style="z-index: 2;">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold mb-3 fs-13"><i
+                        class="ri-cpu-line me-1"></i> High-Speed Core Engine Node Active</span>
+                <h1 class="display-5 fw-bold text-dark mb-3 lh-sm" style="letter-spacing: -0.03em;">Centralized Crypto
+                    Trading. Built with Absolute Integrity.</h1>
+                <p class="text-muted mb-4 fs-16" style="max-width: 520px; line-height: 1.6;">Maximize capital
+                    distribution efficiency. Deploy allocations instantly utilizing isolated row-locked architectures
+                    engineered for minimal variance execution loops.</p>
+                <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{% url 'register' %}" class="btn soft-btn soft-btn-primary px-4 py-3"><i
+                            class="ri-terminal-box-line me-1"></i> Open Terminal</a>
+                    <a href="#markets" class="btn soft-btn soft-btn-secondary px-4 py-3">Monitor Assets</a>
+                </div>
+            </div>
+            <div class="col-lg-6 position-relative" style="z-index: 2;">
+                <div class="interactive-desk-mock p-2 bg-light shadow-lg mx-auto" style="max-width:480px;">
+                    <div class="bg-white rounded p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2"><span class="pulse-dot"></span><small
+                                    class="fw-bold text-secondary">Matching Infrastructure Logs</small></div>
+                            <span class="badge bg-success bg-opacity-10 text-success font-monospace fs-11">Online</span>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded border text-center">
+                                    <small class="text-muted d-block fs-11 mb-1">TOTAL INTERNAL VOLUME</small>
+                                    <strong class="fs-6 text-dark">$14.8M <span class="text-success fs-11"><i
+                                            class="ri-arrow-up-line"></i>24h</span></strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded border text-center">
+                                    <small class="text-muted d-block fs-11 mb-1">EXECUTION LATENCY</small>
+                                    <strong class="fs-6 text-dark">0.024 ms</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="height: 110px; background: linear-gradient(180deg, rgba(13,110,253,0.03) 0%, transparent 100%); border-radius: 6px; border: 1px dashed var(--border-color);"
+                             class="d-flex flex-column align-items-center justify-content-center">
+                            <small class="text-dark fw-bold font-monospace mb-1"><i
+                                    class="ri-shield-user-line me-1 text-primary"></i> Multi-Sig Vault
+                                Protection</small>
+                            <small class="text-muted fs-11">Asset registers verified across decentralized
+                                sub-nodes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 📊 DYNAMIC 4-CRYPTO LIVE TICKER RIBBON -->
+<div class="ticker-container">
+    <div class="container">
+        <div class="row g-3 justify-content-center">
+            <div class="col-6 col-sm-3">
+                <div class="ticker-card">
+                    <div><small class="text-muted d-block fs-11 fw-medium">BTC / USDT</small><strong id="ticker-btc"
+                                                                                                     class="text-dark font-monospace">Loading...</strong>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success fs-11"><i class="ri-arrow-up-s-fill"></i> Live</span>
+                </div>
+            </div>
+            <div class="col-6 col-sm-3">
+                <div class="ticker-card">
+                    <div><small class="text-muted d-block fs-11 fw-medium">ETH / USDT</small><strong id="ticker-eth"
+                                                                                                     class="text-dark font-monospace">Loading...</strong>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success fs-11"><i class="ri-arrow-up-s-fill"></i> Live</span>
+                </div>
+            </div>
+            <div class="col-6 col-sm-3">
+                <div class="ticker-card">
+                    <div><small class="text-muted d-block fs-11 fw-medium">TRX / USDT</small><strong id="ticker-trx"
+                                                                                                     class="text-dark font-monospace">Loading...</strong>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success fs-11"><i class="ri-arrow-up-s-fill"></i> Live</span>
+                </div>
+            </div>
+            <div class="col-6 col-sm-3">
+                <div class="ticker-card">
+                    <div><small class="text-muted d-block fs-11 fw-medium">BNB / USDT</small><strong id="ticker-bnb"
+                                                                                                     class="text-dark font-monospace">Loading...</strong>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success fs-11"><i class="ri-arrow-up-s-fill"></i> Live</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📉 LIVE MARKETS SNAPSHOT -->
+<section class="section-padding" id="markets">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-dark">Real-Time Market Indexes</h2>
+            <p class="text-muted fs-15">Track spot price indexes fed straight from global top-tier ingestion
+                pipelines.</p>
+        </div>
+        <div class="card soft-card overflow-hidden">
+            <div class="table-responsive">
+                <table class="table market-table mb-0 text-start">
+                    <thead class="bg-light">
+                    <tr>
+                        <th>Asset Pair</th>
+                        <th>Index Price</th>
+                        <th>24h Vol (Mock)</th>
+                        <th>Network Node</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="fw-bold"><i class="ri-bit-coin-fill text-warning me-2 fs-5"></i>Bitcoin <span
+                                class="text-muted fw-normal font-monospace fs-12">BTC</span></td>
+                        <td id="table-btc" class="font-monospace fw-bold">Loading...</td>
+                        <td class="font-monospace text-muted">$412.4M</td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fs-11">Primary Node</span>
+                        </td>
+                        <td><a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold fs-13">Trade
+                            <i
+                                    class="ri-arrow-right-line"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold"><i class="ri-eth-fill text-primary me-2 fs-5"></i>Ethereum <span
+                                class="text-muted fw-normal font-monospace fs-12">ETH</span></td>
+                        <td id="table-eth" class="font-monospace fw-bold">Loading...</td>
+                        <td class="font-monospace text-muted">$289.1M</td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fs-11">Primary Node</span>
+                        </td>
+                        <td><a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold fs-13">Trade
+                            <i
+                                    class="ri-arrow-right-line"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold"><i class="ri-shield-cross-fill text-danger me-2 fs-5"></i>Tron <span
+                                class="text-muted fw-normal font-monospace fs-12">TRX</span></td>
+                        <td id="table-trx" class="font-monospace fw-bold">Loading...</td>
+                        <td class="font-monospace text-muted">$64.8M</td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fs-11">Sub-Node A</span>
+                        </td>
+                        <td><a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold fs-13">Trade
+                            <i
+                                    class="ri-arrow-right-line"></i></a></td>
+                    </tr>
+                    <!-- 💵 Tether USDT (TRC20) Row Inside Marketplace -->
+                    <tr>
+                        <td class="fw-bold"><i class="ri-secure-payment-fill text-success me-2 fs-5"></i>Tether <span
+                                class="text-muted fw-normal font-monospace fs-12">USDT-TRC20</span></td>
+                        <td id="table-usdt" class="font-monospace fw-bold">Loading...</td>
+                        <td class="font-monospace text-muted">$48.2B</td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fs-11">Liquidity Node</span>
+                        </td>
+                        <td><a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold fs-13">Trade
+                            <i
+                                    class="ri-arrow-right-line"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold"><i class="ri-coins-fill text-warning me-2 fs-5"></i>BNB Chain <span
+                                class="text-muted fw-normal font-monospace fs-12">BNB</span></td>
+                        <td id="table-bnb" class="font-monospace fw-bold">Loading...</td>
+                        <td class="font-monospace text-muted">$104.5M</td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fs-11">Sub-Node B</span>
+                        </td>
+                        <td><a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold fs-13">Trade
+                            <i
+                                    class="ri-arrow-right-line"></i></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 🖥️ INTERACTIVE TRADING DESK PREVIEW WITH FULL BUY/SELL SWITCH LOGIC -->
+<section class="section-padding bg-white border-top border-bottom">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <span class="badge bg-secondary bg-opacity-10 text-dark px-3 py-1 rounded-pill fw-medium mb-2 fs-12">UI Workspace Engine</span>
+                <h2 class="fw-bold text-dark mb-3">The Trading Desk Workspace</h2>
+                <p class="text-muted mb-4 fs-15" style="line-height: 1.6;">An interface calibrated for speed. View
+                    live-calculated execution data, immediate percentage layout tags, and built-in order logs.</p>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <h6 class="fw-bold text-dark mb-1"><i class="ri-calculator-line text-primary me-1"></i> Inverse
+                            Processing</h6>
+                        <p class="text-muted fs-13 mb-0">System automatically extracts commissions before execution
+                            blocks lock.</p>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="fw-bold text-dark mb-1"><i class="ri-percentage-line text-success me-1"></i> Static
+                            Allocation</h6>
+                        <p class="text-muted fs-13 mb-0">Trigger 25% to 100% of available wallet structures
+                            instantly.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    <!-- Left Sub-card: Showy Mock Order Book -->
+                    <div class="col-sm-5">
+                        <div class="interactive-desk-mock h-100">
+                            <div class="mock-header"><span class="fw-bold text-dark fs-12">Order Book (Mock)</span>
+                            </div>
+                            <div class="p-3 font-monospace fs-11 text-start">
+                                <div class="d-flex justify-content-between text-danger mb-1">
+                                    <span>64,560.50</span><span>0.142 BTC</span></div>
+                                <div class="d-flex justify-content-between text-danger mb-1">
+                                    <span>64,550.00</span><span>1.405 ETH</span></div>
+                                <div class="border-top border-bottom my-2 py-1 text-center text-dark fw-bold bg-light"
+                                     id="mock-mid-price">$64,520.00
+                                </div>
+                                <div class="d-flex justify-content-between text-success mb-1">
+                                    <span>64,510.10</span><span>2.890 BTC</span></div>
+                                <div class="d-flex justify-content-between text-success"><span>64,500.00</span><span>0.711 TRX</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Sub-card: The INTERACTIVE Trading Desk Card Blueprint -->
+                    <div class="col-sm-7">
+                        <div class="interactive-desk-mock">
+                            <div class="mock-header d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-dark fs-13">Trading Desk</span>
+                                <div class="bg-light p-1 rounded d-flex gap-1"
+                                     style="border:1px solid var(--border-color);">
+                                    <!-- Interactive Toggle Elements -->
+                                    <span id="tab-buy" onclick="switchTradingMode('buy')"
+                                          class="mock-tab bg-white text-dark shadow-sm">Buy</span>
+                                    <span id="tab-sell" onclick="switchTradingMode('sell')" class="mock-tab text-muted">Sell</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <small id="mock-balance-label" class="text-muted">Asset to Allocate</small>
+                                    <strong id="mock-wallet-display" class="text-primary fs-12">Wallet:
+                                        $12,450.00</strong>
+                                </div>
+                                <div class="mock-input-grp">
+                                    <span class="text-muted fs-12">Amount</span>
+                                    <strong id="mock-amount-display" class="text-dark font-monospace">0.500000</strong>
+                                    <span id="mock-asset-badge"
+                                          class="badge bg-dark bg-opacity-10 text-dark fs-11">BTC</span>
+                                </div>
+                                <div class="d-flex justify-content-between gap-1 mb-2">
+                                    <div class="bg-light text-center rounded py-1 flex-grow-1 border fs-10 text-muted">
+                                        25%
+                                    </div>
+                                    <div class="bg-light text-center rounded py-1 flex-grow-1 border fs-10 text-muted">
+                                        50%
+                                    </div>
+                                    <div id="mock-percent-badge"
+                                         class="bg-primary text-white text-center rounded py-1 flex-grow-1 fs-10 fw-bold"
+                                         style="border-radius: 6px !important;">100%
+                                    </div>
+                                </div>
+                                <div class="mock-input-grp">
+                                    <span class="text-muted fs-12">Price</span>
+                                    <strong class="text-dark font-monospace"
+                                            id="mock-internal-price">$64,520.00</strong>
+                                    <span class="text-muted fw-bold">$</span>
+                                </div>
+                                <div class="border-top pt-2 mt-2" style="font-size:11px;">
+                                    <div class="d-flex justify-content-between text-muted mb-1">
+                                        <span id="mock-fee-label">Internal Flat Fee (0.05%)</span>
+                                        <span id="mock-fee-display"
+                                              class="font-monospace fw-bold text-dark">$16.13</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-muted">
+                                        <span>Live Executing Rate</span>
+                                        <span class="text-success fw-semibold font-monospace" id="mock-internal-rate">1 BTC ~ $64,520.00</span>
+                                    </div>
+                                </div>
+                                <!-- Dynamic Action Button Controlled by Script -->
+                                <button id="mock-action-btn" class="btn btn-primary w-100 soft-btn mt-3 py-2 fw-bold"
+                                        style="background:#10b981; border:none; box-shadow:0 4px 12px rgba(16,185,129,0.25);">
+                                    Execute Spot Position
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-padding position-relative overflow-hidden bg-white border-top border-bottom"
+         id="workspace-tour">
+    <div class="workspace-glow-core"></div>
+
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold mb-2 fs-12">
+                <i class="ri-eye-line me-1"></i> System Interface Tour
+            </span>
+            <h2 class="fw-bold text-dark">Explore the NexTrade Workspace</h2>
+            <p class="text-muted fs-15 mx-auto" style="max-width: 540px;">Take a closer look at the high-capacity nodes
+                engineered for absolute analytical clarity.</p>
+        </div>
+
+        <div class="d-flex justify-content-center mb-5">
+            <ul class="nav nav-pills p-1 bg-white rounded-3 shadow-sm border" id="workspaceTabs" role="tablist"
+                style="border-radius: 8px !important;">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-semibold fs-13 px-3 py-2 text-dark" id="dash-tab"
+                            data-bs-toggle="pill" data-bs-target="#pane-dash" type="button" role="tab"
+                            aria-controls="pane-dash" aria-selected="true">
+                        <i class="ri-dashboard-line me-1"></i> Main Dashboard
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold fs-13 px-3 py-2 text-muted" id="terminal-tab"
+                            data-bs-toggle="pill" data-bs-target="#pane-terminal" type="button" role="tab"
+                            aria-controls="pane-terminal" aria-selected="false">
+                        <i class="ri-terminal-window-line me-1"></i> Trade Terminal
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold fs-13 px-3 py-2 text-muted" id="wallet-tab"
+                            data-bs-toggle="pill" data-bs-target="#pane-wallet" type="button" role="tab"
+                            aria-controls="pane-wallet" aria-selected="false">
+                        <i class="ri-wallet-3-line me-1"></i> Wallet Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold fs-13 px-3 py-2 text-muted" id="tickets-tab"
+                            data-bs-toggle="pill" data-bs-target="#pane-tickets" type="button" role="tab"
+                            aria-controls="pane-tickets" aria-selected="false">
+                        <i class="ri-customer-service-2-line me-1"></i> Support Desk
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold fs-13 px-3 py-2 text-muted" id="notif-tab" data-bs-toggle="pill"
+                            data-bs-target="#pane-notif" type="button" role="tab" aria-controls="pane-notif"
+                            aria-selected="false">
+                        <i class="ri-notification-3-line me-1"></i> Notifications
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="workspaceTabsContent">
+
+            <div class="tab-pane fade show active" id="pane-dash" role="tabpanel" aria-labelledby="dash-tab">
+                <div class="text-center mb-4 workspace-caption-node animate-fade-in">
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded fs-11 fw-bold mb-2 text-uppercase tracking-wider">Core Metrics Node</span>
+                    <p class="text-muted fs-14 m-0 mx-auto" style="max-width: 720px;">An aggregate view of core network
+                        metrics, real-time volume node distributions, and central ledger balance allocations.</p>
+                </div>
+                <div class="workspace-viewport mx-auto shadow-canvas border">
+                    <div class="viewport-body position-relative">
+                        <img src="{% static 'assets/images/pages/main-dashboard.png' %}"
+                             alt="NexTrade Dashboard Core Node" class="img-fluid workspace-img">
+                        <span class="zoom-trigger-badge"><i
+                                class="ri-zoom-in-line me-1"></i> View Fullscreen Node</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-terminal" role="tabpanel" aria-labelledby="terminal-tab">
+                <div class="text-center mb-4 workspace-caption-node animate-fade-in">
+                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded fs-11 fw-bold mb-2 text-uppercase tracking-wider">Execution Engine</span>
+                    <p class="text-muted fs-14 m-0 mx-auto" style="max-width: 720px;">High-performance execution
+                        interface designed for double-entry spot order handling and sub-millisecond route matching.</p>
+                </div>
+                <div class="workspace-viewport mx-auto shadow-canvas border">
+                    <div class="viewport-body position-relative">
+                        <img src="{% static 'assets/images/pages/trade-terminal.png' %}"
+                             alt="NexTrade Precision Trading Terminal" class="img-fluid workspace-img">
+                        <span class="zoom-trigger-badge"><i
+                                class="ri-zoom-in-line me-1"></i> View Fullscreen Node</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-wallet" role="tabpanel" aria-labelledby="wallet-tab">
+                <div class="text-center mb-4 workspace-caption-node animate-fade-in">
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded fs-11 fw-bold mb-2 text-uppercase tracking-wider">Isolated Vault Matrix</span>
+                    <p class="text-muted fs-14 m-0 mx-auto" style="max-width: 720px;">Cryptographic asset vault matrix
+                        leveraging isolated row-locking states for zero-variance equity ledger management.</p>
+                </div>
+                <div class="workspace-viewport mx-auto shadow-canvas border">
+                    <div class="viewport-body position-relative">
+                        <img src="{% static 'assets/images/pages/wallet-management.png' %}"
+                             alt="NexTrade Ledger Wallet Architecture" class="img-fluid workspace-img">
+                        <span class="zoom-trigger-badge"><i
+                                class="ri-zoom-in-line me-1"></i> View Fullscreen Node</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-tickets" role="tabpanel" aria-labelledby="tickets-tab">
+                <div class="text-center mb-4 workspace-caption-node animate-fade-in">
+                    <span class="badge bg-info bg-opacity-10 text-info px-2 py-1 rounded fs-11 fw-bold mb-2 text-uppercase tracking-wider">Ingestion Desk</span>
+                    <p class="text-muted fs-14 m-0 mx-auto" style="max-width: 720px;">Isolated secure communication
+                        nodes routing encrypted incident inquiries directly to internal triage arrays.</p>
+                </div>
+                <div class="workspace-viewport mx-auto shadow-canvas border">
+                    <div class="viewport-body position-relative">
+                        <img src="{% static 'assets/images/pages/support-desk.png' %}"
+                             alt="NexTrade Encrypted Support Ingestion" class="img-fluid workspace-img">
+                        <span class="zoom-trigger-badge"><i
+                                class="ri-zoom-in-line me-1"></i> View Fullscreen Node</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-notif" role="tabpanel" aria-labelledby="notif-tab">
+                <div class="text-center mb-4 workspace-caption-node animate-fade-in">
+                    <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1 rounded fs-11 fw-bold mb-2 text-uppercase tracking-wider">Journal Stream</span>
+                    <p class="text-muted fs-14 m-0 mx-auto" style="max-width: 720px;">Immutable sequential system
+                        journal logging real-time operational alerts, validation flows, and access states.</p>
+                </div>
+                <div class="workspace-viewport mx-auto shadow-canvas border">
+                    <div class="viewport-body position-relative">
+                        <img src="{% static 'assets/images/pages/notifications.png' %}"
+                             alt="NexTrade Notification Journal Center" class="img-fluid workspace-img">
+                        <span class="zoom-trigger-badge"><i
+                                class="ri-zoom-in-line me-1"></i> View Fullscreen Node</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<div class="workspace-zoom-overlay" id="workspaceLightbox">
+    <div class="lightbox-content position-relative">
+        <button class="lightbox-close-btn" id="closeLightboxBtn"><i class="ri-close-line"></i></button>
+        <img src="" alt="Fidelity Node Focus" id="lightboxTargetImg">
+    </div>
+</div>
+
+<!-- 🛠️ SECURITY AND AUDITING BLUEPRINTS -->
+<!-- 🛡️ CRYPTOGRAPHIC SECURITY MATRICES SECTION -->
+<section class="py-5">
+    <div class="container py-3">
+        <!-- Section Header -->
+        <div class="text-center mb-5 max-w-2xl mx-auto">
+            <span class="d-inline-flex align-items-center gap-1.5 px-3 py-1 mb-3 rounded-pill bg-primary bg-opacity-10 border border-primary border-opacity-20 text-primary fs-12 fw-semibold text-uppercase tracking-wider">
+                <i class="ri-shield-keyhole-line fs-14"></i> Enterprise Security
+            </span>
+            <h2 class="fw-bold mb-3 fs-3 tracking-tight">
+                Cryptographic Security <span class="text-primary">Matrices</span>
+            </h2>
+            <p class="text-muted fs-15 max-w-xl mx-auto mb-0 opacity-75">
+                Multiple defensive processing elements handling structural asset ledgers continuously.
+            </p>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="row g-4 text-start">
+
+            <!-- Card 1: Row Isolation -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card h-100 border-0 rounded-4 p-4 shadow-sm transition-all duration-300 feature-hover-card"
+                     style="background: var(--bs-card-bg, #ffffff); border: 1px solid rgba(125, 125, 125, 0.1) !important;">
+                    <div class="icon-box rounded-3 bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 50px; height: 50px;">
+                        <i class="ri-lock-password-line fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2 fs-15">Row Isolation</h6>
+                    <p class="text-muted fs-13 mb-0 lh-base opacity-75">
+                        Atomic execution states isolate ledger values during active transaction queries.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Card 2: Central Ledger Sync -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card h-100 border-0 rounded-4 p-4 shadow-sm transition-all duration-300 feature-hover-card"
+                     style="background: var(--bs-card-bg, #ffffff); border: 1px solid rgba(125, 125, 125, 0.1) !important;">
+                    <div class="icon-box rounded-3 bg-success bg-opacity-10 text-success d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 50px; height: 50px;">
+                        <i class="ri-shield-user-line fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2 fs-15">Central Ledger Sync</h6>
+                    <p class="text-muted fs-13 mb-0 lh-base opacity-75">
+                        Automatic routing maps fee logs straight into encrypted platform treasury nodes.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Card 3: Zero-Data Leakage -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card h-100 border-0 rounded-4 p-4 shadow-sm transition-all duration-300 feature-hover-card"
+                     style="background: var(--bs-card-bg, #ffffff); border: 1px solid rgba(125, 125, 125, 0.1) !important;">
+                    <div class="icon-box rounded-3 bg-warning bg-opacity-10 text-warning d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 50px; height: 50px;">
+                        <i class="ri-database-2-line fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2 fs-15">Zero-Data Leakage</h6>
+                    <p class="text-muted fs-13 mb-0 lh-base opacity-75">
+                        Platform structures disconnect public asset queries from active transaction blocks.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Card 4: Journal Audits -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card h-100 border-0 rounded-4 p-4 shadow-sm transition-all duration-300 feature-hover-card"
+                     style="background: var(--bs-card-bg, #ffffff); border: 1px solid rgba(125, 125, 125, 0.1) !important;">
+                    <div class="icon-box rounded-3 bg-info bg-opacity-10 text-info d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 50px; height: 50px;">
+                        <i class="ri-history-line fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2 fs-15">Journal Audits</h6>
+                    <p class="text-muted fs-13 mb-0 lh-base opacity-75">
+                        Sequential ledger histories log balances before and after each executed trade block.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- 🔚 FINAL CALL TO ACTION -->
+<!-- 🚀 MODERN FLOATING CTA BANNER -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="position-relative overflow-hidden rounded-4 p-5 text-center text-white shadow-2xl"
+             style="background: linear-gradient(135deg, #0b0f19 0%, #111827 50%, #0f172a 100%); border: 1px solid rgba(255, 255, 255, 0.08);">
+
+            <!-- 🌟 Subtle Background Glow Effect -->
+            <div class="position-absolute top-0 start-50 translate-middle-x w-50 h-50 rounded-circle opacity-25 blur-3xl pointer-events-none"
+                 style="background: radial-gradient(circle, #3b82f6 0%, transparent 70%); filter: blur(60px);"></div>
+
+            <div class="position-relative z-1 max-w-2xl mx-auto py-2">
+                <!-- Badge Accent -->
+                <div class="d-inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-white bg-opacity-10 border border-white border-opacity-10 text-primary-light fs-12 fw-semibold tracking-wider text-uppercase">
+                    <i class="ri-flashlight-fill text-warning"></i> Instant Deployment
+                </div>
+
+                <!-- Main Heading -->
+                <h2 class="fw-bold mb-3 fs-3 text-white tracking-tight" style="letter-spacing: -0.5px;">
+                    Access the Trading Infrastructure <span class="text-transparent bg-clip-text bg-gradient-to-r"
+                                                            style="background: linear-gradient(90deg, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Within Seconds</span>
+                </h2>
+
+                <!-- Subtitle -->
+                <p class="text-gray-400 mb-4 fs-14 max-w-xl mx-auto fw-normal opacity-75"
+                   style="color: #9ca3af; line-height: 1.6;">
+                    Initialize parameters inside an institutional, high-capacity spotting engine with low latency.
+                </p>
+
+                <!-- CTA Button -->
+                <div class="d-flex justify-content-center align-items-center gap-3">
+                    <a href="{% url 'register' %}"
+                       class="btn btn-primary px-4 py-3 fs-14 fw-semibold rounded-3 d-inline-flex align-items-center gap-2 border-0 transition-all duration-300"
+                       style="background: #3b82f6; box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.5);">
+                        <span>Create Free Account</span>
+                        <i class="ri-arrow-right-line fs-16"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 📄 FOOTER -->
+<footer class="bg-white border-top py-4 text-center text-muted fs-13">
+    <div class="container d-md-flex justify-content-between align-items-center">
+        <p class="mb-0 fw-medium">
+            &copy;
+            <script>document.write(new Date().getFullYear())</script>
+            <span class="text-dark fw-bold">NexTrade</span>. All rights reserved.
+        </p>
+    </div>
+</footer>
+<!-- ⬆️ BACK TO TOP WITH CIRCULAR PROGRESS RING -->
+<div class="back-to-top-wrapper" id="backToTopWrapper" role="button" aria-label="Back to top">
+    <svg class="progress-circle" viewBox="0 0 100 100">
+        <!-- رینگ پس‌زمینه کم‌رنگ -->
+        <path class="progress-bg" d="M50,5 a45,45 0 1,1 0,90 a45,45 0 1,1 0,-90"></path>
+        <!-- رینگ پویای پیشرفت -->
+        <path id="progressPath" class="progress-bar-path" d="M50,5 a45,45 0 1,1 0,90 a45,45 0 1,1 0,-90"></path>
+    </svg>
+    <button class="back-to-top-btn" type="button" tabindex="-1">
+        <i class="ri-arrow-up-line fs-5"></i>
+    </button>
+</div>
+<script>
+    {% include 'header_include/landing-js.js' %}
+</script>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+{% load static %}
+<style>
+    /* اگر کاربر جای دیگری از صفحه را هم کلیک کرد منو بسته شود */
+    @media (max-width: 991.98px) {
+        .vertical-sidebar-enable .custom-sidebar-overlay {
+            display: block !important;
+        }
+    }
+</style>
+<header id="page-topbar">
+    <div class="layout-width">
+        <div class="navbar-header">
+            <div class="d-flex">
+                <!-- LOGO -->
+                <div class="navbar-brand-box horizontal-logo">
+                    <a href="index.html" class="logo logo-dark">
+                        <span class="logo-sm">
+                            <img src="{% static 'assets/images/logo-sm.png' %}" alt="" height="22">
+                        </span>
+                        <span class="logo-lg">
+                            <img src="{% static 'assets/images/logo-dark.png' %}" alt="" height="17">
+                        </span>
+                    </a>
+
+                    <a href="index.html" class="logo logo-light">
+                        <span class="logo-sm">
+                            <img src="{% static 'assets/images/logo-sm.png' %}" alt="" height="22">
+                        </span>
+                        <span class="logo-lg">
+                            <img src="{% static 'assets/images/logo-light.png' %}" alt="" height="17">
+                        </span>
+                    </a>
+                </div>
+
+                <button type="button" class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger"
+                        id="topnav-hamburger-icon">
+                    <span class="hamburger-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+
+            </div>
+
+            <div class="d-flex align-items-center">
+
+                <div class="dropdown ms-1 topbar-head-dropdown header-item">
+                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <img id="custom-header-lang-img" src="{% static 'assets/images/flags/us.svg' %}"
+                             alt="Header Language"
+                             height="20" class="rounded">
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+
+                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-lang-item py-2"
+                           data-lang="en">
+                            <img src="{% static 'assets/images/flags/us.svg' %}" alt="user-image" class="me-2 rounded"
+                                 height="18">
+                            <span class="align-middle">English</span>
+                        </a>
+
+                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-lang-item" data-lang="sp">
+                            <img src="{% static 'assets/images/flags/spain.svg' %}" alt="user-image"
+                                 class="me-2 rounded" height="18">
+                            <span class="align-middle">Española</span>
+                        </a>
+
+                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-lang-item" data-lang="gr">
+                            <img src="{% static 'assets/images/flags/germany.svg' %}" alt="user-image"
+                                 class="me-2 rounded" height="18">
+                            <span class="align-middle">Deutsche</span>
+                        </a>
+
+                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-lang-item" data-lang="it">
+                            <img src="{% static 'assets/images/flags/italy.svg' %}" alt="user-image"
+                                 class="me-2 rounded" height="18">
+                            <span class="align-middle">Italiana</span>
+                        </a>
+
+                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-lang-item" data-lang="ru">
+                            <img src="{% static 'assets/images/flags/russia.svg' %}" alt="user-image"
+                                 class="me-2 rounded" height="18">
+                            <span class="align-middle">русский</span>
+                        </a>
+
+                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-lang-item" data-lang="ch">
+                            <img src="{% static 'assets/images/flags/china.svg' %}" alt="user-image"
+                                 class="me-2 rounded" height="18">
+                            <span class="align-middle">中国人</span>
+                        </a>
+
+                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-lang-item" data-lang="fr">
+                            <img src="{% static 'assets/images/flags/french.svg' %}" alt="user-image"
+                                 class="me-2 rounded" height="18">
+                            <span class="align-middle">français</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="ms-1 header-item d-none d-sm-flex">
+                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                            data-toggle="fullscreen">
+                        <i class='bx bx-fullscreen fs-22'></i>
+                    </button>
+                </div>
+
+                <div class="ms-1 header-item d-none d-sm-flex">
+                    <button type="button"
+                            class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle light-dark-mode">
+                        <i class='bx bx-moon fs-22'></i>
+                    </button>
+                </div>
+
+                <div class="dropdown topbar-head-dropdown ms-1 header-item">
+                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                            id="page-header-notifications-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <i class='bx bx-bell fs-22'></i>
+
+                        {% if admin_unread_notifications|length > 0 %}
+                            <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
+                {{ admin_unread_notifications|length }}
+                <span class="visually-hidden">unread messages</span>
+            </span>
+                        {% endif %}
+                    </button>
+
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 shadow-lg border-0"
+                         aria-labelledby="page-header-notifications-dropdown">
+
+                        <div class="dropdown-head bg-primary bg-pattern rounded-top">
+                            <div class="p-3">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h6 class="m-0 fs-16 fw-semibold text-white"> Notifications </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="px-2 pt-2">
+                                <ul class="nav nav-tabs dropdown-tabs nav-tabs-custom" id="notificationItemsTab"
+                                    role="tablist">
+                                    <li class="nav-item waves-effect waves-light">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#all-noti-tab" role="tab"
+                                           aria-selected="true">
+                                            All ({{ admin_notifications|length }})
+                                        </a>
+                                    </li>
+                                    <li class="nav-item waves-effect waves-light">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#unread-tab" role="tab"
+                                           aria-selected="false">
+                                            Unread ({{ admin_unread_notifications|length }})
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="notificationItemsTabContent">
+                            <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
+                                <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                    {% for n in admin_notifications %}
+                                        <div class="text-reset notification-item d-block dropdown-item position-relative {% if not n.is_read %}active{% endif %}"
+                                             data-id="{{ n.id }}">
+                                            <div class="d-flex">
+                                                <div class="avatar-xs me-3">
+                                    <span class="avatar-title bg-soft-info text-info rounded-circle fs-16">
+                                        <i class="bx bx-bell"></i>
+                                    </span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <a href="{{ n.link }}" class="stretched-link">
+                                                        <h6 class="mt-0 mb-1 fs-13 fw-semibold">{{ n.title }}</h6>
+                                                    </a>
+                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                                                        <span><i
+                                                                class="mdi mdi-clock-outline"></i> {{ n.created_at|timesince }} ago</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <p class="text-center text-muted py-3">No notifications</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade py-2 ps-2" id="unread-tab" role="tabpanel">
+                                <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                    {% for n in admin_unread_notifications %}
+                                        <div class="text-reset notification-item d-block dropdown-item position-relative active"
+                                             data-id="{{ n.id }}">
+                                            <div class="d-flex">
+                                                <div class="avatar-xs me-3">
+                                    <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
+                                        <i class="bx bx-bell"></i>
+                                    </span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <a href="{{ n.link }}" class="stretched-link">
+                                                        <h6 class="mt-0 mb-1 fs-13 fw-semibold">{{ n.title }}</h6>
+                                                    </a>
+                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                                                        <span><i
+                                                                class="mdi mdi-clock-outline"></i> {{ n.created_at|timesince }} ago</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <p class="text-center text-muted py-3">No unread notifications</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-2 border-top border-top-dashed text-center">
+                            <button type="button"
+                                    class="btn btn-sm w-100 fw-bold shadow-none"
+                                    style="background-color: rgba(10, 179, 156, 0.1);
+                           color: #0ab39c !important;
+                           border: none;
+                           transition: none;"
+                                    onmouseover="this.style.color='#0ab39c'; this.style.backgroundColor='rgba(10, 179, 156, 0.1)';"
+                                    onmouseout="this.style.color='#0ab39c'; this.style.backgroundColor='rgba(10, 179, 156, 0.1)';"
+                                    onclick="markAllNotificationsRead(this, 'admin')">
+                                <i class="ri-check-double-line align-middle me-1"></i> Mark All as Read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="dropdown ms-sm-3 header-item topbar-user">
+                    <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+        <span class="d-flex align-items-center">
+  <img class="rounded-circle header-profile-user"
+       src="
+
+
+
+
+               {% if request.admin_user.is_senior %}{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}{% else %}{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}{% endif %}"
+       alt="Header Avatar">
+            <span class="text-start ms-xl-2">
+                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">
+                    {{ request.admin_user.username|default:request.admin_user.email }}
+                </span>
+                <span class="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text">
+                    {% if request.admin_user.is_senior %}Senior Admin{% else %}Admin{% endif %}
+                </span>
+            </span>
+        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <h6 class="dropdown-header">Welcome!</h6>
+
+                        <a class="dropdown-item" href="{% url 'admin_password' %}">
+                            <i class="mdi mdi-cog-outline text-muted fs-16 align-middle me-1"></i>
+                            <span class="align-middle">Security Settings</span>
+                        </a>
+
+                        <a class="dropdown-item" href="{% url 'user-ticket_list' %}">
+                            <i class="mdi mdi-message-text-outline text-muted fs-16 align-middle me-1"></i>
+                            <span class="align-middle">Support Messages</span>
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a class="dropdown-item" href="{% url 'admin-lock-screen' %}">
+                            <i class="mdi mdi-lock text-muted fs-16 align-middle me-1"></i>
+                            <span class="align-middle">Lock screen</span>
+                        </a>
+
+                        <a class="dropdown-item" href="{% url 'admin-logout' %}">
+                            <i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i>
+                            <span class="align-middle" data-key="t-logout">Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ۱. ایجاد لایه Overlay به صورت داینامیک
+        if (!document.querySelector('.custom-sidebar-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-sidebar-overlay';
+            // استایل‌دهی مستقیم برای اطمینان از عملکرد
+            Object.assign(overlay.style, {
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(0,0,0,0.5)',
+                zIndex: '1001',
+                display: 'none'
+            });
+            document.body.appendChild(overlay);
+
+            // ۲. منطق بستن با کلیک روی لایه
+            overlay.addEventListener('click', function () {
+                document.body.classList.remove('vertical-sidebar-enable');
+                overlay.style.display = 'none';
+            });
+        }
+
+        // ۳. هماهنگی با دکمه همبرگری موجود در هدر
+        const hamburger = document.getElementById('topnav-hamburger-icon');
+        if (hamburger) {
+            hamburger.addEventListener('click', function () {
+                const overlay = document.querySelector('.custom-sidebar-overlay');
+                // یک تاخیر ناچیز برای اینکه کلاس بدنه توسط سورس اصلی اضافه شود
+                setTimeout(() => {
+                    if (document.body.classList.contains('vertical-sidebar-enable')) {
+                        overlay.style.display = 'block';
+                    } else {
+                        overlay.style.display = 'none';
+                    }
+                }, 50);
+            });
+        }
+    });
+</script>
+<script>
+    function markAllNotificationsRead(btnElement, scopeType) {
+        const originalContent = btnElement.innerHTML;
+        btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btnElement.disabled = true;
+
+        fetch("{% url 'dashboard:mark-all-notifications-read' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({'scope': scopeType}) // ارسال نوع پنل به سرور
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // ۱. مخفی کردن علامت تعجب‌ها (!) در سایدبار
+                    const sidebarIndicators = document.querySelectorAll('.sidebar-notif-indicator');
+                    sidebarIndicators.forEach(el => {
+                        el.style.display = 'none';
+                    });
+
+                    // ۲. مخفی کردن عدد نوتیفیکیشن در هدر (Badge قرمز)
+                    const topbarBadges = document.querySelectorAll('.topbar-badge');
+                    topbarBadges.forEach(badge => {
+                        badge.classList.add('d-none');
+                    });
+
+                    // ۳. صفر کردن متن "New Notifications" در دراپ‌داون
+                    const dropdownCounts = document.querySelectorAll('.dropdown-tabs .badge');
+                    dropdownCounts.forEach(s => {
+                        s.innerText = '0 New';
+                    });
+
+                    // ۴. برداشتن حالت Active (پررنگ) از آیتم‌های لیست
+                    document.querySelectorAll('.notification-item.active').forEach(item => {
+                        item.classList.remove('active');
+                    });
+
+                    // نمایش پیام موفقیت با استایل Soft UI شما
+                    if (typeof Toastify !== "undefined") {
+                        Toastify({
+                            text: "All clear! Workspace synchronized.",
+                            duration: 3000,
+                            gravity: "top",
+                            position: "right",
+                            style: {background: "#2c3e50", borderRadius: "8px"}
+                        }).showToast();
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+                btnElement.innerHTML = originalContent;
+                btnElement.disabled = false;
+            });
+    }
+</script>

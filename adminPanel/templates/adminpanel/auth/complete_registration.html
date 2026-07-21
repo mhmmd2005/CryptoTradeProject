@@ -1,0 +1,134 @@
+{% extends 'shared/layout.html' %}
+
+{% block title %}
+    Registration
+{% endblock %}
+
+{% block content %}
+    <div class="auth-page-wrapper pt-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6 col-xl-5">
+                    <div class="card mt-4">
+                        <div class="card-body p-4">
+                            <div class="text-center mt-2">
+                                <h5 class="text-primary">Admin Activation</h5>
+                                <p class="text-muted">Verified Email: <span
+                                        class="badge bg-light text-primary">{{ email }}</span></p>
+                            </div>
+                            <div class="p-2 mt-4">
+                                <form id="completeRegistrationForm" method="POST">
+                                    {% csrf_token %}
+
+                                    <div class="mb-3">
+                                        <label for="id_email" class="form-label">Email Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                            <input type="email" name="email" class="form-control bg-light" id="id_email"
+                                                   value="{{ email }}" readonly>
+                                        </div>
+                                        <div class="form-text text-info">This email is verified and cannot be changed.
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="id_username" class="form-label">Username</label>
+                                        <input type="text" name="username" class="form-control" id="id_username"
+                                               placeholder="Choose a unique username" required>
+                                        <div class="form-text">Only letters, numbers, and underscores are allowed.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="id_full_name" class="form-label">Full Name</label>
+                                        <input type="text" name="full_name" class="form-control" id="id_full_name"
+                                               placeholder="Enter your legal full name" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="id_password" class="form-label">Password</label>
+                                        <input type="password" name="password" class="form-control" id="id_password"
+                                               placeholder="Min 8 chars (Uppercase, Number, Special)" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="id_password_confirm" class="form-label">Confirm Password</label>
+                                        <input type="password" name="password_confirm" class="form-control"
+                                               id="id_password_confirm"
+                                               placeholder="Repeat your password" required>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <button class="btn btn-success w-100" type="submit" id="submitBtn">
+                                            <span class="spinner-border spinner-border-sm d-none" id="btnSpinner"
+                                                  role="status"></span>
+                                            Activate My Account
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="mb-0 text-muted">Secured by System Integrity v2.0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('completeRegistrationForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('btnSpinner');
+
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                }
+            })
+                .then(response => response.json().then(data => ({status: response.status, body: data})))
+                .then(res => {
+                    if (res.status === 200) {
+                        // نمایش پیام انتظار برای تایید ادمین ارشد
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Registration Submitted',
+                            text: 'Information recorded. Please wait, the verification process may take a while.',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#25a0e2',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = '/';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Registration Failed',
+                            text: res.body.message || 'Something went wrong.',
+                            confirmButtonText: 'Try Again'
+                        });
+                        submitBtn.disabled = false;
+                        spinner.classList.add('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'Connection to server failed.', 'error');
+                    submitBtn.disabled = false;
+                    spinner.classList.add('d-none');
+                });
+        });
+    </script>
+{% endblock %}
