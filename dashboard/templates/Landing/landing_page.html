@@ -21,7 +21,43 @@
     </style>
 </head>
 <body>
+<!-- 🌀 ADVANCED NEON CIRCULAR LOADER -->
+<div id="pageLoader" class="page-loader-overlay">
+    <div class="loader-container">
+        <!-- حلقه بیرونی چرخان -->
+        <div class="loader-orbit-ring"></div>
 
+        <!-- دایره اصلی -->
+        <div id="loaderCard" class="loader-card">
+            <svg class="loader-ring-svg" viewBox="0 0 120 120">
+                <defs>
+                    <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#0d6efd"/>
+                        <stop offset="50%" stop-color="#00d2ff"/>
+                        <stop offset="100%" stop-color="#6610f2"/>
+                    </linearGradient>
+                    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <circle class="loader-ring-bg" stroke-width="6.5" fill="transparent" r="50" cx="60" cy="60"/>
+                <circle id="loaderCircle" class="loader-ring-fill" stroke="url(#loaderGradient)" filter="url(#neonGlow)"
+                        stroke-width="6.5" stroke-dasharray="314.159" stroke-dashoffset="314.159" fill="transparent"
+                        stroke-linecap="round" r="50" cx="60" cy="60"/>
+            </svg>
+            <span id="loaderPercent" class="loader-text-counter">0%</span>
+        </div>
+    </div>
+
+    <!-- 🌊 متن انیمیشنی (داخل دایو لودر قرار گرفت) -->
+    <div class="wave-loader-text">
+        <span>L</span><span>o</span><span>a</span><span>d</span><span>i</span><span>n</span><span>g</span><span>.</span><span>.</span><span>.</span>
+    </div>
+</div>
 <!-- 🌐 NAVIGATION BAR -->
 <nav class="navbar navbar-expand-lg custom-nav fixed-top">
     <div class="container">
@@ -632,8 +668,10 @@
         <i class="ri-arrow-up-line fs-5"></i>
     </button>
 </div>
+
 <script>
     {% include 'header_include/landing-js.js' %}
+
 </script>
 
 <!-- Bootstrap 5 JS Bundle -->

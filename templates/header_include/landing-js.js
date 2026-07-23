@@ -297,3 +297,61 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('touchmove', stopAutoScroll, {passive: true});
     }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const loaderOverlay = document.getElementById("pageLoader");
+    const loaderPercent = document.getElementById("loaderPercent");
+    const loaderCircle = document.getElementById("loaderCircle");
+    const loaderCard = document.getElementById("loaderCard");
+
+    const radius = loaderCircle.r.baseVal.value;
+    const circumference = 2 * Math.PI * radius;
+
+    loaderCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+    loaderCircle.style.strokeDashoffset = circumference;
+
+    const maxBlurPx = 12;
+    const MIN_DISPLAY_TIME = 800; // حداقل زمان نمایش لودر به میلی‌ثانیه (0.8 ثانیه)
+    const startTime = Date.now();
+
+    function updateLoaderUI(percent) {
+        const currentProgress = Math.min(Math.max(percent, 0), 100);
+
+        loaderPercent.textContent = `${Math.round(currentProgress)}%`;
+
+        const offset = circumference - (currentProgress / 100) * circumference;
+        loaderCircle.style.strokeDashoffset = offset;
+
+        const blurAmount = maxBlurPx * (1 - (currentProgress / 100));
+        loaderOverlay.style.backdropFilter = `blur(${blurAmount}px)`;
+        loaderOverlay.style.webkitBackdropFilter = `blur(${blurAmount}px)`;
+
+        if (currentProgress >= 100) {
+            loaderCard.classList.add("finish-pop");
+            setTimeout(() => {
+                loaderOverlay.classList.add("fade-out");
+            }, 350);
+        }
+    }
+
+    let progress = 0;
+    const loaderInterval = setInterval(() => {
+        if (progress < 90) {
+            progress += Math.floor(Math.random() * 8) + 3;
+            updateLoaderUI(progress);
+        }
+    }, 40);
+
+    // زمانی که صفحه کاملاً بارگذاری شد
+    window.addEventListener("load", function () {
+        clearInterval(loaderInterval);
+
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, MIN_DISPLAY_TIME - elapsedTime);
+
+        // اگر خیلی سریع لود شد، با اندکی تاخیر به 100% برود تا انیمیشن متن تکمیل شود
+        setTimeout(() => {
+            updateLoaderUI(100);
+        }, remainingTime);
+    });
+});

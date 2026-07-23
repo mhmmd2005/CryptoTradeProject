@@ -130,101 +130,56 @@
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 shadow-lg border-0"
                          aria-labelledby="page-header-notifications-dropdown">
 
-                        <div class="dropdown-head bg-primary bg-pattern rounded-top">
-                            <div class="p-3">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h6 class="m-0 fs-16 fw-semibold text-white"> Notifications </h6>
+                        <!-- Header: بدون تب و همراه با شمارنده -->
+                        <div class="dropdown-head bg-primary bg-pattern rounded-top p-3">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h6 class="m-0 fs-15 fw-semibold text-white">Unread Notifications</h6>
+                                </div>
+                                <div class="col-auto">
+                    <span class="badge bg-light text-body fs-11">
+                        {{ admin_unread_notifications|length }} New
+                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content: فقط لیست Unread -->
+                        <div class="py-2 ps-2">
+                            <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                {% for n in admin_unread_notifications %}
+                                    <div class="text-reset notification-item d-block dropdown-item position-relative active"
+                                         data-id="{{ n.id }}">
+                                        <div class="d-flex">
+                                            <div class="avatar-xs me-3">
+                                <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
+                                    <i class="bx bx-bell"></i>
+                                </span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <a href="{{ n.link }}" class="stretched-link">
+                                                    <h6 class="mt-0 mb-1 fs-13 fw-semibold">{{ n.title }}</h6>
+                                                </a>
+                                                <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                                                    <span><i
+                                                            class="mdi mdi-clock-outline"></i> {{ n.created_at|timesince }} ago</span>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div class="px-2 pt-2">
-                                <ul class="nav nav-tabs dropdown-tabs nav-tabs-custom" id="notificationItemsTab"
-                                    role="tablist">
-                                    <li class="nav-item waves-effect waves-light">
-                                        <a class="nav-link active" data-bs-toggle="tab" href="#all-noti-tab" role="tab"
-                                           aria-selected="true">
-                                            All ({{ admin_notifications|length }})
-                                        </a>
-                                    </li>
-                                    <li class="nav-item waves-effect waves-light">
-                                        <a class="nav-link" data-bs-toggle="tab" href="#unread-tab" role="tab"
-                                           aria-selected="false">
-                                            Unread ({{ admin_unread_notifications|length }})
-                                        </a>
-                                    </li>
-                                </ul>
+                                {% empty %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bx bx-bell-off fs-24 mb-2 d-block opacity-50"></i>
+                                        <p class="mb-0 fs-13">No unread notifications</p>
+                                    </div>
+                                {% endfor %}
                             </div>
                         </div>
 
-                        <div class="tab-content" id="notificationItemsTabContent">
-                            <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
-                                <div data-simplebar style="max-height: 300px;" class="pe-2">
-                                    {% for n in admin_notifications %}
-                                        <div class="text-reset notification-item d-block dropdown-item position-relative {% if not n.is_read %}active{% endif %}"
-                                             data-id="{{ n.id }}">
-                                            <div class="d-flex">
-                                                <div class="avatar-xs me-3">
-                                    <span class="avatar-title bg-soft-info text-info rounded-circle fs-16">
-                                        <i class="bx bx-bell"></i>
-                                    </span>
-                                                </div>
-                                                <div class="flex-1">
-                                                    <a href="{{ n.link }}" class="stretched-link">
-                                                        <h6 class="mt-0 mb-1 fs-13 fw-semibold">{{ n.title }}</h6>
-                                                    </a>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i
-                                                                class="mdi mdi-clock-outline"></i> {{ n.created_at|timesince }} ago</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% empty %}
-                                        <p class="text-center text-muted py-3">No notifications</p>
-                                    {% endfor %}
-                                </div>
-                            </div>
-
-                            <div class="tab-pane fade py-2 ps-2" id="unread-tab" role="tabpanel">
-                                <div data-simplebar style="max-height: 300px;" class="pe-2">
-                                    {% for n in admin_unread_notifications %}
-                                        <div class="text-reset notification-item d-block dropdown-item position-relative active"
-                                             data-id="{{ n.id }}">
-                                            <div class="d-flex">
-                                                <div class="avatar-xs me-3">
-                                    <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
-                                        <i class="bx bx-bell"></i>
-                                    </span>
-                                                </div>
-                                                <div class="flex-1">
-                                                    <a href="{{ n.link }}" class="stretched-link">
-                                                        <h6 class="mt-0 mb-1 fs-13 fw-semibold">{{ n.title }}</h6>
-                                                    </a>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i
-                                                                class="mdi mdi-clock-outline"></i> {{ n.created_at|timesince }} ago</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% empty %}
-                                        <p class="text-center text-muted py-3">No unread notifications</p>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
+                        <!-- Footer -->
                         <div class="p-2 border-top border-top-dashed text-center">
                             <button type="button"
-                                    class="btn btn-sm w-100 fw-bold shadow-none"
-                                    style="background-color: rgba(10, 179, 156, 0.1);
-                           color: #0ab39c !important;
-                           border: none;
-                           transition: none;"
-                                    onmouseover="this.style.color='#0ab39c'; this.style.backgroundColor='rgba(10, 179, 156, 0.1)';"
-                                    onmouseout="this.style.color='#0ab39c'; this.style.backgroundColor='rgba(10, 179, 156, 0.1)';"
+                                    class="btn btn-sm btn-soft-success w-100 fw-bold shadow-none"
                                     onclick="markAllNotificationsRead(this, 'admin')">
                                 <i class="ri-check-double-line align-middle me-1"></i> Mark All as Read
                             </button>
@@ -239,6 +194,7 @@
         <span class="d-flex align-items-center">
   <img class="rounded-circle header-profile-user"
        src="
+
 
 
 
