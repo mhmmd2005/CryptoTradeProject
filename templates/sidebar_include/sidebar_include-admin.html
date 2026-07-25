@@ -101,9 +101,9 @@
     /* 🌟 کالیبره کردن اختصاصی لوگوی پرمیوم در حالت مینی‌سایدبار (فیکس وسط‌چین مطلق) */
     html[data-sidebar-size="sm"] .premium-sidebar-logo,
     body[data-sidebar-size="sm"] .premium-sidebar-logo {
-        width: 100% !important; /* اجبار کانتینر به پر کردن کامل عرض ۷۰ پیکسلی سایدبار */
+        width: 100% !important;
         display: flex !important;
-        justify-content: center !important; /* مرکزچین کردن محتوا در محور افقی */
+        justify-content: center !important;
         align-items: center !important;
         padding: 0 !important;
         margin-left: 0 !important;
@@ -123,7 +123,6 @@
         margin: 0 auto !important;
         position: relative !important;
         left: 0 !important;
-        /* در صورتی که ساختار والد قالب همچنان پیکسلِ مزاحمی اعمال کند، خط زیر تراز بصری را ۱۰۰٪ فیکس می‌کند */
         transform: translateX(1px) !important;
     }
 </style>
@@ -140,17 +139,15 @@
             </span>
         </a>
 
-        <!-- 💎 NexTrade Premium Theme-Isolated Logo Component (اصلاح و کالیبره شد) -->
+        <!-- 💎 NexTrade Premium Theme-Isolated Logo Component -->
         <a class="navbar-brand d-flex align-items-center premium-sidebar-logo" href="#"
            style="text-decoration: none; margin-top: 20px; padding: 0 16px; gap: 14px; transition: all 0.3s ease;">
 
-            <!-- باکس آیکون پالس با ترنزیشن نرم برای پوزیشن مینی -->
             <div class="d-flex align-items-center justify-content-center brand-icon-wrapper"
                  style="width: 36px; height: 36px; background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important; border-radius: 8px; box-shadow: 0 4px 14px rgba(13, 110, 253, 0.25) !important; flex-shrink: 0; transition: all 0.3s ease;">
                 <i class="ri-pulse-fill" style="font-size: 19px; color: #ffffff !important;"></i>
             </div>
 
-            <!-- بلاک متنی نام تجاری با کلس کنترل داینامیک وضعیت سایدبار -->
             <div class="d-flex flex-column alignment-block sidebar-brand-text">
                 <span class="fw-bold lh-1" style="font-size: 20px; letter-spacing: -0.03em; color: #ffffff !important;">
                     Nex<span style="color: #0d6efd !important;">Trade</span>
@@ -170,8 +167,9 @@
 
             <ul class="navbar-nav" id="navbar-nav">
 
+                <!-- MAIN MENU -->
                 <li class="menu-title"><span data-key="t-menu" class="fw-bold fs-12 text-white text-uppercase"
-                                             style="letter-spacing: 1px; opacity: 1 !important;">Menu</span></li>
+                                             style="letter-spacing: 1px; opacity: 1 !important;">Main Menu</span></li>
                 <li class="nav-item">
                     <a class="nav-link menu-link {% if request.resolver_match.url_name == 'admin-panel' %}active{% endif %}"
                        href="{% url 'admin-panel' %}">
@@ -180,9 +178,10 @@
                     </a>
                 </li>
 
+                <!-- USER OPERATIONS -->
                 <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-pages"
                                                                           class="fw-bold fs-12 text-white text-uppercase"
-                                                                          style="letter-spacing: 1px; opacity: 1 !important;">User Services</span>
+                                                                          style="letter-spacing: 1px; opacity: 1 !important;">User Operations</span>
                 </li>
 
                 {% if 'kyc' in request.admin_user.permissions or request.admin_user.is_senior %}
@@ -192,7 +191,7 @@
                            data-key="t-list-js">
                             <div>
                                 <i data-feather="users" class="icon-dual"></i>
-                                <span>KYC Check</span>
+                                <span>KYC Verification</span>
                             </div>
                             {% if admin_kyc_unread_count > 0 %}
                                 <span class="badge badge-pill bg-danger"
@@ -232,6 +231,7 @@
                     </li>
                 {% endif %}
 
+                <!-- FINANCIAL OPERATIONS -->
                 <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-pages"
                                                                           class="fw-bold fs-12 text-white text-uppercase"
                                                                           style="letter-spacing: 1px; opacity: 1 !important;">Financial Operations</span>
@@ -242,7 +242,7 @@
                         <a href="{% url 'User-withdraw-request' %}"
                            class="nav-link menu-link {% if request.resolver_match.url_name == 'User-withdraw-request' %}active{% endif %}"
                            data-key="t-list-js">
-                            <i data-feather="arrow-down-circle" class="icon-dual"></i> <span>Withdraw List</span>
+                            <i data-feather="arrow-down-circle" class="icon-dual"></i> <span>Withdrawal Requests</span>
                         </a>
                     </li>
                 {% endif %}
@@ -253,11 +253,12 @@
                            class="nav-link menu-link {% if request.resolver_match.url_name == 'admin-round-list' %}active{% endif %}"
                            data-key="t-pages">
                             <i data-feather="credit-card" class="icon-dual"></i>
-                            <span data-key="t-pages">Prediction</span>
+                            <span data-key="t-pages">Prediction Rounds</span>
                         </a>
                     </li>
                 {% endif %}
 
+                <!-- ADMINISTRATION -->
                 <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-admin"
                                                                           class="fw-bold fs-12 text-white text-uppercase"
                                                                           style="letter-spacing: 1px; opacity: 1 !important;">Administration</span>
@@ -279,7 +280,7 @@
                            class="icon-dual {% if request.admin_user.is_senior %}text-danger{% else %}text-warning{% endif %}"></i>
                         <span data-key="t-admins"
                               class="text-nowrap {% if request.admin_user.is_senior %}text-danger fw-bold{% else %}text-warning{% endif %}">
-                            Admin Control Center
+                            Admin Management
                         </span>
                     </a>
                 </li>

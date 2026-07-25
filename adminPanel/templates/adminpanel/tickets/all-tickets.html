@@ -121,6 +121,8 @@
                                 <div id="table-pagination-container">
                                     <div role="complementary" class="gridjs gridjs-container" style="width: 100%;">
                                         <div class="tab-content">
+
+                                            <!-- تب ۱: همه تیکت‌ها -->
                                             <div class="tab-pane active" id="all-tickets" role="tabpanel">
                                                 <div class="gridjs-wrapper" style="overflow-x: auto;">
                                                     <table role="grid" class="gridjs-table" style="width: 100%;">
@@ -145,7 +147,7 @@
                                                         </thead>
                                                         <tbody class="gridjs-tbody">
                                                         {% for ticket in tickets %}
-                                                            <tr class="gridjs-tr">
+                                                            <tr class="gridjs-tr ticket-row">
                                                                 <td class="gridjs-td"><span
                                                                         class="fw-medium">{{ ticket.ticket_id }}</span>
                                                                 </td>
@@ -156,8 +158,8 @@
                                                                     style="white-space: nowrap;">{{ ticket.start_date|date:"Y-m-d" }}</td>
                                                                 <td class="gridjs-td d-none d-lg-table-cell">{{ ticket.department }}</td>
                                                                 <td class="gridjs-td">
-                                                                    <span class="badge {% if ticket.priority == 'important' %}bg-danger-subtle text-danger{% elif ticket.priority == 'medium' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} px-2 py-1"
-                                                                          style="font-weight: 600; font-size: 11px; text-transform: uppercase;">{{ ticket.priority }}</span>
+                                    <span class="badge {% if ticket.priority == 'important' %}bg-danger-subtle text-danger{% elif ticket.priority == 'medium' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} px-2 py-1"
+                                          style="font-weight: 600; font-size: 11px; text-transform: uppercase;">{{ ticket.priority }}</span>
                                                                 </td>
                                                                 <td class="gridjs-td">
                                                                     <div class="d-flex align-items-center justify-content-between"
@@ -167,8 +169,10 @@
                                                                         {% if ticket.status == 'answered' %}
                                                                             <i class="ri-checkbox-circle-fill text-success"
                                                                                style="font-size: 16px; margin-left: 10px;"></i>
-                                                                        {% else %}<span class="fw-bold text-danger"
-                                                                                        style="font-size: 16px; margin-left: 10px;">!</span>{% endif %}
+                                                                        {% else %}
+                                                                            <span class="fw-bold text-danger"
+                                                                                  style="font-size: 16px; margin-left: 10px;">!</span>
+                                                                        {% endif %}
                                                                     </div>
                                                                 </td>
                                                                 <td class="gridjs-td text-center">
@@ -177,30 +181,29 @@
                                                                             class="ri-eye-line"></i></a>
                                                                 </td>
                                                             </tr>
-                                                        {% empty %}
-                                                            <tr class="gridjs-tr">
-                                                                <td colspan="8" class="text-center py-5">
-                                                                    <div>
-                                                                        <lord-icon
-                                                                                src="https://cdn.lordicon.com/msoeawqm.json"
-                                                                                trigger="loop"
-                                                                                colors="primary:#25a0e2,secondary:#00bd9d"
-                                                                                style="width:75px;height:75px"></lord-icon>
-                                                                        <h5 class="mt-2">{% if search_query %}No result
-                                                                            found{% else %}No tickets
-                                                                            found{% endif %}</h5>
-                                                                        <p class="text-muted mb-0">{% if search_query %}
-                                                                            No tickets found for your search.{% else %}
-                                                                            There is nothing to display.{% endif %}</p>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
                                                         {% endfor %}
+                                                        <tr class="gridjs-tr empty-row d-none">
+                                                            <td colspan="8" class="text-center py-5">
+                                                                <div>
+                                                                    <lord-icon
+                                                                            src="https://cdn.lordicon.com/msoeawqm.json"
+                                                                            trigger="loop"
+                                                                            colors="primary:#25a0e2,secondary:#00bd9d"
+                                                                            style="width:75px;height:75px"></lord-icon>
+                                                                    <h5 class="mt-2">{% if search_query %}No result
+                                                                        found{% else %}No tickets found{% endif %}</h5>
+                                                                    <p class="text-muted mb-0">{% if search_query %}No
+                                                                        tickets found for your search.{% else %}There is
+                                                                        nothing to display.{% endif %}</p>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
                                             </div>
 
+                                            <!-- تب ۲: تیکت‌های باز -->
                                             <div class="tab-pane" id="open-tickets" role="tabpanel">
                                                 <div class="gridjs-wrapper" style="overflow-x: auto;">
                                                     <table role="grid" class="gridjs-table" style="width: 100%;">
@@ -226,7 +229,7 @@
                                                         <tbody class="gridjs-tbody">
                                                         {% for ticket in tickets %}
                                                             {% if ticket.status != 'answered' %}
-                                                                <tr class="gridjs-tr">
+                                                                <tr class="gridjs-tr ticket-row">
                                                                     <td class="gridjs-td"><span
                                                                             class="fw-medium text-primary">{{ ticket.ticket_id }}</span>
                                                                     </td>
@@ -237,8 +240,8 @@
                                                                         style="white-space: nowrap;">{{ ticket.start_date|date:"Y-m-d" }}</td>
                                                                     <td class="gridjs-td d-none d-lg-table-cell">{{ ticket.department }}</td>
                                                                     <td class="gridjs-td">
-                                                                        <span class="badge {% if ticket.priority == 'important' %}bg-danger-subtle text-danger{% elif ticket.priority == 'medium' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} px-2 py-1"
-                                                                              style="font-weight: 600; font-size: 11px; text-transform: uppercase;">{{ ticket.priority }}</span>
+                                        <span class="badge {% if ticket.priority == 'important' %}bg-danger-subtle text-danger{% elif ticket.priority == 'medium' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} px-2 py-1"
+                                              style="font-weight: 600; font-size: 11px; text-transform: uppercase;">{{ ticket.priority }}</span>
                                                                     </td>
                                                                     <td class="gridjs-td">
                                                                         <div class="d-flex align-items-center justify-content-between"
@@ -256,25 +259,27 @@
                                                                     </td>
                                                                 </tr>
                                                             {% endif %}
-                                                        {% empty %}
-                                                            <tr class="gridjs-tr">
-                                                                <td colspan="8" class="text-center py-5">
-                                                                    <div>
-                                                                        <lord-icon
-                                                                                src="https://cdn.lordicon.com/msoeawqm.json"
-                                                                                trigger="loop"
-                                                                                colors="primary:#25a0e2,secondary:#00bd9d"
-                                                                                style="width:75px;height:75px"></lord-icon>
-                                                                        <h5 class="mt-2">No open tickets</h5>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
                                                         {% endfor %}
+                                                        <tr class="gridjs-tr empty-row d-none">
+                                                            <td colspan="8" class="text-center py-5">
+                                                                <div>
+                                                                    <lord-icon
+                                                                            src="https://cdn.lordicon.com/msoeawqm.json"
+                                                                            trigger="loop"
+                                                                            colors="primary:#25a0e2,secondary:#00bd9d"
+                                                                            style="width:75px;height:75px"></lord-icon>
+                                                                    <h5 class="mt-2">No open tickets</h5>
+                                                                    <p class="text-muted mb-0">There are no pending or
+                                                                        open tickets at the moment.</p>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
                                             </div>
 
+                                            <!-- تب ۳: تیکت‌های پاسخ داده شده -->
                                             <div class="tab-pane" id="answered-tickets" role="tabpanel">
                                                 <div class="gridjs-wrapper" style="overflow-x: auto;">
                                                     <table role="grid" class="gridjs-table" style="width: 100%;">
@@ -300,7 +305,7 @@
                                                         <tbody class="gridjs-tbody">
                                                         {% for ticket in tickets %}
                                                             {% if ticket.status == 'answered' %}
-                                                                <tr class="gridjs-tr">
+                                                                <tr class="gridjs-tr ticket-row">
                                                                     <td class="gridjs-td"><span
                                                                             class="fw-medium text-primary">{{ ticket.ticket_id }}</span>
                                                                     </td>
@@ -311,8 +316,8 @@
                                                                         style="white-space: nowrap;">{{ ticket.start_date|date:"Y-m-d" }}</td>
                                                                     <td class="gridjs-td d-none d-lg-table-cell">{{ ticket.department }}</td>
                                                                     <td class="gridjs-td">
-                                                                        <span class="badge {% if ticket.priority == 'important' %}bg-danger-subtle text-danger{% elif ticket.priority == 'medium' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} px-2 py-1"
-                                                                              style="font-weight: 600; font-size: 11px; text-transform: uppercase;">{{ ticket.priority }}</span>
+                                        <span class="badge {% if ticket.priority == 'important' %}bg-danger-subtle text-danger{% elif ticket.priority == 'medium' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} px-2 py-1"
+                                              style="font-weight: 600; font-size: 11px; text-transform: uppercase;">{{ ticket.priority }}</span>
                                                                     </td>
                                                                     <td class="gridjs-td">
                                                                         <div class="d-flex align-items-center justify-content-between"
@@ -330,26 +335,28 @@
                                                                     </td>
                                                                 </tr>
                                                             {% endif %}
-                                                        {% empty %}
-                                                            <tr class="gridjs-tr">
-                                                                <td colspan="8" class="text-center py-5">
-                                                                    <div>
-                                                                        <lord-icon
-                                                                                src="https://cdn.lordicon.com/msoeawqm.json"
-                                                                                trigger="loop"
-                                                                                colors="primary:#25a0e2,secondary:#00bd9d"
-                                                                                style="width:75px;height:75px"></lord-icon>
-                                                                        <h5 class="mt-2">No answered tickets</h5>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
                                                         {% endfor %}
+                                                        <tr class="gridjs-tr empty-row d-none">
+                                                            <td colspan="8" class="text-center py-5">
+                                                                <div>
+                                                                    <lord-icon
+                                                                            src="https://cdn.lordicon.com/msoeawqm.json"
+                                                                            trigger="loop"
+                                                                            colors="primary:#25a0e2,secondary:#00bd9d"
+                                                                            style="width:75px;height:75px"></lord-icon>
+                                                                    <h5 class="mt-2">No answered tickets</h5>
+                                                                    <p class="text-muted mb-0">No tickets have been
+                                                                        answered yet.</p>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
                                             </div>
                                         </div>
 
+                                        <!-- Pagination -->
                                         <div class="gridjs-footer mt-3">
                                             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
                                                 <div class="gridjs-pagination w-100">
@@ -357,7 +364,6 @@
                                                         {% if page_obj.has_previous %}
                                                             <a class="page-item pagination-prev" style="cursor:pointer;"
                                                                hx-get="?page=
-
 
                                                                        {{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
                                                                hx-target="#table-pagination-container"
@@ -372,7 +378,6 @@
                                                                     <a class="page-link" style="cursor:pointer;"
                                                                        hx-get="?page=
 
-
                                                                                {{ num }}{% if search_query %}&search={{ search_query }}{% endif %}"
                                                                        hx-target="#table-pagination-container"
                                                                        hx-select="#table-pagination-container"
@@ -383,7 +388,6 @@
                                                         {% if page_obj.has_next %}
                                                             <a class="page-item pagination-next" style="cursor:pointer;"
                                                                hx-get="?page=
-
 
                                                                        {{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
                                                                hx-target="#table-pagination-container"
@@ -448,7 +452,33 @@
     </script>
 
     <script>
-        // فقط منطق حذف را نگه می‌داریم چون با HTMX تداخلی ندارد
+        // 🌟 بررسی هوشمند خالی بودن سطر هر تب (برای نمایش پیام خالی اختصاصی)
+        function checkTabEmptyStates() {
+            document.querySelectorAll('.tab-pane').forEach(tab => {
+                const ticketRows = tab.querySelectorAll('tbody tr.ticket-row');
+                const emptyRow = tab.querySelector('tbody tr.empty-row');
+
+                if (emptyRow) {
+                    if (ticketRows.length === 0) {
+                        emptyRow.classList.remove('d-none');
+                    } else {
+                        emptyRow.classList.add('d-none');
+                    }
+                }
+            });
+        }
+
+        // اجرای اولین بار و همگام‌سازی با HTMX
+        document.addEventListener('DOMContentLoaded', () => {
+            checkTabEmptyStates();
+
+            const yearElement = document.getElementById('footer-year');
+            if (yearElement) {
+                yearElement.textContent = new Date().getFullYear();
+            }
+        });
+
+        // مدیریت حذف تیکت
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -478,12 +508,15 @@
                 .then(data => {
                     if (data.success) {
                         btn.closest('tr').remove();
+                        checkTabEmptyStates(); // بررسی مجدد پس از حذف آیتم
                     }
                 });
         });
 
-        // این بخش بسیار مهم است: برای اینکه فوکوس موس بعد از سرچ در باکس جستجو بماند
+        // مدیریت فوکوس سرچ و فراخوانی مجدد چک کردن تب‌ها پس از Swap شدن HTMX
         document.body.addEventListener('htmx:afterOnLoad', function (evt) {
+            checkTabEmptyStates(); // بروزرسانی پیام‌های خالی پس از لود صفحه جدید با HTMX
+
             if (evt.detail.target.id === "table-pagination-container") {
                 const searchInput = document.getElementById('transactionSearch');
                 if (searchInput) {

@@ -76,7 +76,6 @@
         opacity: 0.75;
     }
 
-
     @keyframes menuShow {
         from {
             opacity: 0;
@@ -88,10 +87,12 @@
         }
     }
 </style>
+
 <header id="page-topbar">
     <div class="layout-width">
         <div class="navbar-header">
-            <div class="d-flex">
+            <!-- سمت چپ: لوگو، همبرگری و باکس سرچ دسکتاپ -->
+            <div class="d-flex align-items-center">
                 <!-- LOGO -->
                 <div class="navbar-brand-box horizontal-logo">
                     <a href="index.html" class="logo logo-dark">
@@ -112,6 +113,7 @@
                         </span>
                     </a>
                 </div>
+
                 <button type="button" class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger"
                         id="topnav-hamburger-icon">
                     <span class="hamburger-icon">
@@ -121,9 +123,20 @@
                     </span>
                 </button>
 
+                <!-- Search Box (Desktop) -->
+                <form class="app-search d-none d-md-block ms-2" action="#" method="GET">
+                    <div class="position-relative">
+                        <input type="text" class="form-control" placeholder="Search..." autocomplete="off"
+                               style="width: 260px;">
+                        <span class="mdi mdi-magnify search-widget-icon"></span>
+                    </div>
+                </form>
             </div>
 
+            <!-- سمت راست: ابزارها، دارک مود، نوتیفیکیشن و آواتار -->
             <div class="d-flex align-items-center">
+
+                <!-- Search Icon Dropdown (Mobile Only) -->
                 <div class="dropdown d-md-none topbar-head-dropdown header-item">
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
                             id="page-header-search-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
@@ -132,7 +145,7 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
                          aria-labelledby="page-header-search-dropdown">
-                        <form class="p-3">
+                        <form class="p-3" action="#" method="GET">
                             <div class="form-group m-0">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Search ..."
@@ -144,75 +157,8 @@
                         </form>
                     </div>
                 </div>
-                <div class="dropdown ms-1 topbar-head-dropdown header-item">
-                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <img id="custom-header-lang-img" src="{% static 'assets/images/flags/us.svg' %}"
-                             alt="Header Language"
-                             height="20" class="rounded">
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end">
 
-                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-language py-2"
-                           data-lang="en"
-                           title="English">
-                            <img src="{% static 'assets/images/flags/us.svg' %}" alt="user-image" class="me-2 rounded"
-                                 height="18">
-                            <span class="align-middle">English</span>
-                        </a>
-
-                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-language" data-lang="sp"
-                           title="Spanish">
-                            <img src="{% static 'assets/images/flags/spain.svg' %}" alt="user-image"
-                                 class="me-2 rounded" height="18">
-                            <span class="align-middle">Española</span>
-                        </a>
-
-                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-language" data-lang="gr"
-                           title="German">
-                            <img src="{% static 'assets/images/flags/germany.svg' %}" alt="user-image"
-                                 class="me-2 rounded" height="18">
-                            <span class="align-middle">Deutsche</span>
-                        </a>
-
-                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-language" data-lang="it"
-                           title="Italian">
-                            <img src="{% static 'assets/images/flags/italy.svg' %}" alt="user-image"
-                                 class="me-2 rounded" height="18">
-                            <span class="align-middle">Italiana</span>
-                        </a>
-
-                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-language" data-lang="ru"
-                           title="Russian">
-                            <img src="{% static 'assets/images/flags/russia.svg' %}" alt="user-image"
-                                 class="me-2 rounded" height="18">
-                            <span class="align-middle">русский</span>
-                        </a>
-
-                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-language" data-lang="ch"
-                           title="Chinese">
-                            <img src="{% static 'assets/images/flags/china.svg' %}" alt="user-image"
-                                 class="me-2 rounded" height="18">
-                            <span class="align-middle">中国人</span>
-                        </a>
-
-                        <a href="javascript:void(0);" class="dropdown-item notify-item custom-language" data-lang="fr"
-                           title="French">
-                            <img src="{% static 'assets/images/flags/french.svg' %}" alt="user-image"
-                                 class="me-2 rounded" height="18">
-                            <span class="align-middle">français</span>
-                        </a>
-                    </div>
-                </div>
-
-
-                <div class="ms-1 header-item d-none d-sm-flex">
-                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
-                            data-toggle="fullscreen">
-                        <i class='bx bx-fullscreen fs-22'></i>
-                    </button>
-                </div>
-
+                <!-- Dark / Light Mode -->
                 <div class="ms-1 header-item d-none d-sm-flex">
                     <button type="button"
                             class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle light-dark-mode">
@@ -220,9 +166,8 @@
                     </button>
                 </div>
 
-
+                <!-- Notifications Dropdown -->
                 <div class="dropdown topbar-head-dropdown ms-1 header-item">
-                    <!-- دکمه زنگوله هدر -->
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
                             id="page-header-notifications-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false">
@@ -230,41 +175,49 @@
                         {% if unread_count > 0 %}
                             <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger"
                                   id="header-notification-badge">
-                {{ unread_count }}
-            </span>
+                                {{ unread_count }}
+                            </span>
                         {% endif %}
                     </button>
 
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 shadow-lg border-0"
                          aria-labelledby="page-header-notifications-dropdown">
 
-                        <!-- هدر منوی نوتیفیکیشن (بدون تب All) -->
-                        <div class="dropdown-head bg-primary bg-pattern rounded-top p-3">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <h6 class="m-0 fs-16 fw-semibold text-white"> Unread Notifications </h6>
+                        <div class="dropdown-head bg-primary bg-pattern rounded-top">
+                            <div class="p-3">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h6 class="m-0 fs-16 fw-semibold text-white"> Notifications </h6>
+                                    </div>
                                 </div>
-                                <div class="col-auto">
-                    <span class="badge bg-light text-dark fs-11" id="unread-count-badge">
-                        {{ user_unread_notifications|length }} New
-                    </span>
-                                </div>
+                            </div>
+
+                            <div class="px-2 pt-2">
+                                <ul class="nav nav-tabs dropdown-tabs nav-tabs-custom" id="notificationItemsTab"
+                                    role="tablist">
+                                    <li class="nav-item waves-effect waves-light">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#all-noti-tab" role="tab"
+                                           aria-selected="true">
+                                            All ({{ user_notifications|length }})
+                                        </a>
+                                    </li>
+                                    <li class="nav-item waves-effect waves-light">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#unread-tab" role="tab"
+                                           aria-selected="false">
+                                            Unread ({{ user_unread_notifications|length }})
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
 
-                        <!-- لیست فقط خوانده‌نشده‌ها -->
-                        <div class="py-2 ps-2" id="unread-notifications-container">
-                            <div data-simplebar style="max-height: 300px;" class="pe-2" id="unread-notifications-list">
-                                {% for n in user_unread_notifications %}
-                                    <div class="text-reset notification-item d-block dropdown-item position-relative active"
-                                         data-id="{{ n.id }}"
-                                         oncontextmenu="handleNotificationContextMenu(event, this)">
-                                        <div class="d-flex">
-                                            <div class="avatar-xs me-3">
-                                <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
-                                    <i class="bx bx-bell"></i>
-                                </span>
-                                            </div>
+                        <div class="tab-content" id="notificationItemsTabContent">
+                            <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
+                                <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                    {% for n in user_notifications %}
+                                        <div class="text-reset notification-item d-block dropdown-item position-relative {% if not n.is_read %}active{% endif %}"
+                                             data-id="{{ n.id }}"
+                                             oncontextmenu="handleNotificationContextMenu(event, this)">
                                             <div class="flex-1">
                                                 <a href="javascript:void(0);"
                                                    data-bs-toggle="modal"
@@ -278,19 +231,54 @@
                                                 </p>
                                             </div>
                                         </div>
-                                    </div>
-                                {% empty %}
-                                    <p class="text-center text-muted py-3" id="no-unread-msg">No unread
-                                        notifications</p>
-                                {% endfor %}
+                                    {% empty %}
+                                        <p class="text-center text-muted py-3">No notifications</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade py-2 ps-2" id="unread-tab" role="tabpanel">
+                                <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                    {% for n in user_unread_notifications %}
+                                        <div class="text-reset notification-item d-block dropdown-item position-relative active"
+                                             data-id="{{ n.id }}"
+                                             oncontextmenu="handleNotificationContextMenu(event, this)">
+                                            <div class="d-flex">
+                                                <div class="avatar-xs me-3">
+                                                    <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
+                                                        <i class="bx bx-bell"></i>
+                                                    </span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <a href="javascript:void(0);"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#notificationModal"
+                                                       onclick="showNotification(`{{ n.message|escapejs }}`, {{ n.id }})">
+                                                        <h6 class="mt-0 mb-1 fs-13 fw-semibold">{{ n.title }}</h6>
+                                                    </a>
+                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                                                        <span><i
+                                                                class="mdi mdi-clock-outline"></i> {{ n.created_at|timesince }} ago</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <p class="text-center text-muted py-3">No unread notifications</p>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
 
-                        <!-- دکمه Mark All as Read -->
                         <div class="p-2 border-top border-top-dashed text-center">
                             <button type="button"
                                     class="btn btn-sm w-100 fw-bold shadow-none"
-                                    style="background-color: rgba(10, 179, 156, 0.1); color: #0ab39c !important; border: none;"
+                                    style="background-color: rgba(10, 179, 156, 0.1);
+                   color: #0ab39c !important;
+                   border: none;
+                   transition: none;"
+                                    onmouseover="this.style.color='#0ab39c'; this.style.backgroundColor='rgba(10, 179, 156, 0.1)';"
+                                    onmouseout="this.style.color='#0ab39c'; this.style.backgroundColor='rgba(10, 179, 156, 0.1)';"
                                     onclick="markAllNotificationsRead(this, 'user')">
                                 <i class="ri-check-double-line align-middle me-1"></i> Mark All as Read
                             </button>
@@ -298,45 +286,40 @@
                     </div>
                 </div>
 
-
+                <!-- User Profile Dropdown -->
                 <div class="dropdown ms-sm-3 header-item topbar-user">
                     <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown"
                             aria-haspopup="true" aria-expanded="false">
-        <span class="d-flex align-items-center">
-<img class="rounded-circle header-profile-user"
-     src="
+                        <span class="d-flex align-items-center">
+                            <img class="rounded-circle header-profile-user"
+                                 src="
+                                         {% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}{% endif %}"
+                                 alt="Header Avatar">
 
+                            <span class="text-start ms-xl-2" id="navbarUserContainer"
+                                  data-email="{{ request.user.email|default:'' }}">
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text"
+                                      id="navbarUsernameTop">
+                                    {% if request.user.profile.custom_username %}
+                                        {{ request.user.profile.custom_username }}
+                                    {% else %}
+                                        {{ request.user.email|default:request.user.username }}
+                                    {% endif %}
+                                </span>
 
-
-
-             {% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}{% endif %}"
-     alt="Header Avatar">
-
-            <span class="text-start ms-xl-2" id="navbarUserContainer" data-email="{{ request.user.email|default:'' }}">
-
-                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text" id="navbarUsernameTop">
-                    {% if request.user.profile.custom_username %}
-                        {{ request.user.profile.custom_username }}
-                    {% else %}
-                        {{ request.user.email|default:request.user.username }}
-                    {% endif %}
-                </span>
-
-                <span class="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text" id="navbarUsernameBottom">
-                    {% if request.user.profile.custom_username %}
-                        {{ request.user.email|default:"User" }}
-                    {% else %}
-                        User
-                    {% endif %}
-                </span>
-
-            </span>
-        </span>
+                                <span class="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text"
+                                      id="navbarUsernameBottom">
+                                    {% if request.user.profile.custom_username %}
+                                        {{ request.user.email|default:"User" }}
+                                    {% else %}
+                                        User
+                                    {% endif %}
+                                </span>
+                            </span>
+                        </span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
-                        <h6 class="dropdown-header">
-                            Welcome
-                        </h6>
+                        <h6 class="dropdown-header">Welcome</h6>
 
                         <a class="dropdown-item" href="{% url 'dashboard:profile-setting' %}">
                             <i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i>
@@ -352,7 +335,6 @@
 
                         <a class="dropdown-item">
                             <i class="mdi mdi-wallet text-muted fs-16 align-middle me-1"></i>
-                            <!-- ⚡ استفاده از floatformat:"2" برای گرد کردن و حذف صفر‌های اضافی دیتابیس -->
                             <span class="align-middle">Balance : <b>${{ wallet.balance|default:"0.00"|floatformat:"2"|intcomma }}</b></span>
                         </a>
 
@@ -367,9 +349,12 @@
                         </a>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
+
+    <!-- Context Menu -->
     <div id="notification-context-menu" class="shadow-lg border-0 bg-white position-fixed d-none"
          style="z-index: 10000; width: 160px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
         <div class="list-group list-group-flush">
@@ -383,11 +368,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // ۱. ایجاد لایه Overlay به صورت داینامیک
         if (!document.querySelector('.custom-sidebar-overlay')) {
             const overlay = document.createElement('div');
             overlay.className = 'custom-sidebar-overlay';
-            // استایل‌دهی مستقیم برای اطمینان از عملکرد
             Object.assign(overlay.style, {
                 position: 'fixed',
                 top: 0,
@@ -400,19 +383,16 @@
             });
             document.body.appendChild(overlay);
 
-            // ۲. منطق بستن با کلیک روی لایه
             overlay.addEventListener('click', function () {
                 document.body.classList.remove('vertical-sidebar-enable');
                 overlay.style.display = 'none';
             });
         }
 
-        // ۳. هماهنگی با دکمه همبرگری موجود در هدر
         const hamburger = document.getElementById('topnav-hamburger-icon');
         if (hamburger) {
             hamburger.addEventListener('click', function () {
                 const overlay = document.querySelector('.custom-sidebar-overlay');
-                // یک تاخیر ناچیز برای اینکه کلاس بدنه توسط سورس اصلی اضافه شود
                 setTimeout(() => {
                     if (document.body.classList.contains('vertical-sidebar-enable')) {
                         overlay.style.display = 'block';
@@ -424,6 +404,7 @@
         }
     });
 </script>
+
 <script>
     function markAllNotificationsRead(btnElement, scopeType) {
         const originalContent = btnElement.innerHTML;
@@ -437,35 +418,30 @@
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({'scope': scopeType}) // ارسال نوع پنل به سرور
+            body: JSON.stringify({'scope': scopeType})
         })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // ۱. مخفی کردن علامت تعجب‌ها (!) در سایدبار
                     const sidebarIndicators = document.querySelectorAll('.sidebar-notif-indicator');
                     sidebarIndicators.forEach(el => {
                         el.style.display = 'none';
                     });
 
-                    // ۲. مخفی کردن عدد نوتیفیکیشن در هدر (Badge قرمز)
                     const topbarBadges = document.querySelectorAll('.topbar-badge');
                     topbarBadges.forEach(badge => {
                         badge.classList.add('d-none');
                     });
 
-                    // ۳. صفر کردن متن "New Notifications" در دراپ‌داون
                     const dropdownCounts = document.querySelectorAll('.dropdown-tabs .badge');
                     dropdownCounts.forEach(s => {
                         s.innerText = '0 New';
                     });
 
-                    // ۴. برداشتن حالت Active (پررنگ) از آیتم‌های لیست
                     document.querySelectorAll('.notification-item.active').forEach(item => {
                         item.classList.remove('active');
                     });
 
-                    // نمایش پیام موفقیت با استایل Soft UI شما
                     if (typeof Toastify !== "undefined") {
                         Toastify({
                             text: "All clear! Workspace synchronized.",
@@ -484,12 +460,12 @@
             });
     }
 </script>
+
 <script>
     let selectedNotificationId = null;
     let selectedNotificationEl = null;
 
     function handleNotificationContextMenu(e, element) {
-        // ۱. جلوگیری از رفتارهای پیش‌فرض
         e.preventDefault();
         e.stopPropagation();
 
@@ -497,16 +473,10 @@
         selectedNotificationEl = element;
 
         const ctxMenu = document.getElementById('notification-context-menu');
-
-        // ۲. محاسبه مختصات دقیق
-        // استفاده از e.clientX/Y برای موقعیت ثابت در صفحه
         ctxMenu.style.left = e.clientX + "px";
         ctxMenu.style.top = e.clientY + "px";
-
-        // ۳. نمایش منو با کلاس active
         ctxMenu.classList.add('active');
 
-        // ۴. منطق بستن منو (با کلیک چپ یا راست در جای دیگر)
         const closeHandler = (event) => {
             if (!ctxMenu.contains(event.target)) {
                 ctxMenu.classList.remove('active');
@@ -514,11 +484,9 @@
             }
         };
 
-        // استفاده از mousedown برای واکنش سریع‌تر
         document.addEventListener('mousedown', closeHandler);
     }
 
-    // ۵. اجرای عملیات Mark as Read (بدون تغییر در منطق ارسال)
     document.getElementById('ctx-mark-read').addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -536,7 +504,6 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // پیدا کردن تمام آیتم‌ها با این ID در کل دراپ‌داون
                     const allItems = document.querySelectorAll(`.notification-item[data-id="${selectedNotificationId}"]`);
                     allItems.forEach(el => el.classList.remove('active'));
 
@@ -547,26 +514,23 @@
                         else badge.remove();
                     }
 
-                    // بستن منو بعد از موفقیت
                     document.getElementById('notification-context-menu').classList.remove('active');
                 }
             })
             .catch(err => console.error("Jarvis Sync Error:", err));
     });
 
-    // --- ۴. مدیریت هوشمند و آنی تغییر نام کاربری ---
     document.addEventListener('DOMContentLoaded', function () {
         const usernameForm = document.getElementById('customUsernameForm');
 
         if (usernameForm) {
             usernameForm.addEventListener('submit', function (e) {
-                e.preventDefault(); // جلوگیری از رفتار رفرش سنتی مرورگر
+                e.preventDefault();
 
                 const submitBtn = document.getElementById('saveUsernameBtn');
                 const errorDiv = document.getElementById('usernameError');
                 const originalContent = submitBtn ? submitBtn.innerHTML : 'Save Changes';
 
-                // ریست کردن وضعیت خطاها
                 if (errorDiv) {
                     errorDiv.style.display = 'none';
                     errorDiv.textContent = '';
@@ -577,7 +541,6 @@
                     submitBtn.disabled = true;
                 }
 
-                // 🌟 استخراج خودکار تمام داده‌ها و فایل تصویر بر اساس ویژگی name در HTML
                 const formData = new FormData(this);
                 const inputUsername = formData.get('custom_username');
 
@@ -587,7 +550,7 @@
                         'X-CSRFToken': '{{ csrf_token }}',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: formData // ارسال بسته ترکیبی متن و تصویر به جنگو
+                    body: formData
                 })
                     .then(response => {
                         if (!response.ok) {
@@ -599,34 +562,28 @@
                     })
                     .then(data => {
                         if (data.success) {
-                            // ۱. بستن هوشمند مودال پس از تایید سرور
                             const modalEl = document.getElementById('customUsernameModal');
                             const modalInstance = bootstrap.Modal.getInstance(modalEl);
                             if (modalInstance) modalInstance.hide();
 
-                            // ۲. آپدیت بخش خوش‌آمدگویی داخل دراپ‌داون
                             const dropdownUsernameEl = document.getElementById('dropdownUsername');
                             if (dropdownUsernameEl) {
                                 dropdownUsernameEl.innerText = inputUsername;
                             }
 
-                            // ۳. دریافت ایمیل ذخیره شده در کانتینر ناوبار جهت جابه‌جایی چیدمان
                             const container = document.getElementById('navbarUserContainer');
                             const userEmail = container ? container.getAttribute('data-email') : '';
 
-                            // ۴. جابه‌جایی داینامیک چیدمان: نام کاربری به بالا هدایت می‌شود
                             const navbarTop = document.getElementById('navbarUsernameTop');
                             if (navbarTop) {
                                 navbarTop.innerText = inputUsername;
                             }
 
-                            // ۵. جابه‌جایی داینامیک چیدمان: ایمیل به موقعیت پایین سوییچ می‌شود
                             const navbarBottom = document.getElementById('navbarUsernameBottom');
                             if (navbarBottom) {
                                 navbarBottom.innerText = userEmail ? userEmail : 'User';
                             }
 
-                            // 🌟 ۶. تغییر آنی تمام تصاویر آواتار هدر به تصویر آپلود شده جدید بدون رفرش
                             if (data.avatar_url) {
                                 const avatarImages = document.querySelectorAll('.header-profile-user');
                                 avatarImages.forEach(img => {
@@ -634,7 +591,6 @@
                                 });
                             }
 
-                            // ۷. نمایش توست موفقیت سیستم با ساختار Soft UI شما
                             if (typeof Toastify !== "undefined") {
                                 Toastify({
                                     text: "Profile synchronized successfully! Layout updated.",
