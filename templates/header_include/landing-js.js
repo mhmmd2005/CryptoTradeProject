@@ -1,6 +1,6 @@
 let currentGlobalBtcPrice = 64520.00;
 
-// ۱. تعریف متغیر نگهداری آخرین قیمت‌ها
+// Store last known prices
 const lastKnownPrices = {
     'BTCUSDT': null,
     'ETHUSDT': null,
@@ -9,7 +9,7 @@ const lastKnownPrices = {
     'USDCUSDT': null
 };
 
-// ۲. نگاشت نمادهای API به IDهای HTML
+// Map API symbols to HTML element IDs
 const elementMapping = {
     'BTCUSDT': ['ticker-btc', 'table-btc'],
     'ETHUSDT': ['ticker-eth', 'table-eth'],
@@ -18,7 +18,7 @@ const elementMapping = {
     'USDCUSDT': ['table-usdt']
 };
 
-// ۳. تابع به‌روزرسانی عناصر DOM
+// Update DOM elements with price data
 function updateUIElement(symbol, price) {
     const formattedPrice = '$' + price.toLocaleString('en-US', {
         minimumFractionDigits: price < 1 ? 4 : 2,
@@ -43,7 +43,7 @@ function switchTradingMode(mode) {
     const walletDisplay = document.getElementById('mock-wallet-display');
     const amountDisplay = document.getElementById('mock-amount-display');
     const assetBadge = document.getElementById('mock-asset-badge');
-    const percentBadge = document.getElementById('percent-badge');
+    const percentBadge = document.getElementById('mock-percent-badge');
     const feeLabel = document.getElementById('mock-fee-label');
     const feeDisplay = document.getElementById('mock-fee-display');
     const actionBtn = document.getElementById('mock-action-btn');
@@ -63,7 +63,10 @@ function switchTradingMode(mode) {
         }
         if (amountDisplay) amountDisplay.innerText = "0.500000";
         if (assetBadge) assetBadge.innerText = "BTC";
-        if (percentBadge) percentBadge.className = "bg-primary text-white text-center rounded py-1 flex-grow-1 fs-10 fw-bold";
+        if (percentBadge) {
+            percentBadge.className = "bg-primary text-white text-center rounded py-1 flex-grow-1 fs-10 fw-bold";
+            percentBadge.style.borderRadius = "6px";
+        }
 
         if (feeLabel) feeLabel.innerText = "Internal Flat Fee (0.05%)";
         if (feeDisplay) {
@@ -89,7 +92,10 @@ function switchTradingMode(mode) {
         }
         if (amountDisplay) amountDisplay.innerText = "0.645000";
         if (assetBadge) assetBadge.innerText = "USDT";
-        if (percentBadge) percentBadge.className = "bg-danger text-white text-center rounded py-1 flex-grow-1 fs-10 fw-bold";
+        if (percentBadge) {
+            percentBadge.className = "bg-danger text-white text-center rounded py-1 flex-grow-1 fs-10 fw-bold";
+            percentBadge.style.borderRadius = "6px";
+        }
 
         if (feeLabel) feeLabel.innerText = "Estimated Return (Net)";
         if (feeDisplay) {
@@ -114,12 +120,12 @@ function setUIErrorState() {
         if (el && (el.innerText === "Loading..." || el.innerText === "")) {
             el.innerText = "--";
             el.style.color = "#9ca3af";
-            el.title = "Real-time feed currently unavailable";
+            el.setAttribute('title', "Real-time feed currently unavailable");
         }
     });
 }
 
-// ۴. دریافت اطلاعات از بایننس با پشتیبانی از URL-Encoding و API جایگزین
+// Fetch prices from Binance with fallback support
 async function fetchRibbonPrices() {
     const symbolsParam = encodeURIComponent('["BTCUSDT","ETHUSDT","TRXUSDT","BNBUSDT","USDCUSDT"]');
     const binanceUrl = `https://api.binance.com/api/v3/ticker/price?symbols=${symbolsParam}`;
@@ -144,7 +150,7 @@ async function fetchRibbonPrices() {
     } catch (error) {
         console.warn('Binance Direct Fetch Failed, trying fallback API...', error);
 
-        // سعی در دریافت از API جایگزین (CoinCap) در صورت مسدود بودن بایننس
+        // Try fallback API (CoinCap) if Binance is blocked
         try {
             const fallbackRes = await fetch('https://api.coincap.io/v2/assets?ids=bitcoin,ethereum,tron,binance-coin,tether');
             const fallbackData = await fallbackRes.json();
@@ -192,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 lightboxImg.alt = targetImg.alt;
                 lightbox.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                closeBtn.focus(); // Move focus to close button for accessibility
             }
         });
     });
@@ -201,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.style.overflow = '';
         setTimeout(() => {
             lightboxImg.src = '';
+            lightboxImg.alt = '';
         }, 250);
     };
 
@@ -224,35 +232,39 @@ document.addEventListener('DOMContentLoaded', () => {
     let animationFrameId = null;
 
     if (wrapper && progressPath) {
-        // ۱. محاسبه طول محیط دایره SVG
+        // Calculate SVG circle circumference
         const pathLength = progressPath.getTotalLength();
         progressPath.style.strokeDasharray = `${pathLength} ${pathLength}`;
         progressPath.style.strokeDashoffset = pathLength;
 
-        // ۲. تابع محاسبه میزان اسکرول و بروزرسانی نوار پیشرفت
+        // Calculate scroll progress and update progress bar
         const updateScrollProgress = () => {
             const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
             const scrollCurrent = window.scrollY;
 
-            // نمایش/مخفی‌سازی دکمه بعد از ۱۰۰ پیکسل اسکرول
+            // Show/hide button after 100px scroll
             if (scrollCurrent > 100) {
-                wrapper.classList.add('show');
+                wrapper.style.opacity = '1';
+                wrapper.style.visibility = 'visible';
+                wrapper.style.transform = 'translateY(0)';
             } else {
-                wrapper.classList.remove('show');
+                wrapper.style.opacity = '0';
+                wrapper.style.visibility = 'hidden';
+                wrapper.style.transform = 'translateY(15px)';
             }
 
-            // محاسبه درصد و مقدار offset برای SVG
+            // Calculate percentage and offset for SVG
             if (scrollTotal > 0) {
                 const progress = pathLength - (scrollCurrent * pathLength / scrollTotal);
                 progressPath.style.strokeDashoffset = Math.max(0, progress);
             }
         };
 
-        // اجرا موقع اسکرول
+        // Run on scroll
         window.addEventListener('scroll', updateScrollProgress, {passive: true});
-        updateScrollProgress(); // اجرای اولیه برای بررسی موقعیت صفحه
+        updateScrollProgress(); // Initial run to check page position
 
-        // ۳. الگوریتم اسکرول نرم به بالا (Ease Out Cubic)
+        // Smooth scroll to top algorithm (Ease Out Cubic)
         const easeOutCubic = (t) => (--t) * t * t + 1;
 
         const smoothScrollToTop = (duration = 800) => {
@@ -272,20 +284,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     window.scrollTo(0, 0);
                     animationFrameId = null;
+                    wrapper.focus(); // Return focus to button after scroll
                 }
             };
 
             animationFrameId = requestAnimationFrame(animationStep);
         };
 
-        // ۴. کلیک روی دکمه
+        // Button click handler
         wrapper.addEventListener('click', (e) => {
             e.preventDefault();
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             smoothScrollToTop(800);
         });
 
-        // ۵. لغو فوری انیمیشن خودکار در صورت اسکرول دستی توسط کاربر
+        // Keyboard support for accessibility
+        wrapper.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                smoothScrollToTop(800);
+            }
+        });
+
+        // Cancel auto-scroll on manual user interaction
         const stopAutoScroll = () => {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
@@ -311,7 +333,7 @@ document.addEventListener("DOMContentLoaded", function () {
     loaderCircle.style.strokeDashoffset = circumference;
 
     const maxBlurPx = 12;
-    const MIN_DISPLAY_TIME = 800; // حداقل زمان نمایش لودر به میلی‌ثانیه (0.8 ثانیه)
+    const MIN_DISPLAY_TIME = 800; // Minimum loader display time in milliseconds (0.8 seconds)
     const startTime = Date.now();
 
     function updateLoaderUI(percent) {
@@ -330,6 +352,10 @@ document.addEventListener("DOMContentLoaded", function () {
             loaderCard.classList.add("finish-pop");
             setTimeout(() => {
                 loaderOverlay.classList.add("fade-out");
+                // Remove from DOM after fade out for better performance
+                setTimeout(() => {
+                    loaderOverlay.style.display = 'none';
+                }, 600);
             }, 350);
         }
     }
@@ -342,14 +368,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }, 40);
 
-    // زمانی که صفحه کاملاً بارگذاری شد
+    // When page is fully loaded
     window.addEventListener("load", function () {
         clearInterval(loaderInterval);
 
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(0, MIN_DISPLAY_TIME - elapsedTime);
 
-        // اگر خیلی سریع لود شد، با اندکی تاخیر به 100% برود تا انیمیشن متن تکمیل شود
+        // If loaded very quickly, delay slightly to 100% so animation completes
         setTimeout(() => {
             updateLoaderUI(100);
         }, remainingTime);

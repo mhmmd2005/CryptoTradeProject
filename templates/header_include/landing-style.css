@@ -626,3 +626,73 @@ html {
     color: #ffffff;
     transform: scale(1.05);
 }
+
+/* Skip Navigation Link for Accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: white;
+    padding: 8px 16px;
+    z-index: 10000;
+    text-decoration: none;
+    font-weight: 600;
+    transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Responsive Table Improvements */
+@media (max-width: 768px) {
+    .market-table {
+        font-size: 12px;
+    }
+    
+    .market-table th,
+    .market-table td {
+        padding: 8px 12px;
+    }
+    
+    .ticker-container {
+        padding: 12px 0;
+    }
+    
+    .ticker-card {
+        padding: 8px 12px;
+    }
+    
+    .section-padding {
+        padding: 60px 0;
+    }
+    
+    .hero-section {
+        padding: 120px 0 60px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-padding {
+        padding: 40px 0;
+    }
+    
+    .hero-section {
+        padding: 100px 0 40px 0;
+    }
+    
+    .back-to-top-wrapper {
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .back-to-top-btn {
+        width: 32px;
+        height: 32px;
+        top: 4px;
+        left: 4px;
+    }
+}
