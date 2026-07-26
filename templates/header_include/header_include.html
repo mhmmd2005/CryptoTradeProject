@@ -124,13 +124,25 @@
                 </button>
 
                 <!-- Search Box (Desktop) -->
-                <form class="app-search d-none d-md-block ms-2" action="#" method="GET">
+                <!-- Search Box (Desktop) - Command Palette Trigger -->
+                <div class="app-search d-none d-md-block ms-2"
+                     data-bs-toggle="modal"
+                     data-bs-target="#commandPaletteModal"
+                     style="cursor: pointer;">
                     <div class="position-relative">
-                        <input type="text" class="form-control" placeholder="Search..." autocomplete="off"
-                               style="width: 260px;">
-                        <span class="mdi mdi-magnify search-widget-icon"></span>
+                        <input type="text"
+                               class="form-control border-0 shadow-none pe-5"
+                               placeholder="Search tickets, pages, trades..."
+                               autocomplete="off"
+                               readonly
+                               style="width: 280px; cursor: pointer;">
+                        <span class="mdi mdi-magnify search-widget-icon fs-18"></span>
+                        <span class="badge bg-body-secondary text-muted position-absolute end-0 top-50 translate-middle-y me-2 fs-11 px-2 py-1 border"
+                              style="pointer-events: none;">
+            Ctrl + K
+        </span>
                     </div>
-                </form>
+                </div>
             </div>
 
             <!-- سمت راست: ابزارها، کیف پول، قفل، دارک مود، نوتیفیکیشن و آواتار -->
@@ -311,6 +323,7 @@
                         <span class="d-flex align-items-center">
                             <img class="rounded-circle header-profile-user"
                                  src="
+
 
                                          {% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}{% endif %}"
                                  alt="Header Avatar">

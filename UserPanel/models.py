@@ -1,7 +1,6 @@
 import random
 import string
 
-import pyotp
 from django.db import models
 
 from accounts.models import User
@@ -26,8 +25,6 @@ def generate_ticket_id(length=10):
 
     return ''.join(all_chars)
 
-
-# Create your models here.
 
 class UserTicket(models.Model):
     PRIORITY_CHOICES = [
@@ -59,13 +56,15 @@ class UserTicket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        if not self.ticket_id:
-            self.ticket_id = generate_ticket_id()
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.title} - {self.user.username}"
+
+    def get_absolute_url(self):
+        try:
+            # بر اساس path('ticket/detail/<int:ticket_id>/', ticket_detail, name='ticket_detail')
+            return reverse('dashboard:ticket_detail', kwargs={'ticket_id': self.pk})
+        except Exception:
+            return reverse('dashboard:my-ticket')
 
 
 class UserTwoFactor(models.Model):
@@ -74,32 +73,11 @@ class UserTwoFactor(models.Model):
     is_enabled = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
 
-    def generate_secret_key(self):
-        """تولید کلید جدید"""
-        self.secret_key = pyotp.random_base32()
-        self.save()
-        return self.secret_key
-
-    def get_totp_uri(self):
-        """ساخت QRCode URI برای اپلیکیشن‌ها"""
-        return pyotp.totp.TOTP(self.secret_key).provisioning_uri(
-            name=self.user.email,
-            issuer_name="YourWebsiteName"
-        )
-
-    def verify_token(self, token):
-        """تأیید کد با در نظر گرفتن نوسان زمانی (Time Window)"""
-        if not self.secret_key:
-            return False
-        totp = pyotp.TOTP(self.secret_key)
-        # استفاده از valid_window=1 اجازه می‌دهد اگر زمان گوشی کاربر ۳۰ ثانیه اختلاف داشت، کد رد نشود
-        return totp.verify(token, valid_window=1)
-
-    class Meta:
-        pass
-
     def __str__(self):
         return f"{self.user.username}"
+
+    def get_absolute_url(self):
+        return reverse('dashboard:profile-twostep')
 
 
 class FAQCategory(models.Model):
@@ -113,10 +91,13 @@ class FAQ(models.Model):
     category = models.ForeignKey(FAQCategory, on_delete=models.CASCADE, related_name='faqs')
     question = models.CharField(max_length=255)
     answer = models.TextField()
-    order = models.PositiveIntegerField(default=0)  # برای مرتب‌سازی
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return self.question
+
+    def get_absolute_url(self):
+        return reverse('dashboard:faq')

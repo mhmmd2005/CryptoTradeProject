@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import re
 from decimal import Decimal, ROUND_DOWN
 from io import BytesIO
 
@@ -19,20 +20,21 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.urls import reverse, NoReverseMatch
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
-from UserPanel.models import UserTwoFactor
+from Prediction.models import Prediction
+from UserPanel.models import UserTwoFactor, UserTicket,FAQ
 from accounts.forms import TwoStepVerificationForm
 from accounts.models import User
 from adminPanel.models import AdminUser, PlatformRevenue, RevenueJournal
 from dashboard.forms import DisableTwoStepForm
-from dashboard.models import InternalTrade
-from dashboard.models import Notification
-from wallet.models import DollarWallet  # فرض بر آدرس‌دهی درست مدل‌های شما
+from dashboard.models import InternalTrade,Notification
+from wallet.models import DollarWallet, WalletTransaction, WithdrawRequest  # فرض بر آدرس‌دهی درست مدل‌های شما
 from .forms import UserProfileForm, CustomUsernameForm
 from .models import UserProfile, ProfileApprovalStatus
 
@@ -575,6 +577,349 @@ class BinanceTickerProxyView(View):
             return JsonResponse({"error": "Binance API Error"}, status=response.status_code)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+
+
+class GlobalSearchView(LoginRequiredMixin, View):
+    """
+    Global Search API View tuned specifically for User Models.
+    Case-insensitive search across Navigation, Tickets, Predictions,
+    Internal Trades, Wallet Transactions, Withdrawals, Notifications, and FAQs.
+    """
+    MAX_RESULTS_PER_CATEGORY = 4
+
+    def get(self, request, *args, **kwargs):
+        raw_query = request.GET.get('q', '').strip()
+
+        # پاک‌سازی ورودی: نگه‌داشتن حروف، اعداد، فواصل و کاراکترهای رایج
+        query = re.sub(r'[^a-zA-Z0-9\s\-_#.]', '', raw_query).strip().lower()
+
+        # حداقل ۲ کاراکتر برای شروع سرچ
+        if not query or len(query) < 2:
+            return JsonResponse({'results': []}, status=200)
+
+        user = request.user
+        results = []
+
+        # ۱. میان‌برهای صفحات و منوهای اصلی سیستم
+        results.extend(self._search_system_pages(query))
+
+        # ۲. تیکت‌های پشتیبانی (با تکیه بر ticket_id, title, message, department, priority)
+        results.extend(self._search_tickets(user, query))
+
+        # ۳. پیش‌بینی‌ها / تریدها (با تکیه بر symbol_saved, result, direction, amount)
+        results.extend(self._search_predictions(user, query))
+
+        # ۴. معاملات داخلی / Internal Trades (با تکیه بر crypto_currency, trade_type, amount)
+        results.extend(self._search_internal_trades(user, query))
+
+        # ۵. تراکنش‌های کیف پول (با تکیه بر tx_hash, payment_id, purchase_id, pay_address, type)
+        results.extend(self._search_transactions(user, query))
+
+        # ۶. درخواست‌های برداشت (با تکیه بر target_address, tx_hash, status, amount)
+        results.extend(self._search_withdrawals(user, query))
+
+        # ۷. اعلان‌های کاربر (با تکیه بر title, message, category, notification_type)
+        results.extend(self._search_notifications(user, query))
+
+        # ۸. مرکز راهنما و سوالات متداول (FAQ)
+        results.extend(self._search_faqs(query))
+
+        return JsonResponse({'results': results}, status=200)
+
+    def _safe_reverse(self, url_name, kwargs=None, default='/'):
+        """
+        جلوگیری از خطای NoReverseMatch و قرار دادن مسیر پیش‌فرض جایگزین
+        """
+        try:
+            return reverse(url_name, kwargs=kwargs)
+        except NoReverseMatch:
+            return default
+
+    def _search_system_pages(self, query: str) -> list:
+        pages = [
+            {
+                'title': 'Dashboard Overview',
+                'keywords': ['dashboard', 'home', 'main', 'index', 'stats'],
+                'url_name': 'dashboard:index',
+                'default_url': '/dashboard/',
+                'icon': 'bx bx-home-alt'
+            },
+            {
+                'title': 'Wallet & Balance',
+                'keywords': ['wallet', 'balance', 'deposit', 'usdt', 'crypto', 'trx', 'btc', 'eth'],
+                'url_name': 'wallet:index',
+                'default_url': '/wallet/',
+                'icon': 'bx bx-wallet'
+            },
+            {
+                'title': 'Transaction History',
+                'keywords': ['transaction', 'transactions', 'history', 'deposit history', 'payments'],
+                'url_name': 'wallet:transactions',
+                'default_url': '/wallet/transactions/',
+                'icon': 'bx bx-transfer-alt'
+            },
+            {
+                'title': 'Withdrawal Requests',
+                'keywords': ['withdraw', 'withdrawal', 'payout', 'cashout'],
+                'url_name': 'wallet:withdrawals',
+                'default_url': '/wallet/withdrawals/',
+                'icon': 'bx bx-money-withdraw'
+            },
+            {
+                'title': 'Support Tickets',
+                'keywords': ['ticket', 'tickets', 'support', 'help', 'desk'],
+                'url_name': 'tickets:list',
+                'default_url': '/tickets/',
+                'icon': 'bx bx-support'
+            },
+            {
+                'title': 'Create New Ticket',
+                'keywords': ['new ticket', 'create ticket', 'open ticket', 'contact'],
+                'url_name': 'tickets:create',
+                'default_url': '/tickets/create/',
+                'icon': 'bx bx-plus-circle'
+            },
+            {
+                'title': 'Trading History & Predictions',
+                'keywords': ['trade', 'trades', 'prediction', 'predictions', 'history', 'signals'],
+                'url_name': 'predictions:history',
+                'default_url': '/predictions/history/',
+                'icon': 'bx bx-trending-up'
+            },
+            {
+                'title': 'Profile & Account Settings',
+                'keywords': ['profile', 'settings', 'account', 'user', 'avatar', 'username'],
+                'url_name': 'accounts:profile',
+                'default_url': '/accounts/profile/',
+                'icon': 'bx bx-user-pin'
+            },
+            {
+                'title': 'Security & 2FA',
+                'keywords': ['security', '2fa', 'two factor', 'authenticator', 'password'],
+                'url_name': 'accounts:security',
+                'default_url': '/accounts/security/',
+                'icon': 'bx bx-shield-quarter'
+            },
+            {
+                'title': 'FAQ & Help Center',
+                'keywords': ['faq', 'help', 'questions', 'guide', 'docs'],
+                'url_name': 'faq:index',
+                'default_url': '/faq/',
+                'icon': 'bx bx-help-circle'
+            }
+        ]
+
+        matches = []
+        for page in pages:
+            if query in page['title'].lower() or any(query in kw.lower() for kw in page['keywords']):
+                matches.append({
+                    'category': 'System Navigation',
+                    'title': page['title'],
+                    'url': self._safe_reverse(page['url_name'], default=page['default_url']),
+                    'icon': page['icon']
+                })
+                if len(matches) >= self.MAX_RESULTS_PER_CATEGORY:
+                    break
+
+        return matches
+
+    def _search_tickets(self, user, query: str) -> list:
+        matches = []
+        tickets = UserTicket.objects.filter(
+            user=user
+        ).filter(
+            Q(ticket_id__icontains=query) |
+            Q(title__icontains=query) |
+            Q(message__icontains=query) |
+            Q(department__icontains=query) |
+            Q(priority__icontains=query) |
+            Q(status__icontains=query)
+        ).only('id', 'ticket_id', 'title', 'status', 'priority')[:self.MAX_RESULTS_PER_CATEGORY]
+
+        for ticket in tickets:
+            t_id = ticket.ticket_id or f"ID #{ticket.id}"
+            t_title = ticket.title or "Support Ticket"
+            status_str = ticket.get_status_display() if hasattr(ticket, 'get_status_display') else ticket.status
+
+            matches.append({
+                'category': 'Support Tickets',
+                'title': f"#{t_id} - {t_title} [{status_str.capitalize()}]",
+                'url': self._safe_reverse('tickets:detail', kwargs={'pk': ticket.pk}, default=f"/tickets/{ticket.pk}/"),
+                'icon': 'bx bx-message-square-detail'
+            })
+
+        return matches
+
+    def _search_predictions(self, user, query: str) -> list:
+        matches = []
+
+        query_filter = (
+                Q(symbol_saved__icontains=query) |
+                Q(result__icontains=query) |
+                Q(direction__icontains=query) |
+                Q(round__asset__symbol__icontains=query)
+        )
+        if query.isdigit() or self._is_float(query):
+            query_filter |= Q(amount__icontains=query) | Q(id__icontains=query)
+
+        predictions = Prediction.objects.filter(
+            user=user
+        ).filter(query_filter).only('id', 'symbol_saved', 'amount', 'direction', 'result')[
+            :self.MAX_RESULTS_PER_CATEGORY]
+
+        for pred in predictions:
+            symbol = pred.symbol_saved.upper() if pred.symbol_saved else "ASSET"
+            direction = pred.direction.upper() if pred.direction else "N/A"
+            result = pred.result.capitalize() if pred.result else "Pending"
+
+            matches.append({
+                'category': 'Trades & Predictions',
+                'title': f"Prediction #{pred.id} | {symbol} ${pred.amount} ({direction}) - {result}",
+                'url': self._safe_reverse('predictions:detail', kwargs={'pk': pred.pk},
+                                          default=f"/predictions/{pred.pk}/"),
+                'icon': 'bx bx-line-chart'
+            })
+
+        return matches
+
+    def _search_internal_trades(self, user, query: str) -> list:
+        matches = []
+
+        query_filter = (
+                Q(crypto_currency__icontains=query) |
+                Q(trade_type__icontains=query)
+        )
+        if query.isdigit() or self._is_float(query):
+            query_filter |= Q(amount__icontains=query) | Q(total_cost__icontains=query)
+
+        trades = InternalTrade.objects.filter(
+            user=user
+        ).filter(query_filter).only('id', 'crypto_currency', 'trade_type', 'amount', 'total_cost')[
+            :self.MAX_RESULTS_PER_CATEGORY]
+
+        for trade in trades:
+            coin = trade.crypto_currency.upper()
+            t_type = trade.trade_type.upper()
+            matches.append({
+                'category': 'Internal Exchange',
+                'title': f"{t_type} {trade.amount} {coin} (${trade.total_cost})",
+                'url': self._safe_reverse('wallet:internal-trades', default='/wallet/internal-trades/'),
+                'icon': 'bx bx-refresh'
+            })
+
+        return matches
+
+    def _search_transactions(self, user, query: str) -> list:
+        matches = []
+
+        query_filter = (
+                Q(tx_hash__icontains=query) |
+                Q(payment_id__icontains=query) |
+                Q(purchase_id__icontains=query) |
+                Q(pay_address__icontains=query) |
+                Q(type__icontains=query) |
+                Q(status__icontains=query)
+        )
+        if query.isdigit() or self._is_float(query):
+            query_filter |= Q(amount__icontains=query)
+
+        transactions = WalletTransaction.objects.filter(
+            wallet__user=user
+        ).filter(query_filter).only('id', 'tx_hash', 'amount', 'type', 'status')[:self.MAX_RESULTS_PER_CATEGORY]
+
+        for tx in transactions:
+            short_hash = f"{tx.tx_hash[:8]}..." if tx.tx_hash else f"ID #{tx.id}"
+            tx_type = tx.type.capitalize() if tx.type else "Deposit"
+            status = tx.status.capitalize() if tx.status else "Pending"
+
+            matches.append({
+                'category': 'Wallet Transactions',
+                'title': f"{tx_type} | ${tx.amount} ({short_hash}) - {status}",
+                'url': self._safe_reverse('wallet:transactions', default='/wallet/transactions/'),
+                'icon': 'bx bx-transfer-alt'
+            })
+
+        return matches
+
+    def _search_withdrawals(self, user, query: str) -> list:
+        matches = []
+
+        query_filter = (
+                Q(tx_hash__icontains=query) |
+                Q(target_address__icontains=query) |
+                Q(status__icontains=query)
+        )
+        if query.isdigit() or self._is_float(query):
+            query_filter |= Q(amount__icontains=query)
+
+        withdrawals = WithdrawRequest.objects.filter(
+            user=user
+        ).filter(query_filter).only('id', 'amount', 'target_address', 'status', 'tx_hash')[
+            :self.MAX_RESULTS_PER_CATEGORY]
+
+        for w in withdrawals:
+            short_addr = f"{w.target_address[:6]}...{w.target_address[-4:]}" if w.target_address else "Address"
+            status = w.status.capitalize() if w.status else "Pending"
+
+            matches.append({
+                'category': 'Withdrawal Requests',
+                'title': f"Withdrawal #{w.id} | ${w.amount} to {short_addr} [{status}]",
+                'url': self._safe_reverse('wallet:withdrawals', default='/wallet/withdrawals/'),
+                'icon': 'bx bx-money-withdraw'
+            })
+
+        return matches
+
+    def _search_notifications(self, user, query: str) -> list:
+        matches = []
+        notifications = Notification.objects.filter(
+            user=user,
+            is_hidden=False
+        ).filter(
+            Q(title__icontains=query) |
+            Q(message__icontains=query) |
+            Q(category__icontains=query) |
+            Q(notification_type__icontains=query)
+        ).only('id', 'title', 'category', 'is_read')[:self.MAX_RESULTS_PER_CATEGORY]
+
+        for n in notifications:
+            status = "Read" if n.is_read else "Unread"
+            category_str = n.get_category_display() if hasattr(n, 'get_category_display') else n.category
+
+            matches.append({
+                'category': 'Notifications',
+                'title': f"{n.title} ({category_str.capitalize()}) [{status}]",
+                'url': n.link if n.link else self._safe_reverse('notifications:list', default='/notifications/'),
+                'icon': 'bx bx-bell'
+            })
+
+        return matches
+
+    def _search_faqs(self, query: str) -> list:
+        matches = []
+        faqs = FAQ.objects.filter(
+            Q(question__icontains=query) |
+            Q(answer__icontains=query) |
+            Q(category__title__icontains=query)
+        ).only('id', 'question')[:self.MAX_RESULTS_PER_CATEGORY]
+
+        for faq in faqs:
+            matches.append({
+                'category': 'Help Center & FAQ',
+                'title': f"FAQ: {faq.question}",
+                'url': self._safe_reverse('faq:index', default='/faq/'),
+                'icon': 'bx bx-help-circle'
+            })
+
+        return matches
+
+    @staticmethod
+    def _is_float(val: str) -> bool:
+        try:
+            float(val)
+            return True
+        except ValueError:
+            return False
 
 
 class LandingPageView(View):

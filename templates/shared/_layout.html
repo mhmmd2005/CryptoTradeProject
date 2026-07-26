@@ -99,7 +99,7 @@
 
         .wave-loader-text {
             color: rgba(255, 255, 255, 0.85);
-            font-size: 18px; /* سایز کوچکتر و ظریف‌تر */
+            font-size: 18px;
             font-weight: 700;
             letter-spacing: 2px;
             margin: 0;
@@ -113,14 +113,13 @@
             color: rgba(17, 24, 39, 0.85);
         }
 
-        /* انیمیشن بهینه با Hardware Acceleration */
         @keyframes waveSmooth {
             0%, 100% {
                 transform: translateY(0) scale(1);
                 opacity: 0.6;
             }
             50% {
-                transform: translateY(-6px) scale(1.15); /* پرش نرم و روان به جای تغییر فونت */
+                transform: translateY(-6px) scale(1.15);
                 opacity: 1;
                 color: var(--vz-primary, #0d6efd);
             }
@@ -178,6 +177,46 @@
             right: 26px;
             z-index: 99;
         }
+
+        /* ==========================================
+           🔍 استایل‌های اختصاصی Command Palette (Modern SaaS)
+           ========================================== */
+        #commandPaletteModal .modal-content {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 12px;
+        }
+
+        .cmd-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: var(--vz-body-color, #212529);
+            text-decoration: none;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+            margin-bottom: 2px;
+        }
+
+        .cmd-item:hover, .cmd-item.selected {
+            background-color: rgba(13, 110, 253, 0.12);
+            color: var(--vz-primary, #0d6efd);
+            text-decoration: none;
+        }
+
+        .cmd-item.selected .cmd-icon {
+            background-color: var(--vz-primary, #0d6efd) !important;
+            color: #ffffff !important;
+        }
+
+        .cmd-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
     </style>
 </head>
 <body>
@@ -218,6 +257,7 @@
     </div>
 </div>
 
+<!-- 🔔 Notification Modal -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -236,6 +276,56 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔍 Command Palette Modal (سرچ سراسری) -->
+<div class="modal fade" id="commandPaletteModal" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(5px);">
+    <div class="modal-dialog modal-lg modal-dialog-top" style="margin-top: 8vh;">
+        <div class="modal-content border-0">
+
+            <!-- Search Input Header -->
+            <div class="modal-header border-bottom p-3 align-items-center">
+                <i class="bx bx-search fs-20 text-muted me-2"></i>
+                <input type="text"
+                       id="cmd-palette-input"
+                       class="form-control border-0 shadow-none bg-transparent fs-15 p-0"
+                       placeholder="Type a command or search..."
+                       autocomplete="off">
+                <span class="badge bg-soft-secondary text-secondary fs-11 px-2 py-1 ms-2">ESC</span>
+            </div>
+
+            <!-- Results Body -->
+            <div class="modal-body p-2" style="max-height: 420px; overflow-y: auto;" id="cmd-palette-body">
+
+                <!-- Skeleton Loader -->
+                <div id="cmd-loading" class="text-center py-4 d-none">
+                    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                    <span class="ms-2 fs-13 text-muted">Searching database...</span>
+                </div>
+
+                <!-- Initial State / Hints -->
+                <div id="cmd-hints" class="p-4 text-center text-muted fs-13">
+                    <i class="bx bx-terminal fs-24 mb-1 d-block text-primary"></i>
+                    Type at least 2 characters to search tickets, pages, and notifications.
+                </div>
+
+                <!-- Results List Container -->
+                <div id="cmd-results-list"></div>
+            </div>
+
+            <!-- Footer Hints -->
+            <div class="modal-footer border-top py-2 px-3 justify-content-between bg-light-subtle fs-12 text-muted">
+                <div>
+                    <span class="badge bg-body text-body border me-1">↑</span>
+                    <span class="badge bg-body text-body border me-1">↓</span> Navigate
+                </div>
+                <div>
+                    <span class="badge bg-body text-body border me-1">↵</span> Select
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -342,6 +432,171 @@
     })();
 </script>
 
+<!-- 🔍 منطق جاوااسکریپت Command Palette (کلید میانبر + پیمایش کیبورد) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cmdModalEl = document.getElementById('commandPaletteModal');
+        if (!cmdModalEl) return;
+
+        const cmdModal = new bootstrap.Modal(cmdModalEl);
+        const cmdInput = document.getElementById('cmd-palette-input');
+        const cmdResultsList = document.getElementById('cmd-results-list');
+        const cmdLoading = document.getElementById('cmd-loading');
+        const cmdHints = document.getElementById('cmd-hints');
+
+        let debounceTimer = null;
+        let selectedIndex = -1;
+        let currentItems = [];
+
+        // ۱. کلید میانبر Ctrl + K / Cmd + K
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                cmdModal.show();
+            }
+        });
+
+        cmdModalEl.addEventListener('shown.bs.modal', function () {
+            cmdInput.value = '';
+            cmdResultsList.innerHTML = '';
+            cmdHints.classList.remove('d-none');
+            cmdInput.focus();
+        });
+
+        // ۲. ارسال درخواست با تایپ کاربر
+        cmdInput.addEventListener('input', function () {
+            const query = this.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (query.length < 2) {
+                cmdResultsList.innerHTML = '';
+                cmdLoading.classList.add('d-none');
+                cmdHints.classList.remove('d-none');
+                return;
+            }
+
+            cmdHints.classList.add('d-none');
+            cmdLoading.classList.remove('d-none');
+
+            debounceTimer = setTimeout(() => {
+                fetch(`{% url 'dashboard:global-search' %}?q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        cmdLoading.classList.add('d-none');
+                        renderCommandResults(data.results);
+                    })
+                    .catch(err => {
+                        console.error('Command Palette Search Error:', err);
+                        cmdLoading.classList.add('d-none');
+                        cmdResultsList.innerHTML = '<div class="p-3 text-center text-danger fs-13">Search error occurred.</div>';
+                    });
+            }, 200);
+        });
+
+        // ۳. رندر کردن نتایج
+        function renderCommandResults(results) {
+            cmdResultsList.innerHTML = '';
+            selectedIndex = -1;
+
+            if (!results || results.length === 0) {
+                cmdResultsList.innerHTML = '<div class="p-4 text-center text-muted fs-13">No matching results found.</div>';
+                currentItems = [];
+                return;
+            }
+
+            const grouped = {};
+            results.forEach(item => {
+                if (!grouped[item.category]) grouped[item.category] = [];
+                grouped[item.category].push(item);
+            });
+
+            let html = '';
+            for (const [category, items] of Object.entries(grouped)) {
+                html += `<div class="px-2 pt-2 pb-1 text-uppercase fs-11 fw-bold text-muted">${category}</div>`;
+                items.forEach(item => {
+                    html += `
+                        <a href="${item.url}" class="cmd-item" data-url="${item.url}">
+                            <div class="cmd-icon bg-soft-primary text-primary me-3">
+                                <i class="${item.icon} fs-18"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold fs-13">${escapeHtml(item.title)}</div>
+                            </div>
+                            <i class="bx bx-chevron-right text-muted fs-16 ms-2"></i>
+                        </a>
+                    `;
+                });
+            }
+
+            cmdResultsList.innerHTML = html;
+            currentItems = Array.from(cmdResultsList.querySelectorAll('.cmd-item'));
+
+            if (currentItems.length > 0) {
+                updateSelection(0);
+            }
+        }
+
+        // ۴. مدیریت کلیک مووس روی آیتم‌ها (حل مشکل عدم هدایت)
+        cmdResultsList.addEventListener('click', function (e) {
+            const item = e.target.closest('.cmd-item');
+            if (item) {
+                e.preventDefault();
+                const targetUrl = item.getAttribute('data-url') || item.getAttribute('href');
+                if (targetUrl && targetUrl !== '#' && targetUrl !== 'javascript:void(0);') {
+                    cmdModal.hide();
+                    window.location.href = targetUrl;
+                }
+            }
+        });
+
+        // ۵. مدیریت پیمایش کیبورد (کلیدهای جهت‌نما و Enter)
+        cmdInput.addEventListener('keydown', function (e) {
+            if (currentItems.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const nextIndex = (selectedIndex + 1) % currentItems.length;
+                updateSelection(nextIndex);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prevIndex = (selectedIndex - 1 + currentItems.length) % currentItems.length;
+                updateSelection(prevIndex);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
+                    const targetUrl = currentItems[selectedIndex].getAttribute('data-url') || currentItems[selectedIndex].getAttribute('href');
+                    if (targetUrl && targetUrl !== '#' && targetUrl !== 'javascript:void(0);') {
+                        cmdModal.hide();
+                        window.location.href = targetUrl;
+                    }
+                }
+            }
+        });
+
+        function updateSelection(index) {
+            if (selectedIndex >= 0 && currentItems[selectedIndex]) {
+                currentItems[selectedIndex].classList.remove('selected');
+            }
+            selectedIndex = index;
+            if (currentItems[selectedIndex]) {
+                currentItems[selectedIndex].classList.add('selected');
+                currentItems[selectedIndex].scrollIntoView({block: 'nearest'});
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function (m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    });
+</script>
 </body>
 {% block js %}
 {% endblock %}

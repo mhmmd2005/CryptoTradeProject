@@ -3,7 +3,6 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models.fields import BooleanField
 
 User = get_user_model()
 from accounts.models import User
@@ -30,11 +29,11 @@ class UserProfile(models.Model):
     country = models.CharField(max_length=50)
     zipcode = models.CharField(max_length=30, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
-    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)  # فیلد عکس
+    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     locked = models.BooleanField(default=False)
     email_notifications_enabled = models.BooleanField(default=False)
-    is_banned = BooleanField(default=False)
+    is_banned = models.BooleanField(default=False)
     ban_start = models.DateTimeField(null=True, blank=True)
     ban_end = models.DateTimeField(null=True, blank=True)
     ban_reason = models.TextField(blank=True, null=True)
@@ -50,12 +49,15 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+    def get_absolute_url(self):
+        return reverse('dashboard:profile-setting')
+
 
 class UserBanHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ban_history')
     ban_start = models.DateTimeField()
     ban_reason = models.TextField()
-    unbanned_at = models.DateTimeField(null=True, blank=True)  # زمان آزادسازی
+    unbanned_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -84,7 +86,6 @@ class ProfileApprovalStatus(models.Model):
         default='pending'
     )
 
-    # ⚡ ثبت خودکار زمان تغییرات (کاملاً درست)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -133,7 +134,12 @@ class Notification(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} - {self.title}"
+        return f"{self.user.username if self.user else 'Admin'} - {self.title}"
+
+    def get_absolute_url(self):
+        if self.link:
+            return self.link
+        return reverse('dashboard:all_notifications')
 
 
 class InternalTrade(models.Model):
@@ -143,12 +149,12 @@ class InternalTrade(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='internal_trades')
-    crypto_currency = models.CharField(max_length=10)  # btc, eth, trx
+    crypto_currency = models.CharField(max_length=10)
     trade_type = models.CharField(max_length=4, choices=TRADE_TYPE_CHOICES)
 
-    amount = models.DecimalField(max_digits=20, decimal_places=8)  # مقدار کوین معامله شده
-    price = models.DecimalField(max_digits=18, decimal_places=4)  # قیمت لحظه ای بایننس
-    total_cost = models.DecimalField(max_digits=18, decimal_places=2)  # کل مبلغ دلاری جابجا شده
+    amount = models.DecimalField(max_digits=20, decimal_places=8)
+    price = models.DecimalField(max_digits=18, decimal_places=4)
+    total_cost = models.DecimalField(max_digits=18, decimal_places=2)
     fee = models.DecimalField(max_digits=12, decimal_places=4, default=Decimal('0.0000'))
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -158,3 +164,6 @@ class InternalTrade(models.Model):
 
     def __str__(self):
         return f"{self.user.username} | {self.trade_type} {self.amount} {self.crypto_currency.upper()}"
+
+    def get_absolute_url(self):
+        return reverse('dashboard:internal-trade-history')
