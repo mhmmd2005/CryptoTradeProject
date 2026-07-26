@@ -1,6 +1,6 @@
 import random
 import string
-
+from django.urls import reverse
 from django.db import models
 
 from accounts.models import User
@@ -64,7 +64,7 @@ class UserTicket(models.Model):
             # بر اساس path('ticket/detail/<int:ticket_id>/', ticket_detail, name='ticket_detail')
             return reverse('dashboard:ticket_detail', kwargs={'ticket_id': self.pk})
         except Exception:
-            return reverse('dashboard:my-ticket')
+            return reverse('my-ticket')
 
 
 class UserTwoFactor(models.Model):
@@ -77,7 +77,7 @@ class UserTwoFactor(models.Model):
         return f"{self.user.username}"
 
     def get_absolute_url(self):
-        return reverse('dashboard:profile-twostep')
+        return reverse('profile-twostep')
 
 
 class FAQCategory(models.Model):
@@ -100,4 +100,4 @@ class FAQ(models.Model):
         return self.question
 
     def get_absolute_url(self):
-        return reverse('dashboard:faq')
+        return reverse('faq')

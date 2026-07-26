@@ -221,7 +221,7 @@
 </head>
 <body>
 
-<!-- 🌊 لودینگ موجی سبک و نرم -->
+<!-- 🌊 لودینگ موجی -->
 <div id="page-preloader">
     <div class="loader">
         <p class="wave-loader-text">
@@ -268,7 +268,7 @@
             <div class="modal-body">
                 <div id="mainNotificationText" style="white-space: pre-wrap;"></div>
                 <div id="adminNoteBox" class="mt-3 p-3 border rounded"
-                     style=" border-left: 4px solid #0d6efd; display: none;">
+                     style="border-left: 4px solid #0d6efd; display: none;">
                     <small class="fw-bold text-primary d-block mb-1">Admin Note:</small>
                     <div id="adminNoteText" style="white-space: pre-wrap; font-size: 0.9rem;"></div>
                 </div>
@@ -424,7 +424,6 @@
 
         window.addEventListener('load', function () {
             window.dispatchEvent(new Event('resize'));
-
             setTimeout(function () {
                 window.dispatchEvent(new Event('resize'));
             }, 100);
@@ -432,7 +431,7 @@
     })();
 </script>
 
-<!-- 🔍 منطق جاوااسکریپت Command Palette (کلید میانبر + پیمایش کیبورد) -->
+<!-- 🔍 منطق جاوااسکریپت Command Palette -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const cmdModalEl = document.getElementById('commandPaletteModal');
@@ -536,7 +535,7 @@
             }
         }
 
-        // ۴. مدیریت کلیک مووس روی آیتم‌ها (حل مشکل عدم هدایت)
+        // ۴. مدیریت کلیک مووس روی آیتم‌ها
         cmdResultsList.addEventListener('click', function (e) {
             const item = e.target.closest('.cmd-item');
             if (item) {
@@ -549,7 +548,7 @@
             }
         });
 
-        // ۵. مدیریت پیمایش کیبورد (کلیدهای جهت‌نما و Enter)
+        // ۵. مدیریت پیمایش کیبورد
         cmdInput.addEventListener('keydown', function (e) {
             if (currentItems.length === 0) return;
 
@@ -597,7 +596,7 @@
         }
     });
 </script>
+
+{% block js %}{% endblock %}
 </body>
-{% block js %}
-{% endblock %}
 </html>

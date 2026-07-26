@@ -28,12 +28,12 @@ from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
 from Prediction.models import Prediction
-from UserPanel.models import UserTwoFactor, UserTicket,FAQ
+from UserPanel.models import UserTwoFactor, UserTicket, FAQ
 from accounts.forms import TwoStepVerificationForm
 from accounts.models import User
 from adminPanel.models import AdminUser, PlatformRevenue, RevenueJournal
 from dashboard.forms import DisableTwoStepForm
-from dashboard.models import InternalTrade,Notification
+from dashboard.models import InternalTrade, Notification
 from wallet.models import DollarWallet, WalletTransaction, WithdrawRequest  # فرض بر آدرس‌دهی درست مدل‌های شما
 from .forms import UserProfileForm, CustomUsernameForm
 from .models import UserProfile, ProfileApprovalStatus
@@ -590,8 +590,8 @@ class GlobalSearchView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         raw_query = request.GET.get('q', '').strip()
 
-        # پاک‌سازی ورودی: نگه‌داشتن حروف، اعداد، فواصل و کاراکترهای رایج
-        query = re.sub(r'[^a-zA-Z0-9\s\-_#.]', '', raw_query).strip().lower()
+        # پاک‌سازی ورودی: نگه‌داشتن حروف (انگلیسی و فارسی/یونیکد)، اعداد، فواصل و علامت‌های مجاز
+        query = re.sub(r'[^\w\s\-_#.]', '', raw_query, flags=re.UNICODE).strip().lower()
 
         # حداقل ۲ کاراکتر برای شروع سرچ
         if not query or len(query) < 2:
@@ -603,22 +603,22 @@ class GlobalSearchView(LoginRequiredMixin, View):
         # ۱. میان‌برهای صفحات و منوهای اصلی سیستم
         results.extend(self._search_system_pages(query))
 
-        # ۲. تیکت‌های پشتیبانی (با تکیه بر ticket_id, title, message, department, priority)
+        # ۲. تیکت‌های پشتیبانی
         results.extend(self._search_tickets(user, query))
 
-        # ۳. پیش‌بینی‌ها / تریدها (با تکیه بر symbol_saved, result, direction, amount)
+        # ۳. پیش‌بینی‌ها / تریدها
         results.extend(self._search_predictions(user, query))
 
-        # ۴. معاملات داخلی / Internal Trades (با تکیه بر crypto_currency, trade_type, amount)
+        # ۴. معاملات داخلی / Internal Trades
         results.extend(self._search_internal_trades(user, query))
 
-        # ۵. تراکنش‌های کیف پول (با تکیه بر tx_hash, payment_id, purchase_id, pay_address, type)
+        # ۵. تراکنش‌های کیف پول
         results.extend(self._search_transactions(user, query))
 
-        # ۶. درخواست‌های برداشت (با تکیه بر target_address, tx_hash, status, amount)
+        # ۶. درخواست‌های برداشت
         results.extend(self._search_withdrawals(user, query))
 
-        # ۷. اعلان‌های کاربر (با تکیه بر title, message, category, notification_type)
+        # ۷. اعلان‌های کاربر
         results.extend(self._search_notifications(user, query))
 
         # ۸. مرکز راهنما و سوالات متداول (FAQ)
@@ -627,84 +627,87 @@ class GlobalSearchView(LoginRequiredMixin, View):
         return JsonResponse({'results': results}, status=200)
 
     def _safe_reverse(self, url_name, kwargs=None, default='/'):
-        """
-        جلوگیری از خطای NoReverseMatch و قرار دادن مسیر پیش‌فرض جایگزین
-        """
+        """جلوگیری از خطای NoReverseMatch و قرار دادن مسیر پیش‌فرض"""
         try:
             return reverse(url_name, kwargs=kwargs)
         except NoReverseMatch:
             return default
 
     def _search_system_pages(self, query: str) -> list:
+        # نام‌های دقیق متناظر با urls.py برنامه dashboard
         pages = [
             {
                 'title': 'Dashboard Overview',
-                'keywords': ['dashboard', 'home', 'main', 'index', 'stats'],
-                'url_name': 'dashboard:index',
+                'keywords': ['dashboard', 'home', 'main', 'index', 'stats', 'داشبورد', 'اصلی'],
+                'url_name': 'dashboard:dashboard',
                 'default_url': '/dashboard/',
                 'icon': 'bx bx-home-alt'
             },
             {
                 'title': 'Wallet & Balance',
-                'keywords': ['wallet', 'balance', 'deposit', 'usdt', 'crypto', 'trx', 'btc', 'eth'],
-                'url_name': 'wallet:index',
-                'default_url': '/wallet/',
+                'keywords': ['wallet', 'balance', 'deposit', 'usdt', 'crypto', 'trx', 'btc', 'eth', 'کیف پول', 'موجودی',
+                             'واریز'],
+                'url_name': 'dashboard:buy-and-sell',
+                'default_url': '/dashboard/my-wallet/',
                 'icon': 'bx bx-wallet'
             },
             {
-                'title': 'Transaction History',
-                'keywords': ['transaction', 'transactions', 'history', 'deposit history', 'payments'],
-                'url_name': 'wallet:transactions',
-                'default_url': '/wallet/transactions/',
+                'title': 'Deposit History',
+                'keywords': ['transaction', 'transactions', 'history', 'deposit history', 'payments', 'واریزی ها',
+                             'تاریخچه تراکنش'],
+                'url_name': 'dashboard:deposit-transaction-list',
+                'default_url': '/dashboard/transactions/deposit/',
                 'icon': 'bx bx-transfer-alt'
             },
             {
                 'title': 'Withdrawal Requests',
-                'keywords': ['withdraw', 'withdrawal', 'payout', 'cashout'],
-                'url_name': 'wallet:withdrawals',
-                'default_url': '/wallet/withdrawals/',
+                'keywords': ['withdraw', 'withdrawal', 'payout', 'cashout', 'برداشت', 'خروج وجه'],
+                'url_name': 'dashboard:withdraw-transaction-list',
+                'default_url': '/dashboard/transactions/withdraw/',
                 'icon': 'bx bx-money-withdraw'
             },
             {
                 'title': 'Support Tickets',
-                'keywords': ['ticket', 'tickets', 'support', 'help', 'desk'],
-                'url_name': 'tickets:list',
-                'default_url': '/tickets/',
+                'keywords': ['ticket', 'tickets', 'support', 'help', 'desk', 'تیکت', 'پشتیبانی'],
+                'url_name': 'dashboard:my-ticket',
+                'default_url': '/dashboard/support/my-ticket/',
                 'icon': 'bx bx-support'
             },
             {
                 'title': 'Create New Ticket',
-                'keywords': ['new ticket', 'create ticket', 'open ticket', 'contact'],
-                'url_name': 'tickets:create',
-                'default_url': '/tickets/create/',
+                'keywords': ['new ticket', 'create ticket', 'open ticket', 'contact', 'تیکت جدید', 'ارسال تیکت'],
+                'url_name': 'dashboard:add-ticket',
+                'default_url': '/dashboard/support/add-ticket/',
                 'icon': 'bx bx-plus-circle'
             },
             {
                 'title': 'Trading History & Predictions',
-                'keywords': ['trade', 'trades', 'prediction', 'predictions', 'history', 'signals'],
-                'url_name': 'predictions:history',
-                'default_url': '/predictions/history/',
+                'keywords': ['trade', 'trades', 'prediction', 'predictions', 'history', 'signals', 'پیش بینی',
+                             'معاملات'],
+                'url_name': 'dashboard:prediction-history',
+                'default_url': '/dashboard/predictions/history/',
                 'icon': 'bx bx-trending-up'
             },
             {
                 'title': 'Profile & Account Settings',
-                'keywords': ['profile', 'settings', 'account', 'user', 'avatar', 'username'],
-                'url_name': 'accounts:profile',
-                'default_url': '/accounts/profile/',
+                'keywords': ['profile', 'settings', 'account', 'user', 'avatar', 'username', 'پروفایل', 'تنظیمات'],
+                'url_name': 'dashboard:profile-setting',
+                'default_url': '/dashboard/profile/setting/',
                 'icon': 'bx bx-user-pin'
             },
             {
                 'title': 'Security & 2FA',
-                'keywords': ['security', '2fa', 'two factor', 'authenticator', 'password'],
-                'url_name': 'accounts:security',
-                'default_url': '/accounts/security/',
+                'keywords': ['security', '2fa', 'two factor', 'authenticator', 'password', 'امنیت', 'دو مرحله ای',
+                             'رمز عبور'],
+                'url_name': 'dashboard:profile-twostep',
+                'default_url': '/dashboard/profile/setting/two-step/',
                 'icon': 'bx bx-shield-quarter'
             },
             {
                 'title': 'FAQ & Help Center',
-                'keywords': ['faq', 'help', 'questions', 'guide', 'docs'],
-                'url_name': 'faq:index',
-                'default_url': '/faq/',
+                'keywords': ['faq', 'help', 'questions', 'guide', 'docs', 'سوالات متداول', 'راهنما'],
+                'url_name': 'dashboard:faq',
+                'default_url': '/dashboard/FAQ',
                 'icon': 'bx bx-help-circle'
             }
         ]
@@ -744,7 +747,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             matches.append({
                 'category': 'Support Tickets',
                 'title': f"#{t_id} - {t_title} [{status_str.capitalize()}]",
-                'url': self._safe_reverse('tickets:detail', kwargs={'pk': ticket.pk}, default=f"/tickets/{ticket.pk}/"),
+                'url': ticket.get_absolute_url(),
                 'icon': 'bx bx-message-square-detail'
             })
 
@@ -764,8 +767,9 @@ class GlobalSearchView(LoginRequiredMixin, View):
 
         predictions = Prediction.objects.filter(
             user=user
-        ).filter(query_filter).only('id', 'symbol_saved', 'amount', 'direction', 'result')[
-            :self.MAX_RESULTS_PER_CATEGORY]
+        ).filter(query_filter).select_related('round__asset').only(
+            'id', 'symbol_saved', 'amount', 'direction', 'result', 'round__asset__symbol'
+        )[:self.MAX_RESULTS_PER_CATEGORY]
 
         for pred in predictions:
             symbol = pred.symbol_saved.upper() if pred.symbol_saved else "ASSET"
@@ -775,8 +779,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             matches.append({
                 'category': 'Trades & Predictions',
                 'title': f"Prediction #{pred.id} | {symbol} ${pred.amount} ({direction}) - {result}",
-                'url': self._safe_reverse('predictions:detail', kwargs={'pk': pred.pk},
-                                          default=f"/predictions/{pred.pk}/"),
+                'url': pred.get_absolute_url(),
                 'icon': 'bx bx-line-chart'
             })
 
@@ -803,7 +806,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             matches.append({
                 'category': 'Internal Exchange',
                 'title': f"{t_type} {trade.amount} {coin} (${trade.total_cost})",
-                'url': self._safe_reverse('wallet:internal-trades', default='/wallet/internal-trades/'),
+                'url': trade.get_absolute_url(),
                 'icon': 'bx bx-refresh'
             })
 
@@ -835,7 +838,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             matches.append({
                 'category': 'Wallet Transactions',
                 'title': f"{tx_type} | ${tx.amount} ({short_hash}) - {status}",
-                'url': self._safe_reverse('wallet:transactions', default='/wallet/transactions/'),
+                'url': tx.get_absolute_url(),
                 'icon': 'bx bx-transfer-alt'
             })
 
@@ -864,7 +867,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             matches.append({
                 'category': 'Withdrawal Requests',
                 'title': f"Withdrawal #{w.id} | ${w.amount} to {short_addr} [{status}]",
-                'url': self._safe_reverse('wallet:withdrawals', default='/wallet/withdrawals/'),
+                'url': w.get_absolute_url(),
                 'icon': 'bx bx-money-withdraw'
             })
 
@@ -880,7 +883,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             Q(message__icontains=query) |
             Q(category__icontains=query) |
             Q(notification_type__icontains=query)
-        ).only('id', 'title', 'category', 'is_read')[:self.MAX_RESULTS_PER_CATEGORY]
+        ).only('id', 'title', 'category', 'is_read', 'link')[:self.MAX_RESULTS_PER_CATEGORY]
 
         for n in notifications:
             status = "Read" if n.is_read else "Unread"
@@ -889,7 +892,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             matches.append({
                 'category': 'Notifications',
                 'title': f"{n.title} ({category_str.capitalize()}) [{status}]",
-                'url': n.link if n.link else self._safe_reverse('notifications:list', default='/notifications/'),
+                'url': n.get_absolute_url(),
                 'icon': 'bx bx-bell'
             })
 
@@ -907,7 +910,7 @@ class GlobalSearchView(LoginRequiredMixin, View):
             matches.append({
                 'category': 'Help Center & FAQ',
                 'title': f"FAQ: {faq.question}",
-                'url': self._safe_reverse('faq:index', default='/faq/'),
+                'url': faq.get_absolute_url(),
                 'icon': 'bx bx-help-circle'
             })
 

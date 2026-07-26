@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.db import models
-
+from django.urls import reverse, NoReverseMatch
 from accounts.models import User
 
 
@@ -23,7 +23,7 @@ class DollarWallet(models.Model):
         return f"{self.user.username} | {self.currency.upper()} | Bal: {self.balance}"
 
     def get_absolute_url(self):
-        return reverse('dashboard:buy-and-sell')
+        return reverse('buy-and-sell')
 
 
 class CurrencyConfig(models.Model):
@@ -68,7 +68,7 @@ class WithdrawRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_absolute_url(self):
-        return reverse('dashboard:withdraw-transaction-list')
+        return reverse('withdraw-transaction-list')
 
 
 class WalletTransaction(models.Model):
@@ -98,7 +98,7 @@ class WalletTransaction(models.Model):
 
     def get_absolute_url(self):
         if self.type == 'deposit':
-            return reverse('dashboard:deposit-transaction-list')
+            return reverse('deposit-transaction-list')
         elif self.type == 'withdraw':
-            return reverse('dashboard:withdraw-transaction-list')
-        return reverse('dashboard:latest_transactions')
+            return reverse('withdraw-transaction-list')
+        return reverse('latest_transactions')

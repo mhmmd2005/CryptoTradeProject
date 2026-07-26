@@ -123,7 +123,6 @@
                     </span>
                 </button>
 
-                <!-- Search Box (Desktop) -->
                 <!-- Search Box (Desktop) - Command Palette Trigger -->
                 <div class="app-search d-none d-md-block ms-2"
                      data-bs-toggle="modal"
@@ -131,16 +130,19 @@
                      style="cursor: pointer;">
                     <div class="position-relative">
                         <input type="text"
-                               class="form-control border-0 shadow-none pe-5"
-                               placeholder="Search tickets, pages, trades..."
+                               class="form-control border-0 shadow-none pe-5 bg-body-tertiary"
+                               placeholder="Search..."
                                autocomplete="off"
                                readonly
-                               style="width: 280px; cursor: pointer;">
+                               style="width: 280px; cursor: pointer; transition: background-color 0.2s ease;">
                         <span class="mdi mdi-magnify search-widget-icon fs-18"></span>
-                        <span class="badge bg-body-secondary text-muted position-absolute end-0 top-50 translate-middle-y me-2 fs-11 px-2 py-1 border"
-                              style="pointer-events: none;">
-            Ctrl + K
-        </span>
+
+                        <div class="position-absolute end-0 top-50 translate-middle-y me-2 d-flex align-items-center gap-1"
+                             style="pointer-events: none;">
+                            <kbd class="bg-body text-muted border px-1-5 py-0-5 rounded fs-11 fw-semibold font-monospace shadow-sm">Ctrl</kbd>
+                            <span class="text-muted fs-11">+</span>
+                            <kbd class="bg-body text-muted border px-1-5 py-0-5 rounded fs-11 fw-semibold font-monospace shadow-sm">K</kbd>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -172,9 +174,9 @@
 
                 <!-- 2. Wallet Balance Pill -->
                 <div class="ms-1 header-item d-none d-sm-flex">
-                    <a href="javascript:void(0);"
-                       class="btn btn-sm d-flex align-items-center gap-2 px-3 py-1 fs-13 fw-semibold shadow-none"
-                       style="background-color: rgba(10, 179, 156, 0.1); color: #0ab39c !important; border-radius: 8px; border: none;">
+                    <a
+                            class="btn btn-sm d-flex align-items-center gap-2 px-3 py-1 fs-13 fw-semibold shadow-none"
+                            style="background-color: rgba(10, 179, 156, 0.1); color: #0ab39c !important; border-radius: 8px; border: none;">
                         <i class="bx bx-wallet fs-18"></i>
                         <span>${{ wallet.balance|default:"0.00"|floatformat:"2"|intcomma }}</span>
                     </a>
@@ -323,6 +325,7 @@
                         <span class="d-flex align-items-center">
                             <img class="rounded-circle header-profile-user"
                                  src="
+
 
 
                                          {% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}{% static 'assets/images/users/photo_2025-09-25_03-16-49.jpg' %}{% endif %}"

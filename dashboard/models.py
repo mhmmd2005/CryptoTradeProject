@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-
+from django.urls import reverse, NoReverseMatch
 User = get_user_model()
 from accounts.models import User
 from adminPanel.models import AdminUser
@@ -139,7 +139,7 @@ class Notification(models.Model):
     def get_absolute_url(self):
         if self.link:
             return self.link
-        return reverse('dashboard:all_notifications')
+        return reverse('dashboard:notifications_dropdown')
 
 
 class InternalTrade(models.Model):

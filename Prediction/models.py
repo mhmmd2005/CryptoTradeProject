@@ -1,6 +1,6 @@
 # prediction/models.py
 from decimal import Decimal, getcontext
-
+from django.urls import reverse, NoReverseMatch
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
