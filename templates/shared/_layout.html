@@ -241,7 +241,6 @@
 
 {% include 'header_include/header_include.html' %}
 {% block content %}{% endblock %}
-{% include 'Theme_Setting/Theme_Setting.html' %}
 {% include 'sidebar_include/sidebar_include.html' %}
 {% include 'footer_references/footer_references.html' %}
 {% block footer_references %}{% endblock %}
@@ -249,13 +248,6 @@
 <button class="btn btn-danger btn-icon" id="back-to-top">
     <i class="ri-arrow-up-line"></i>
 </button>
-
-<div class="customizer-setting d-none d-md-block">
-    <div class="btn-primary btn-rounded shadow-lg btn btn-icon btn-lg p-2" data-bs-toggle="offcanvas"
-         data-bs-target="#theme-settings-offcanvas" aria-controls="theme-settings-offcanvas">
-        <i class='mdi mdi-spin mdi-cog-outline fs-22'></i>
-    </div>
-</div>
 
 <!-- 🔔 Notification Modal -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
