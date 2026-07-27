@@ -400,7 +400,6 @@ class TwoStepVerifyView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         form = TwoStepVerificationForm(request.POST)
         if not form.is_valid():
-            # برگشت خطاهای فرم به JSON
             return JsonResponse({"success": False, "error": form.errors["code"][0]})
 
         code = form.cleaned_data["code"]
@@ -414,6 +413,7 @@ class TwoStepVerifyView(LoginRequiredMixin, View):
 
         if twofa.verify_token(code):
             twofa.is_enabled = True
+            twofa.is_verified = True  # یکپارچه‌سازی وضعیت verification
             twofa.save()
             return JsonResponse({"success": True})
         else:

@@ -1,96 +1,226 @@
 <style>
+    /* ==========================================
+       2FA Soft UI - Two Column Layout
+       ========================================== */
 
+    /* نشانگر وضعیت (Badge) */
     .badge-label {
         font-size: 0.75rem;
-        padding: 0.35em 0.7em; /* افزایش فاصله بالا و پایین */
+        padding: 0.35em 0.7em;
         vertical-align: middle;
-        display: inline-flex; /* برای تراز بهتر */
-        align-items: center; /* وسط چین کردن متن نسبت به آیکون */
-        justify-content: center; /* وسط چین افقی */
-    }
-
-
-    .badge-label i {
-        margin-right: 1px;
-        font-size: 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border-radius: 6px;
     }
 
     /* Toggle Switch */
     .toggle-switch {
         position: relative;
-        width: 36px; /* کمتر از قبل */
-        height: 18px; /* کمتر از قبل */
-        background-color: #ccc;
+        width: 38px;
+        height: 20px;
+        background-color: var(--bs-border-color, #ccc);
         border-radius: 50px;
         cursor: pointer;
         transition: background-color 0.3s ease;
         display: inline-block;
         vertical-align: middle;
+        flex-shrink: 0;
     }
 
     .toggle-switch::after {
         content: "";
         position: absolute;
-        width: 14px; /* دایره کوچکتر */
-        height: 14px; /* دایره کوچکتر */
-        top: 2px; /* کمی از بالا فاصله */
-        left: 2px; /* کمی از چپ فاصله */
-        background-color: white;
+        width: 14px;
+        height: 14px;
+        top: 3px;
+        left: 3px;
+        background-color: #ffffff;
         border-radius: 50%;
-        transition: left 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .toggle-switch.active {
-        background-color: #0d6efd; /* bootstrap blue */
+        background-color: #0d6efd;
     }
 
     .toggle-switch.active::after {
-        left: 20px; /* جابجایی دایره داخلی با اندازه جدید */
+        transform: translateX(18px);
     }
 
-    /* پیام ها */
-    #verify-message {
-        transition: opacity 0.5s ease;
+    /* سیستم انیمیشن آکاردئونی نرم */
+    .smooth-collapse {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        opacity: 0;
     }
 
-    .desc-text {
-        font-size: 0.9rem;
-        color: #8a8383; /* رنگ پیش‌فرض برای دارک مود */
+    .smooth-collapse.show {
+        grid-template-rows: 1fr;
+        opacity: 1;
     }
 
-    /* وقتی کاربر در حالت روشن هست (Light Mode) */
-    @media (prefers-color-scheme: light) {
-        .desc-text {
-            color: #000; /* سیاه در حالت لایت */
-        }
+    .collapse-inner {
+        overflow: hidden;
     }
 
-
-    /* خط جداکننده */
+    /* جداکننده */
     .separator {
         height: 1px;
-        background-color: #ccc;
-        width: 60%;
-        margin: 10px auto;
-        border-radius: 2px;
+        background: linear-gradient(90deg, transparent, var(--bs-border-color, #ccc), transparent);
+        width: 70%;
+        margin: 14px auto;
+    }
+
+    /* قاب اسکنر برای QR Code */
+    .qr-scanner-wrapper {
+        position: relative;
+        display: inline-block;
+        padding: 8px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .qr-scanner-wrapper:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(13, 110, 253, 0.12);
+    }
+
+    .qr-corner {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-color: #0d6efd;
+        border-style: solid;
+        pointer-events: none;
+    }
+
+    .qr-corner-tl {
+        top: -2px;
+        left: -2px;
+        border-width: 2px 0 0 2px;
+        border-top-left-radius: 4px;
+    }
+
+    .qr-corner-tr {
+        top: -2px;
+        right: -2px;
+        border-width: 2px 2px 0 0;
+        border-top-right-radius: 4px;
+    }
+
+    .qr-corner-bl {
+        bottom: -2px;
+        left: -2px;
+        border-width: 0 0 2px 2px;
+        border-bottom-left-radius: 4px;
+    }
+
+    .qr-corner-br {
+        bottom: -2px;
+        right: -2px;
+        border-width: 0 2px 2px 0;
+        border-bottom-right-radius: 4px;
+    }
+
+    /* کپسول کلید محرمانه */
+    .secret-key-pill {
+        background-color: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.03));
+        border: 1px dashed var(--bs-border-color, #ccc);
+        border-radius: 8px;
+        padding: 6px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        max-width: 100%;
+    }
+
+    .secret-key-pill:hover {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.03);
+    }
+
+    .copy-btn {
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .copy-btn:hover {
+        transform: scale(1.15);
+        color: #0d6efd !important;
+    }
+
+    /* ورودی کد ۶ رقمی OTP */
+    .otp-input-next {
+        letter-spacing: 0.35em;
+        font-size: 1.2rem;
+        font-weight: 700;
+        font-family: var(--bs-font-monospace, monospace);
+        text-align: center;
+        border-radius: 8px;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid var(--bs-border-color, #ced4da);
+        background-color: var(--bs-body-bg, #ffffff);
+        color: var(--bs-body-color, #212529);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .otp-input-next:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        outline: none;
+    }
+
+    /* دکمه اکشن فعال‌سازی */
+    .btn-action-primary {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.55rem 1.4rem;
+        box-shadow: 0 2px 6px rgba(13, 110, 253, 0.25);
+        transition: all 0.2s ease;
+    }
+
+    .btn-action-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35);
+    }
+
+    /* متن توضیحات */
+    .desc-text {
+        font-size: 0.875rem;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+
+    #verify-message, #disable-message {
+        transition: opacity 0.3s ease;
+        font-size: 0.85rem;
+        font-weight: 500;
     }
 </style>
 
 <div class="text-center">
-    <!-- Toggle و توضیح همیشه نمایش داده شود -->
-    <div id="two-step-intro" class="d-flex justify-content-between align-items-center p-2 mb-3">
-    <span class="fw-semibold">
-        Enable Two-Step Authentication
-        <span id="status-badge" class="badge badge-label {% if is_enabled %}bg-success{% else %}bg-danger{% endif %}">
-            <i class="mdi mdi-circle-medium"></i> {% if is_enabled %}Active{% else %}Inactive{% endif %}
+    <!-- Toggle و وضعیت -->
+    <div id="two-step-intro" class="d-flex justify-content-between align-items-center p-2 mb-2">
+        <span class="fw-semibold">
+            Enable Two-Step Authentication
+            <span id="status-badge"
+                  class="badge badge-label {% if is_enabled %}bg-success{% else %}bg-danger{% endif %}">
+                <i class="mdi mdi-circle-medium"></i> {% if is_enabled %}Active{% else %}Inactive{% endif %}
+            </span>
         </span>
-    </span>
         <div id="toggle-two-step" class="toggle-switch {% if is_enabled %}active{% endif %}"></div>
     </div>
 
-    <p id="desc-text" class="desc-text">
+    <p id="desc-text" class="desc-text mb-0">
         {% if is_enabled %}
-            Two-Step Authentication is now active.
+            Two-Step Authentication is now active and protecting your account.
         {% else %}
             Protect your account by enabling Two-Step Authentication for extra security.
         {% endif %}
@@ -98,66 +228,108 @@
 
     <div class="separator"></div>
 
-    <!-- Step 2: فرم و QR -->
-    <div id="two-step-setup" style="display:none;">
-        <div id="loading-spinner" class="my-3 text-center" style="display:none;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Preparing...</p>
-        </div>
-
-        <div id="two-step-content" style="display:none;">
-            <h5 class="mb-3">Set up Two-Step Authentication</h5>
-            <div class="d-flex justify-content-center mb-2">
-                <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code" class="rounded shadow"
-                     style="width:130px; height:130px;">
-            </div>
-            <p class="d-flex align-items-center justify-content-center gap-2">
-                <span class="fw-bold font-monospace bg-light p-1 rounded">{{ secret_key }}</span>
-                <i class="ri-file-copy-line text-primary cursor-pointer"
-                   onclick="navigator.clipboard.writeText('{{ secret_key }}'); showMessage(msg, 'Key Copied!', 'success')"
-                   title="Copy Key"></i>
-            </p>
-            <p>Scan this QR code with <b>Google Authenticator</b> and enter the code below.</p>
-
-            <form id="verify-two-step-form" class="mt-3">
-                {% csrf_token %}
-                <div class="col-md-4 mx-auto">
-                    <input type="text" name="code" class="form-control text-center"
-                           maxlength="6" placeholder="Enter 6-digit code">
+    <!-- فرم دو ستونه فعال‌سازی -->
+    <div id="two-step-setup" class="smooth-collapse">
+        <div class="collapse-inner">
+            <!-- لودینگ spinner -->
+            <div id="loading-spinner" class="my-4 text-center" style="display:none;">
+                <div class="spinner-border text-primary spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-                <button type="button" id="verify-btn" class="btn btn-primary mt-3">
-                    Verify & Enable
-                </button>
-                <div id="verify-message" class="mt-2 text-danger"></div>
-            </form>
+                <p class="mt-2 small text-muted">Preparing security credentials...</p>
+            </div>
+
+            <div id="two-step-content" class="py-3" style="display:none;">
+                <div class="row align-items-center justify-content-center g-4 text-start">
+
+                    <!-- سمت چپ: QR Code و کلید محرمانه -->
+                    <div class="col-md-5 text-center">
+                        <div class="qr-scanner-wrapper mb-3">
+                            <div class="qr-corner qr-corner-tl"></div>
+                            <div class="qr-corner qr-corner-tr"></div>
+                            <div class="qr-corner qr-corner-bl"></div>
+                            <div class="qr-corner qr-corner-br"></div>
+                            <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code"
+                                 style="width:160px; height:160px;" class="d-block">
+                        </div>
+                        <div>
+                            <div class="secret-key-pill">
+                                <span class="fw-bold font-monospace text-body"
+                                      style="font-size: 0.85rem;">{{ secret_key }}</span>
+                                <i class="ri-file-copy-line text-primary copy-btn" id="copy-secret-btn"
+                                   title="Copy Key"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- سمت راست: توضیحات و ورودی کد ۶ رقمی -->
+                    <div class="col-md-7">
+                        <div class="mb-3 text-center text-md-start">
+                            <span class="badge bg-primary-subtle text-primary fw-semibold mb-2"
+                                  style="font-size: 0.75rem;">Step-by-Step Setup</span>
+                            <h6 class="fw-bold mb-1 text-body">Scan QR or Copy Secret Key</h6>
+                            <p class="desc-text mb-0" style="font-size: 0.825rem;">
+                                Use <b>Google Authenticator</b> to scan the code on the left, then enter your 6-digit
+                                code below.
+                            </p>
+                        </div>
+
+                        <form id="verify-two-step-form"
+                              class="d-flex flex-column align-items-center text-center">
+                            {% csrf_token %}
+
+                            <div style="max-width: 210px;" class="w-100 mx-auto">
+                                <div class="mb-2">
+                                    <input type="text" name="code" class="form-control otp-input-next text-center"
+                                           maxlength="6" placeholder="000000" autocomplete="off" inputmode="numeric"
+                                           style="padding: 0.45rem 0.5rem; font-size: 1.1rem;">
+                                </div>
+
+                                <button type="button" id="verify-btn"
+                                        class="btn btn-primary btn-action-primary w-100 py-2"
+                                        style="min-width: auto; font-size: 0.85rem;">
+                                    <i class="ri-shield-check-line me-1"></i> Verify & Enable
+                                </button>
+                            </div>
+
+                            <div id="verify-message" class="mt-2 text-danger text-center"></div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
-    <div id="disable-two-step" style="display:none;">
-        <div id="disable-loading" class="my-3 text-center">
-            <div class="spinner-border text-danger" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Preparing...</p>
-        </div>
 
-        <div id="disable-content" style="display:none; ">
-            <br>
-            <h5 class="text-danger" style="margin-bottom: 1.8rem;">Disable Two-Step Authentication</h5>
-            <form id="disable-form" class="mt-3">
-                {% csrf_token %}
-                <div class="col-md-4 mx-auto mb-2">
-                    <input type="password" id="disable-password" name="password" class="form-control text-center"
-                           placeholder="Account password">
+    <!-- فرم غیرفعال‌سازی -->
+    <div id="disable-two-step" class="smooth-collapse">
+        <div class="collapse-inner">
+            <div id="disable-loading" class="my-3 text-center">
+                <div class="spinner-border text-danger spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-                <div class="col-md-4 mx-auto mb-2" style="margin-bottom: 1.8rem;">
-                    <input type="text" id="disable-code" name="code" class="form-control text-center" maxlength="6"
-                           placeholder="6-digit code">
-                </div>
-                <button type="button" id="disable-btn" class="btn btn-danger mt-2">Verify & Disable</button>
-                <div id="disable-message" class="mt-2 text-danger"></div>
-            </form>
+                <p class="mt-2 small">Preparing...</p>
+            </div>
+
+            <div id="disable-content" class="py-2" style="display:none;">
+                <h6 class="text-danger fw-bold mb-3">Disable Two-Step Authentication</h6>
+                <form id="disable-form">
+                    {% csrf_token %}
+                    <div class="col-md-5 col-sm-8 mx-auto mb-2">
+                        <input type="password" id="disable-password" name="password"
+                               class="form-control text-center rounded-2"
+                               placeholder="Account password">
+                    </div>
+                    <div class="col-md-5 col-sm-8 mx-auto mb-3">
+                        <input type="text" id="disable-code" name="code" class="form-control otp-input-next"
+                               maxlength="6"
+                               placeholder="000000" autocomplete="off" inputmode="numeric">
+                    </div>
+                    <button type="button" id="disable-btn" class="btn btn-danger btn-action-primary">Verify & Disable
+                    </button>
+                    <div id="disable-message" class="mt-2 text-danger"></div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -171,53 +343,62 @@
         const content = document.getElementById('two-step-content');
         const msg = document.getElementById('verify-message');
         const descText = document.getElementById('desc-text');
+        const copyBtn = document.getElementById('copy-secret-btn');
 
         let isEnabled = {{ is_enabled|yesno:"true,false" }};
 
-        function showMessage(element, text, type = 'danger', duration = 2000) {
+        function showMessage(element, text, type = 'danger', duration = 2500) {
+            if (!element) return;
             element.classList.remove('text-danger', 'text-success');
             element.classList.add(type === 'success' ? 'text-success' : 'text-danger');
-            element.style.opacity = 1;
+            element.style.opacity = '1';
             element.innerText = text;
             setTimeout(() => {
-                element.style.opacity = 0;
+                element.style.opacity = '0';
             }, duration);
         }
 
-// متغیر برای جلوگیری از کلیک‌های اسپم (Debounce)
+        // سیستم کپی با فیدبک بصری تغییر آیکون
+        copyBtn?.addEventListener('click', () => {
+            const secretKey = '{{ secret_key }}';
+            navigator.clipboard.writeText(secretKey).then(() => {
+                copyBtn.className = 'ri-check-line text-success copy-btn';
+                showMessage(msg, 'Key copied to clipboard!', 'success');
+                setTimeout(() => {
+                    copyBtn.className = 'ri-file-copy-line text-primary copy-btn';
+                }, 2000);
+            }).catch(() => {
+                showMessage(msg, 'Failed to copy key.');
+            });
+        });
+
         let isProcessingToggle = false;
 
         toggle?.addEventListener('click', () => {
-            if (isProcessingToggle) return; // اگر در حال پردازش بود، کلیک بعدی نادیده گرفته شود
+            if (isProcessingToggle) return;
 
-            // پیدا کردن وضعیت لحظه‌ای بر اساس کلاس active
             const currentlyActive = toggle.classList.contains('active');
 
             if (!isEnabled) {
-                // --- سناریو: تلاش برای فعال‌سازی ---
                 if (!currentlyActive) {
-                    // باز کردن پنل تنظیمات
                     toggle.classList.add('active');
-                    setupDiv.style.display = 'block';
-                    disableDiv.style.display = 'none'; // بستن پنل مخالف
+                    disableDiv.classList.remove('show');
+                    setupDiv.classList.add('show');
                     spinner.style.display = 'block';
                     content.style.display = 'none';
 
                     setTimeout(() => {
                         spinner.style.display = 'none';
                         content.style.display = 'block';
-                    }, 800);
+                    }, 400);
                 } else {
-                    // بستن پنل (انصراف)
                     toggle.classList.remove('active');
-                    setupDiv.style.display = 'none';
+                    setupDiv.classList.remove('show');
                 }
             } else {
-                // --- سناریو: تلاش برای غیرفعال‌سازی ---
-                // در این حالت toggle از قبل active است، پس ما فقط پنل را باز/بسته می‌کنیم
-                if (disableDiv.style.display === 'none') {
-                    disableDiv.style.display = 'block';
-                    setupDiv.style.display = 'none'; // بستن پنل مخالف
+                if (!disableDiv.classList.contains('show')) {
+                    setupDiv.classList.remove('show');
+                    disableDiv.classList.add('show');
                     const dSpinner = document.getElementById('disable-loading');
                     const dContent = document.getElementById('disable-content');
 
@@ -227,68 +408,70 @@
                     setTimeout(() => {
                         dSpinner.style.display = 'none';
                         dContent.style.display = 'block';
-                    }, 600);
+                    }, 400);
                 } else {
-                    // انصراف از غیرفعال‌سازی
-                    disableDiv.style.display = 'none';
+                    disableDiv.classList.remove('show');
                 }
             }
 
-            // فعال کردن قفل کلیک برای 300 میلی‌ثانیه جهت جلوگیری از اسپم
             isProcessingToggle = true;
             setTimeout(() => {
                 isProcessingToggle = false;
             }, 300);
         });
 
-// اگر کاربر پشیمون شد و دوباره کلیک کرد (فعال‌سازی لغو)
-        function cancelEnableOnce() {
-            setupDiv.style.display = 'none';
-            toggle.classList.remove('active');
-        }
-
-// اگر کاربر پشیمون شد و دوباره کلیک کرد (غیر فعال سازی لغو)
-        function cancelDisableOnce() {
-            disableDiv.style.display = 'none';
-        }
-
-
+        // فعال‌سازی 2FA
         document.getElementById('verify-btn')?.addEventListener('click', () => {
-            const code = document.querySelector('#verify-two-step-form input[name="code"]').value.trim();
+            const codeInput = document.querySelector('#verify-two-step-form input[name="code"]');
+            const code = codeInput ? codeInput.value.trim() : '';
+
             if (!/^\d{6}$/.test(code)) {
                 showMessage(msg, "Code must be 6 digits!");
+                if (codeInput) codeInput.value = ''; // پاکسازی در صورت معتبر نبودن ساختار
                 return;
             }
-            const csrfToken = document.querySelector('#verify-two-step-form [name=csrfmiddlewaretoken]').value;
+
+            const csrfToken = document.querySelector('#verify-two-step-form [name=csrfmiddlewaretoken]')?.value;
 
             fetch("{% url 'dashboard:verify_two_step' %}", {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken},
                 body: new URLSearchParams({code})
-            }).then(res => res.json())
+            })
+                .then(res => res.json())
                 .then(data => {
                     if (data.success) {
                         spinner.style.display = 'block';
                         content.style.display = 'none';
                         setTimeout(() => {
                             spinner.style.display = 'none';
-                            setupDiv.style.display = 'none';
+                            setupDiv.classList.remove('show');
                             toggle.classList.add('active');
                             isEnabled = true;
-                            document.getElementById('status-badge').className = 'badge badge-label bg-success';
-                            document.getElementById('status-badge').innerHTML = '<i class="mdi mdi-circle-medium"></i> Active';
+
+                            const badge = document.getElementById('status-badge');
+                            badge.className = 'badge badge-label bg-success';
+                            badge.innerHTML = '<i class="mdi mdi-circle-medium"></i> Active';
+
                             descText.innerText = "Two-Step Authentication is now active and protecting your account.";
                             showMessage(msg, "Two-Step Authentication enabled successfully!", "success");
-                        }, 1200);
+                        }, 600);
                     } else {
-                        showMessage(msg, data.error);
+                        showMessage(msg, data.error || "Verification failed.");
                     }
-                }).catch(() => showMessage(msg, "Server error. Try again."));
+                })
+                .catch(() => showMessage(msg, "Server error. Try again."))
+                .finally(() => {
+                    if (codeInput) codeInput.value = ''; // پاک‌سازی فیلد کد پس از دریافت پاسخ (چه موفق و چه ناموفق)
+                });
         });
 
+        // غیرفعال‌سازی 2FA
         document.getElementById('disable-btn')?.addEventListener('click', () => {
-            const password = document.getElementById('disable-password').value.trim();
-            const code = document.getElementById('disable-code').value.trim();
+            const passwordInput = document.getElementById('disable-password');
+            const codeInput = document.getElementById('disable-code');
+            const password = passwordInput ? passwordInput.value.trim() : '';
+            const code = codeInput ? codeInput.value.trim() : '';
             const disableMsg = document.getElementById('disable-message');
             const disableSpinner = document.getElementById('disable-loading');
             const disableContent = document.getElementById('disable-content');
@@ -299,12 +482,12 @@
             }
             if (!/^\d{6}$/.test(code)) {
                 showMessage(disableMsg, "Code must be 6 digits!");
+                if (codeInput) codeInput.value = '';
                 return;
             }
 
-            const csrfToken = document.querySelector('#disable-form [name=csrfmiddlewaretoken]').value;
+            const csrfToken = document.querySelector('#disable-form [name=csrfmiddlewaretoken]')?.value;
 
-            // ابتدا فرم را مخفی و spinner را نشان می‌دهیم
             disableContent.style.display = 'none';
             disableSpinner.style.display = 'block';
 
@@ -315,43 +498,48 @@
             })
                 .then(res => res.json())
                 .then(data => {
-                    // لودینگ را حداقل برای 800ms نمایش بدهیم
                     setTimeout(() => {
                         disableSpinner.style.display = 'none';
                         if (data.success) {
-                            disableDiv.style.display = 'none';
+                            disableDiv.classList.remove('show');
                             toggle.classList.remove('active');
                             isEnabled = false;
-                            document.getElementById('status-badge').className = 'badge badge-label bg-danger';
-                            document.getElementById('status-badge').innerHTML = '<i class="mdi mdi-circle-medium"></i> Inactive';
+
+                            const badge = document.getElementById('status-badge');
+                            badge.className = 'badge badge-label bg-danger';
+                            badge.innerHTML = '<i class="mdi mdi-circle-medium"></i> Inactive';
+
                             descText.innerText = "Two-Step Authentication is now inactive.";
                             showMessage(msg, "Two-Step Authentication disabled successfully!", "success");
                         } else {
-                            disableContent.style.display = 'block'; // فرم دوباره نمایش داده شود
-                            showMessage(disableMsg, data.error);
+                            disableContent.style.display = 'block';
+                            showMessage(disableMsg, data.error || "Disabling failed.");
                         }
-                    }, 300);
+                    }, 400);
                 })
                 .catch(() => {
                     disableSpinner.style.display = 'none';
                     disableContent.style.display = 'block';
                     showMessage(disableMsg, "Server error. Try again.");
+                })
+                .finally(() => {
+                    // پاک‌سازی فیلدهای رمز عبور و کد OTP پس از بررسی
+                    if (passwordInput) passwordInput.value = '';
+                    if (codeInput) codeInput.value = '';
                 });
         });
 
-        // مانیتور کردن ورودی برای ارسال خودکار (Auto-submit)
+        // Auto Submit هنگام تایپ رقم ۶
         document.querySelector('#verify-two-step-form input[name="code"]')?.addEventListener('input', (e) => {
-            if (e.target.value.length === 6) {
+            if (e.target.value.trim().length === 6) {
                 document.getElementById('verify-btn').click();
             }
         });
 
         document.querySelector('#disable-code')?.addEventListener('input', (e) => {
-            if (e.target.value.length === 6) {
+            if (e.target.value.trim().length === 6) {
                 document.getElementById('disable-btn').click();
             }
         });
     });
-
 </script>
-

@@ -3,7 +3,8 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.urls import reverse, NoReverseMatch
+from django.urls import reverse
+
 User = get_user_model()
 from accounts.models import User
 from adminPanel.models import AdminUser
@@ -25,18 +26,26 @@ class UserProfile(models.Model):
     last_name = models.CharField(max_length=50, null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     joining_date = models.DateField(auto_now_add=True, null=True, blank=True)
-    city = models.CharField(max_length=50)
-    country = models.CharField(max_length=50)
+
+    # نال‌پذیر کردن شهر و کشور جهت جلوگیری از کرش هنگام ساخت اتوماتیک پروفایل در سیگنال‌ها
+    city = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(max_length=50, null=True, blank=True)
     zipcode = models.CharField(max_length=30, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
-    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
+
+    # یکپارچه‌سازی تصویر آواتار (حذف فیلد تکراری profile_image)
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending', db_index=True)
     locked = models.BooleanField(default=False)
     email_notifications_enabled = models.BooleanField(default=False)
+
+    # مدیریت بن شدن کاربر
     is_banned = models.BooleanField(default=False)
     ban_start = models.DateTimeField(null=True, blank=True)
     ban_end = models.DateTimeField(null=True, blank=True)
     ban_reason = models.TextField(blank=True, null=True)
+
     custom_username = models.CharField(
         max_length=50,
         unique=True,
@@ -44,13 +53,23 @@ class UserProfile(models.Model):
         null=True,
         verbose_name="Custom Username"
     )
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name or ''} {self.last_name or ''}".strip() or self.user.username
 
-    def get_absolute_url(self):
-        return reverse('dashboard:profile-setting')
+
+class UserBanHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ban_history')
+    ban_start = models.DateTimeField()
+    ban_reason = models.TextField()
+    unbanned_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-ban_start']
+
+    def __str__(self):
+        return f"{self.user.username} banned on {self.ban_start}"
 
 
 class UserBanHistory(models.Model):

@@ -1,4 +1,5 @@
 import random
+import pyotp
 import string
 from django.urls import reverse
 from django.db import models
@@ -78,6 +79,20 @@ class UserTwoFactor(models.Model):
 
     def get_absolute_url(self):
         return reverse('profile-twostep')
+
+    def verify_token(self, code: str) -> bool:
+        """
+        اعتبارسنجی کد ۶ رقمی TOTP با استفاده از secret_key
+        """
+        if not self.secret_key or not code:
+            return False
+
+        # تبدیل کد به رشته و حذف فاصله‌های احتمالی
+        clean_code = str(code).strip()
+
+        totp = pyotp.TOTP(self.secret_key)
+        # valid_window=1 تلورانس زمانی ۳۰ ثانیه‌ای برای ناهماهنگی جزئی ساعت سرور و کاربر ایجاد می‌کند
+        return totp.verify(clean_code, valid_window=1)
 
 
 class FAQCategory(models.Model):
