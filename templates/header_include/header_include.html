@@ -86,6 +86,35 @@
             transform: scale(1);
         }
     }
+
+    .app-search .form-control {
+        border: 1px solid color-mix(
+                in srgb,
+                var(--bs-body-color) 20%,
+                transparent
+        ) !important;
+    }
+
+    .app-search .form-control:hover,
+    .app-search .form-control:focus {
+        border-color: #6c757d !important;
+    }
+
+    .app-search .form-control::placeholder {
+        color: var(--bs-secondary-color) !important;
+    }
+
+    .app-search .search-widget-icon {
+        color: var(--bs-secondary-color) !important;
+    }
+
+    .app-search kbd {
+        background-color: var(--bs-tertiary-bg) !important;
+        color: var(--bs-body-color) !important;
+        border: 1px solid rgba(var(--bs-body-color-rgb), 0.12) !important;
+        border-radius: 6px;
+        padding: 2px 6px;
+    }
 </style>
 
 <header id="page-topbar">
@@ -123,25 +152,24 @@
                     </span>
                 </button>
 
-                <!-- Search Box (Desktop) - Command Palette Trigger -->
                 <div class="app-search d-none d-md-block ms-2"
                      data-bs-toggle="modal"
                      data-bs-target="#commandPaletteModal"
-                     style="cursor: pointer;">
+                     style="cursor:pointer;">
                     <div class="position-relative">
                         <input type="text"
-                               class="form-control border-0 shadow-none pe-5 bg-body-tertiary"
+                               class="form-control shadow-none pe-5"
                                placeholder="Search..."
                                autocomplete="off"
-                               readonly
-                               style="width: 280px; cursor: pointer; transition: background-color 0.2s ease;">
+                               readonly>
+
                         <span class="mdi mdi-magnify search-widget-icon fs-18"></span>
 
                         <div class="position-absolute end-0 top-50 translate-middle-y me-2 d-flex align-items-center gap-1"
-                             style="pointer-events: none;">
-                            <kbd class="bg-body text-muted border px-1-5 py-0-5 rounded fs-11 fw-semibold font-monospace shadow-sm">Ctrl</kbd>
+                             style="pointer-events:none;">
+                            <kbd>Ctrl</kbd>
                             <span class="text-muted fs-11">+</span>
-                            <kbd class="bg-body text-muted border px-1-5 py-0-5 rounded fs-11 fw-semibold font-monospace shadow-sm">K</kbd>
+                            <kbd>K</kbd>
                         </div>
                     </div>
                 </div>
@@ -325,6 +353,14 @@
                         <span class="d-flex align-items-center">
                             <img class="rounded-circle header-profile-user"
                                  src="
+
+
+
+
+
+
+
+
 
 
 
