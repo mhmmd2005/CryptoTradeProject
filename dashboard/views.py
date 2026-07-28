@@ -639,74 +639,74 @@ class GlobalSearchView(LoginRequiredMixin, View):
         pages = [
             {
                 'title': 'Dashboard Overview',
-                'keywords': ['dashboard', 'home', 'main', 'index', 'stats', 'داشبورد', 'اصلی'],
+                'keywords': ['dashboard', 'home', 'main', 'index', 'stats', 'overview', 'panel'],
                 'url_name': 'dashboard:dashboard',
                 'default_url': '/dashboard/',
                 'icon': 'bx bx-home-alt'
             },
             {
                 'title': 'Wallet & Balance',
-                'keywords': ['wallet', 'balance', 'deposit', 'usdt', 'crypto', 'trx', 'btc', 'eth', 'کیف پول', 'موجودی',
-                             'واریز'],
+                'keywords': ['wallet', 'balance', 'deposit', 'usdt', 'crypto', 'trx', 'btc', 'eth', 'funds', 'top up'],
                 'url_name': 'dashboard:buy-and-sell',
                 'default_url': '/dashboard/my-wallet/',
                 'icon': 'bx bx-wallet'
             },
             {
                 'title': 'Deposit History',
-                'keywords': ['transaction', 'transactions', 'history', 'deposit history', 'payments', 'واریزی ها',
-                             'تاریخچه تراکنش'],
+                'keywords': ['transaction', 'transactions', 'history', 'deposit history', 'payments', 'deposits',
+                             'transaction history'],
                 'url_name': 'dashboard:deposit-transaction-list',
                 'default_url': '/dashboard/transactions/deposit/',
                 'icon': 'bx bx-transfer-alt'
             },
             {
                 'title': 'Withdrawal Requests',
-                'keywords': ['withdraw', 'withdrawal', 'payout', 'cashout', 'برداشت', 'خروج وجه'],
+                'keywords': ['withdraw', 'withdrawal', 'payout', 'cashout', 'withdrawals', 'payouts'],
                 'url_name': 'dashboard:withdraw-transaction-list',
                 'default_url': '/dashboard/transactions/withdraw/',
                 'icon': 'bx bx-money-withdraw'
             },
             {
                 'title': 'Support Tickets',
-                'keywords': ['ticket', 'tickets', 'support', 'help', 'desk', 'تیکت', 'پشتیبانی'],
+                'keywords': ['ticket', 'tickets', 'support', 'help', 'desk', 'helpdesk', 'assistance'],
                 'url_name': 'dashboard:my-ticket',
                 'default_url': '/dashboard/support/my-ticket/',
                 'icon': 'bx bx-support'
             },
             {
                 'title': 'Create New Ticket',
-                'keywords': ['new ticket', 'create ticket', 'open ticket', 'contact', 'تیکت جدید', 'ارسال تیکت'],
+                'keywords': ['new ticket', 'create ticket', 'open ticket', 'contact', 'submit ticket', 'send ticket'],
                 'url_name': 'dashboard:add-ticket',
                 'default_url': '/dashboard/support/add-ticket/',
                 'icon': 'bx bx-plus-circle'
             },
             {
                 'title': 'Trading History & Predictions',
-                'keywords': ['trade', 'trades', 'prediction', 'predictions', 'history', 'signals', 'پیش بینی',
-                             'معاملات'],
+                'keywords': ['trade', 'trades', 'prediction', 'predictions', 'history', 'signals', 'trading',
+                             'forecast'],
                 'url_name': 'dashboard:prediction-history',
                 'default_url': '/dashboard/predictions/history/',
                 'icon': 'bx bx-trending-up'
             },
             {
                 'title': 'Profile & Account Settings',
-                'keywords': ['profile', 'settings', 'account', 'user', 'avatar', 'username', 'پروفایل', 'تنظیمات'],
+                'keywords': ['profile', 'settings', 'account', 'user', 'avatar', 'username', 'user settings',
+                             'preferences'],
                 'url_name': 'dashboard:profile-setting',
                 'default_url': '/dashboard/profile/setting/',
                 'icon': 'bx bx-user-pin'
             },
             {
                 'title': 'Security & 2FA',
-                'keywords': ['security', '2fa', 'two factor', 'authenticator', 'password', 'امنیت', 'دو مرحله ای',
-                             'رمز عبور'],
+                'keywords': ['security', '2fa', 'two factor', 'authenticator', 'password', 'two step', 'passcode'],
                 'url_name': 'dashboard:profile-twostep',
                 'default_url': '/dashboard/profile/setting/two-step/',
                 'icon': 'bx bx-shield-quarter'
             },
             {
                 'title': 'FAQ & Help Center',
-                'keywords': ['faq', 'help', 'questions', 'guide', 'docs', 'سوالات متداول', 'راهنما'],
+                'keywords': ['faq', 'help', 'questions', 'guide', 'docs', 'frequently asked questions',
+                             'documentation'],
                 'url_name': 'dashboard:faq',
                 'default_url': '/dashboard/FAQ',
                 'icon': 'bx bx-help-circle'
