@@ -177,7 +177,6 @@
             right: 26px;
             z-index: 99;
             bottom: 27px;
-
         }
 
         /* ==========================================
@@ -320,6 +319,38 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- ⏱️ Modal هشدار خروج از حساب (Session Inactivity Timeout) -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3">
+                    <span class="avatar avatar-lg bg-warning-subtle text-warning rounded-circle p-3">
+                        <i class="ri-time-line fs-2"></i>
+                    </span>
+                </div>
+                <h6 class="fw-bold mb-1">نشست شما در حال پایان است</h6>
+                <p class="text-muted small mb-3">
+                    به دلیل عدم فعالیت، حساب شما تا <b id="session-countdown" class="text-danger">03:00</b> دیگر بسته
+                    خواهد شد. آیا مایل به ادامه هستید؟
+                </p>
+
+                <div class="d-grid gap-2">
+                    <button type="button" id="btn-extend-session" class="btn btn-primary py-2 fw-semibold"
+                            style="border-radius: 8px; font-size: 0.875rem;">
+                        <i class="ri-refresh-line me-1"></i> بله، ادامه می‌دهم
+                    </button>
+                    <button type="button" id="btn-logout-now" class="btn btn-light text-danger py-2 fw-semibold"
+                            style="border-radius: 8px; font-size: 0.875rem;">
+                        خیر، خروج از حساب
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -588,6 +619,108 @@
                 }[m];
             });
         }
+    });
+</script>
+
+<!-- ⏱️ مدیریت خودکار نشست (همگام‌سازی فرانت‌اند و بک‌اند) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const IDLE_TIME_BEFORE_WARNING = 27 * 60 * 1000; // ۲۷ دقیقه
+        const COUNTDOWN_SECONDS = 3 * 60;                // ۳ دقیقه مهلت
+        const AUTO_PING_INTERVAL = 5 * 60 * 1000;        // پینگ هوشمند به سرور هر ۵ دقیقه
+
+        let idleTimer;
+        let countdownInterval;
+        let remainingSeconds = COUNTDOWN_SECONDS;
+        let lastServerPing = Date.now();
+
+        const modalElement = document.getElementById('sessionTimeoutModal');
+        if (!modalElement) return;
+
+        const sessionModal = new bootstrap.Modal(modalElement);
+        const countdownEl = document.getElementById('session-countdown');
+        const btnExtend = document.getElementById('btn-extend-session');
+        const btnLogout = document.getElementById('btn-logout-now');
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        // ارسال درخواست تمدید به جنگو
+        function sendKeepAlive() {
+            fetch("{% url 'dashboard:keep_alive' %}", {
+                method: 'GET',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            }).then(res => res.json())
+                .then(data => {
+                    if (data.status === 'session_refreshed') {
+                        lastServerPing = Date.now();
+                    }
+                }).catch(() => performLogout());
+        }
+
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            if (modalElement.classList.contains('show')) return;
+
+            // اگر کاربر فعال است و بیش از ۵ دقیقه از آخرین پینگ گذشته، سشن جنگو را هم زنده کن
+            if (Date.now() - lastServerPing > AUTO_PING_INTERVAL) {
+                sendKeepAlive();
+            }
+
+            idleTimer = setTimeout(showWarningModal, IDLE_TIME_BEFORE_WARNING);
+        }
+
+        let isThrottled = false;
+        const handleUserActivity = () => {
+            if (!isThrottled) {
+                resetIdleTimer();
+                isThrottled = true;
+                setTimeout(() => {
+                    isThrottled = false;
+                }, 1000);
+            }
+        };
+
+        ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(event => {
+            window.addEventListener(event, handleUserActivity, {passive: true});
+        });
+
+        function showWarningModal() {
+            remainingSeconds = COUNTDOWN_SECONDS;
+            countdownEl.innerText = formatTime(remainingSeconds);
+            sessionModal.show();
+
+            countdownInterval = setInterval(() => {
+                remainingSeconds--;
+                countdownEl.innerText = formatTime(remainingSeconds);
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    performLogout();
+                }
+            }, 1000);
+        }
+
+        function performLogout() {
+            window.location.href = "{% url 'login' %}"; // 👈 هماهنگ شده با نام آدرس لاگین
+        }
+
+        btnExtend?.addEventListener('click', function () {
+            sendKeepAlive();
+            clearInterval(countdownInterval);
+            sessionModal.hide();
+            resetIdleTimer();
+        });
+
+        btnLogout?.addEventListener('click', function () {
+            clearInterval(countdownInterval);
+            performLogout();
+        });
+
+        resetIdleTimer();
     });
 </script>
 

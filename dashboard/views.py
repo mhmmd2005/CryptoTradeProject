@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 import re
+import time
 from decimal import Decimal, ROUND_DOWN
 from io import BytesIO
 
@@ -923,6 +924,14 @@ class GlobalSearchView(LoginRequiredMixin, View):
             return True
         except ValueError:
             return False
+
+
+class KeepAliveView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        current_time = time.time()
+        request.session['last_activity'] = current_time
+        request.session.modified = True
+        return JsonResponse({'status': 'session_refreshed'})
 
 
 class LandingPageView(View):

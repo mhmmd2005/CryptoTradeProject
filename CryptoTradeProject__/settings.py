@@ -87,6 +87,7 @@ MIDDLEWARE = [
 
     'accounts.middleware.LockScreenMiddleware',  # lock کاربر عادی
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'dashboard.middleware.StrictSessionTimeoutMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = [

@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views import DashboardView, ProfileSettingsView, TwoStepVerifyView, DisableTwoStepView, mark_notification_read, \
     notifications_dropdown, mark_all_notifications_read, CustomUsernameView, MarketDataView, BinanceTickerProxyView, \
-    ExecuteInternalTradeView, InternalTradeHistoryView, GlobalSearchView
+    ExecuteInternalTradeView, InternalTradeHistoryView, GlobalSearchView, KeepAliveView
 
 app_name = 'dashboard'
 
@@ -25,4 +25,4 @@ urlpatterns = [
     path('api/execute-trade/', ExecuteInternalTradeView.as_view(), name='execute_trade'),
     path('trade-history/', InternalTradeHistoryView.as_view(), name='internal-trade-history'),
     path("global-search/", GlobalSearchView.as_view(), name="global-search"),
-]
+    path('keep-alive/', KeepAliveView.as_view(), name='keep_alive'), ]
